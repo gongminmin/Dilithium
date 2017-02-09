@@ -5,7 +5,7 @@ Dilithim is an open source library for converting DXIL and SPIR-V in bidirection
 ## Concepts
 
 ### What is DXIL
-DXIL (DirectX Intermediate Language) is a binary format that introduced by [DirectX Shader Compiler](https://github.com/Microsoft/DirectXShaderCompiler). As the name suggests, it's an intermediate language compiled from HLSL, and consumed by GPU drivers. Unlike its predecessor DXBC (DirectX Byte Code), DXIL is open and standardized.
+DXIL (**D**irect**X** **I**ntermediate **L**anguage) is a binary format that introduced by [DirectX Shader Compiler](https://github.com/Microsoft/DirectXShaderCompiler). As the name suggests, it's an intermediate language compiled from HLSL, and consumed by GPU drivers. Unlike its predecessor DXBC (**D**irect**X** **B**yte **C**ode), DXIL is open and standardized.
 
 For more information, see the [DXIL.rst](https://github.com/Microsoft/DirectXShaderCompiler/blob/master/docs/DXIL.rst).
 
@@ -22,7 +22,7 @@ In D3D, HLSL shaders are compiled to DXIL/DXBC. Meanwhile in OpenGL/OpenGLES, GL
 Before you build, you will need to have some additional software installed.
 
 * [Git](http://git-scm.com/downloads).
-* [CMake](https://cmake.org/). Version 3.4 or up is required. You need not change your PATH variable during installation.
+* [CMake](https://cmake.org/download/). Version 3.4 or up is required. You need not change your PATH variable during installation.
 * [Python](https://www.python.org/downloads/). Version 2.7 or up is required. You need not change your PATH variable during installation.
 
 ### Instructions
@@ -44,6 +44,7 @@ If you've noticed a bug or have an idea that you'd like to see come real, why no
 In Star Trek, Dilithium is a material which serves as a controlling agent in the faster-than-light warp drive. It is used to contain and regulate the annihilation reaction of matter and antimatter in a starship's warp core, which otherwise would explode from the uncontrolled annihilation reaction. In this project, Dilithium contains and regulates HLSL/DXIL and GLSL/SPIR-V in a game engine.
 
 ## Links
-[Dilithium project page](https://github.com/gongminmin/Dilithium)
-[DirectX Shader Compiler](https://github.com/Microsoft/DirectXShaderCompiler)
-[SPIRV-Cross, a tool for parsing SPIR-V](https://github.com/KhronosGroup/SPIRV-Cross)
+* [Dilithium project page](https://github.com/gongminmin/Dilithium)
+* [DirectX Shader Compiler](https://github.com/Microsoft/DirectXShaderCompiler)
+* [SPIRV-Cross, a tool for parsing SPIR-V](https://github.com/KhronosGroup/SPIRV-Cross)
+* [GLSL front-end and SPIR-V generator](https://github.com/KhronosGroup/glslang)
