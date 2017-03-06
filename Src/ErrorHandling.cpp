@@ -1,5 +1,5 @@
 /**
- * @file Dilithium.hpp
+ * @file ErrorHandling.hpp
  * @author Minmin Gong
  *
  * @section DESCRIPTION
@@ -32,34 +32,25 @@
  * THE SOFTWARE.
  */
 
-#ifndef _DILITHIUM_HPP
-#define _DILITHIUM_HPP
-
-#pragma once
-
-#if !defined(__cplusplus)
-	#error C++ compiler required.
-#endif
-
-#if defined(DEBUG) | defined(_DEBUG)
-	#define DILITHIUM_DEBUG
-#endif
-
-#define DILITHIUM_STRINGIZE(X) DILITHIUM_DO_STRINGIZE(X)
-#define DILITHIUM_DO_STRINGIZE(X) #X
-
-#define DILITHIUM_JOIN(X, Y) DILITHIUM_DO_JOIN(X, Y)
-#define DILITHIUM_DO_JOIN(X, Y) DILITHIUM_DO_JOIN2(X, Y)
-#define DILITHIUM_DO_JOIN2(X, Y) X##Y
-
-#include <Dilithium/Compiler.hpp>
-#include <Dilithium/Util.hpp>
 #include <Dilithium/ErrorHandling.hpp>
 
-#ifndef DILITHIUM_SOURCE
-	#define DILITHIUM_LIB_NAME Dilithium
-	#include <Dilithium/Detail/AutoLink.hpp>
-#endif	// DILITHIUM_SOURCE
+#include <iostream>
 
-#endif		// _DILITHIUM_HPP
+namespace Dilithium
+{
+	void UnreachableInternal(char const * msg, char const * file, uint32_t line)
+	{
+		if (msg)
+		{
+			std::clog << msg << "\n";
+		}
+		std::clog << "UNREACHABLE executed";
+		if (file)
+		{
+			std::clog << " at " << file << ":" << line;
+		}
+		std::clog << "!\n";
 
+		TEC("Unreachable.");
+	}
+}

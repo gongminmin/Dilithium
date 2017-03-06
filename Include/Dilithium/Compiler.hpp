@@ -137,4 +137,14 @@
 	#error "Unknown compiler. Please install vc, g++ or clang."
 #endif
 
+#ifndef __has_builtin
+	#define __has_builtin(x) 0
+#endif
+
+#if __has_builtin(__builtin_unreachable)
+	#define DILITHIUM_BUILTIN_UNREACHABLE __builtin_unreachable()
+#elif defined(_MSC_VER)
+	#define DILITHIUM_BUILTIN_UNREACHABLE __assume(false)
+#endif
+
 #endif		//_DILITHIUM_COMPILER_HPP

@@ -1,5 +1,5 @@
 /**
- * @file Dilithium.hpp
+ * @file ErrorHandling.hpp
  * @author Minmin Gong
  *
  * @section DESCRIPTION
@@ -32,34 +32,38 @@
  * THE SOFTWARE.
  */
 
-#ifndef _DILITHIUM_HPP
-#define _DILITHIUM_HPP
+#ifndef _DILITHIUM_ERROR_HANDLING_HPP
+#define _DILITHIUM_ERROR_HANDLING_HPP
 
 #pragma once
 
-#if !defined(__cplusplus)
-	#error C++ compiler required.
+#include <system_error>
+#include <exception>
+
+namespace Dilithium
+{
+	void UnreachableInternal(char const * msg = nullptr, char const * file = nullptr, uint32_t line = 0);
+
+#if defined(DILITHIUM_BUILTIN_UNREACHABLE)
+	#define DILITHIUM_UNREACHABLE(msg) DILITHIUM_BUILTIN_UNREACHABLE
+#else
+	#define DILITHIUM_UNREACHABLE(msg) ::Dilithium::UnreachableInternal(msg, __FILE__, __LINE__)
 #endif
 
-#if defined(DEBUG) | defined(_DEBUG)
-	#define DILITHIUM_DEBUG
-#endif
+#define DILITHIUM_NOT_IMPLEMENTED DILITHIUM_UNREACHABLE("Not implemented")
 
-#define DILITHIUM_STRINGIZE(X) DILITHIUM_DO_STRINGIZE(X)
-#define DILITHIUM_DO_STRINGIZE(X) #X
+	inline void TEC(std::error_code ec, char const * msg = nullptr)
+	{
+		if (ec)
+		{
+			throw std::system_error(ec, msg);
+		}
+	}
 
-#define DILITHIUM_JOIN(X, Y) DILITHIUM_DO_JOIN(X, Y)
-#define DILITHIUM_DO_JOIN(X, Y) DILITHIUM_DO_JOIN2(X, Y)
-#define DILITHIUM_DO_JOIN2(X, Y) X##Y
+	inline void TEC(char const * msg = nullptr)
+	{
+		TEC(std::make_error_code(std::errc::function_not_supported), msg);
+	}
+}
 
-#include <Dilithium/Compiler.hpp>
-#include <Dilithium/Util.hpp>
-#include <Dilithium/ErrorHandling.hpp>
-
-#ifndef DILITHIUM_SOURCE
-	#define DILITHIUM_LIB_NAME Dilithium
-	#include <Dilithium/Detail/AutoLink.hpp>
-#endif	// DILITHIUM_SOURCE
-
-#endif		// _DILITHIUM_HPP
-
+#endif		// _DILITHIUM_ERROR_HANDLING_HPP

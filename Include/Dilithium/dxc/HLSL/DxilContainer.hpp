@@ -33,6 +33,7 @@
  */
 
 #include <Dilithium/Util.hpp>
+#include <Dilithium/dxc/HLSL/DxilConstants.hpp>
 
 namespace Dilithium
 {
@@ -218,4 +219,10 @@ namespace Dilithium
 	bool IsValidDxilBitcodeHeader(DxilBitcodeHeader const * header, uint32_t length);	
 	void GetDxilProgramBitcode(DxilProgramHeader const * header, uint8_t const ** bitcode, uint32_t* bitcode_length);
 	bool IsValidDxilProgramHeader(DxilProgramHeader const * header, uint32_t length);
+
+	// Extract the shader type from the program version value.
+	inline ShaderKind GetVersionShaderType(uint32_t program_version)
+	{
+		return static_cast<ShaderKind>((program_version & 0xFFFF0000U) >> 16);
+	}
 }
