@@ -87,6 +87,8 @@
 	#else
 		#error "Clang++ on an unknown platform. Only Apple and Windows are supported."
 	#endif
+
+	#define DILITHIUM_ATTRIBUTE_NORETURN __attribute__((noreturn))
 #elif defined(__GNUC__)
 	#define DILITHIUM_COMPILER_GCC
 
@@ -112,6 +114,8 @@
 		#define DILITHIUM_SYMBOL_EXPORT __attribute__((__visibility__("default")))
 		#define DILITHIUM_SYMBOL_IMPORT
 	#endif
+
+	#define DILITHIUM_ATTRIBUTE_NORETURN __attribute__((noreturn))
 #elif defined(_MSC_VER)
 	#define DILITHIUM_COMPILER_MSVC
 	#define DILITHIUM_COMPILER_NAME vc
@@ -133,6 +137,8 @@
 	#ifndef _SCL_SECURE_NO_DEPRECATE
 		#define _SCL_SECURE_NO_DEPRECATE
 	#endif
+
+	#define DILITHIUM_ATTRIBUTE_NORETURN __declspec(noreturn)
 #else
 	#error "Unknown compiler. Please install vc, g++ or clang."
 #endif

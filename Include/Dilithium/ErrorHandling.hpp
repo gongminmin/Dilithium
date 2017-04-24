@@ -42,27 +42,32 @@
 
 namespace Dilithium
 {
+#if defined(DILITHIUM_DEBUG) || !defined(DILITHIUM_BUILTIN_UNREACHABLE)
 	void UnreachableInternal(char const * msg = nullptr, char const * file = nullptr, uint32_t line = 0);
 
-#if defined(DILITHIUM_BUILTIN_UNREACHABLE)
-	#define DILITHIUM_UNREACHABLE(msg) DILITHIUM_BUILTIN_UNREACHABLE
-#else
 	#define DILITHIUM_UNREACHABLE(msg) ::Dilithium::UnreachableInternal(msg, __FILE__, __LINE__)
+#else
+	#define DILITHIUM_UNREACHABLE(msg) DILITHIUM_BUILTIN_UNREACHABLE
 #endif
 
 #define DILITHIUM_NOT_IMPLEMENTED DILITHIUM_UNREACHABLE("Not implemented")
 
+	inline void TERROR(char const * msg = nullptr)
+	{
+		throw std::runtime_error(msg);
+	}
+
 	inline void TEC(std::error_code ec, char const * msg = nullptr)
+	{
+		throw std::system_error(ec, msg);
+	}
+
+	inline void TIFEC(std::error_code ec, char const * msg = nullptr)
 	{
 		if (ec)
 		{
-			throw std::system_error(ec, msg);
+			TEC(ec, msg);
 		}
-	}
-
-	inline void TEC(char const * msg = nullptr)
-	{
-		TEC(std::make_error_code(std::errc::function_not_supported), msg);
 	}
 }
 

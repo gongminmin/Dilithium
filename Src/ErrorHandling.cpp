@@ -38,6 +38,7 @@
 
 namespace Dilithium
 {
+#if defined(DILITHIUM_DEBUG) || !defined(DILITHIUM_BUILTIN_UNREACHABLE)
 	void UnreachableInternal(char const * msg, char const * file, uint32_t line)
 	{
 		if (msg)
@@ -51,6 +52,7 @@ namespace Dilithium
 		}
 		std::clog << "!\n";
 
-		TEC("Unreachable.");
+		TERROR("Unreachable.");
 	}
+#endif
 }

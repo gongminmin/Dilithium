@@ -356,14 +356,11 @@ namespace
 			break;
 
 		case ShaderKind::Hull:
-			{
-				os << comment << " Hull Shader" << std::endl;
-				os << comment << " InputControlPointCount=" << info->HS.InputControlPointCount << std::endl;
-				os << comment << " OutputControlPointCount=" << info->HS.OutputControlPointCount << std::endl;
-				os << comment << " Domain=" << tessellator_domain_names[info->HS.TessellatorDomain] << std::endl;
-				os << comment << " OutputPrimitive="
-					<< tessellator_output_primitive_names[info->HS.TessellatorOutputPrimitive] << std::endl;
-			}
+			os << comment << " Hull Shader" << std::endl;
+			os << comment << " InputControlPointCount=" << info->HS.InputControlPointCount << std::endl;
+			os << comment << " OutputControlPointCount=" << info->HS.OutputControlPointCount << std::endl;
+			os << comment << " Domain=" << tessellator_domain_names[info->HS.TessellatorDomain] << std::endl;
+			os << comment << " OutputPrimitive=" << tessellator_output_primitive_names[info->HS.TessellatorOutputPrimitive] << std::endl;
 			break;
 
 		case ShaderKind::Domain:
@@ -406,7 +403,7 @@ std::string Disassemble(std::vector<uint8_t> const & program)
 	{
 		if (!IsValidDxilContainer(container, il_length))
 		{
-			TEC("This container is invalid.");
+			TERROR("This container is invalid.");
 		}
 
 		for (uint32_t i = 0; i < container->PartCount; ++ i)
@@ -460,7 +457,7 @@ std::string Disassemble(std::vector<uint8_t> const & program)
 
 		if (dxil_index == container->PartCount)
 		{
-			TEC("This container doesn't have DXIL.");
+			TERROR("This container doesn't have DXIL.");
 		}
 
 		for (uint32_t i = 0; i < container->PartCount; ++ i)
@@ -478,7 +475,7 @@ std::string Disassemble(std::vector<uint8_t> const & program)
 		auto program_header = reinterpret_cast<DxilProgramHeader const *>(GetDxilPartData(dxil_part));
 		if (!IsValidDxilProgramHeader(program_header, dxil_part->PartSize))
 		{
-			TEC("The program header in this is container is invalid.");
+			TERROR("The program header in this is container is invalid.");
 		}
 
 		for (uint32_t i = 0; i < container->PartCount; ++ i)
