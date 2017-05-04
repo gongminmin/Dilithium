@@ -1,5 +1,5 @@
 /**
- * @file DxilContainer.hpp
+ * @file DxilPipelineStateValidation.hpp
  * @author Minmin Gong
  *
  * @section DESCRIPTION
@@ -31,6 +31,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
+#ifndef _DILITHIUM_DXIL_PIPELINE_STATE_VALIDATION_HPP
+#define _DILITHIUM_DXIL_PIPELINE_STATE_VALIDATION_HPP
+
+#pragma once
 
 #include <Dilithium/Util.hpp>
 
@@ -77,3 +82,5 @@ namespace Dilithium
 	};
 #pragma pack(pop)
 }
+
+#endif		// _DILITHIUM_DXIL_PIPELINE_STATE_VALIDATION_HPP

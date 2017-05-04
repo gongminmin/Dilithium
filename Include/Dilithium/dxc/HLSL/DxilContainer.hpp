@@ -32,6 +32,11 @@
  * THE SOFTWARE.
  */
 
+#ifndef _DILITHIUM_DXIL_CONTAINERS_HPP
+#define _DILITHIUM_DXIL_CONTAINERS_HPP
+
+#pragma once
+
 #include <Dilithium/Util.hpp>
 #include <Dilithium/dxc/HLSL/DxilConstants.hpp>
 
@@ -226,3 +231,5 @@ namespace Dilithium
 		return static_cast<ShaderKind>((program_version & 0xFFFF0000U) >> 16);
 	}
 }
+
+#endif		// _DILITHIUM_DXIL_CONTAINERS_HPP

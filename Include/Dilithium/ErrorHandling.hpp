@@ -50,7 +50,7 @@ namespace Dilithium
 	#define DILITHIUM_UNREACHABLE(msg) DILITHIUM_BUILTIN_UNREACHABLE
 #endif
 
-#define DILITHIUM_NOT_IMPLEMENTED DILITHIUM_UNREACHABLE("Not implemented")
+	#define DILITHIUM_NOT_IMPLEMENTED DILITHIUM_UNREACHABLE("Not implemented")
 
 	inline void TERROR(char const * msg = nullptr)
 	{

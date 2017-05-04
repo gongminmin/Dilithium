@@ -1,5 +1,5 @@
 /**
- * @file DxilContainer.hpp
+ * @file DxilConstants.hpp
  * @author Minmin Gong
  *
  * @section DESCRIPTION
@@ -31,6 +31,11 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+
+#ifndef _DILITHIUM_DXIL_CONSTANTS_HPP
+#define _DILITHIUM_DXIL_CONSTANTS_HPP
+
+#pragma once
 
 #include <Dilithium/Util.hpp>
 
@@ -119,3 +124,5 @@ namespace Dilithium
 	};
 
 };
+
+#endif		// _DILITHIUM_DXIL_CONSTANTS_HPP
