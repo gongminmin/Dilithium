@@ -1,5 +1,5 @@
 /**
- * @file ErrorHandling.hpp
+ * @file GVMaterializer.hpp
  * @author Minmin Gong
  *
  * @section DESCRIPTION
@@ -32,44 +32,34 @@
  * THE SOFTWARE.
  */
 
-#ifndef _DILITHIUM_ERROR_HANDLING_HPP
-#define _DILITHIUM_ERROR_HANDLING_HPP
+#ifndef _DILITHIUM_GVMATERIALIZER_HPP
+#define _DILITHIUM_GVMATERIALIZER_HPP
 
 #pragma once
 
-#include <Dilithium/Compiler.hpp>
-#include <system_error>
-#include <exception>
-
 namespace Dilithium
 {
-#if defined(DILITHIUM_DEBUG) || !defined(DILITHIUM_BUILTIN_UNREACHABLE)
-	DILITHIUM_ATTRIBUTE_NORETURN void UnreachableInternal(char const * msg = nullptr, char const * file = nullptr, uint32_t line = 0);
+	class GlobalValue;
+	class LLVMModule;
 
-	#define DILITHIUM_UNREACHABLE(msg) ::Dilithium::UnreachableInternal(msg, __FILE__, __LINE__)
-#else
-	#define DILITHIUM_UNREACHABLE(msg) DILITHIUM_BUILTIN_UNREACHABLE
-#endif
-
-	#define DILITHIUM_NOT_IMPLEMENTED DILITHIUM_UNREACHABLE("Not implemented")
-
-	inline void TERROR(char const * msg = nullptr)
+	// A general interface of materializer, inspired by LLVM's.
+	// TODO: Consider merging it with BitcodeReader
+	class GVMaterializer
 	{
-		throw std::runtime_error(msg);
-	}
-
-	inline void TEC(std::error_code ec, char const * msg = nullptr)
-	{
-		throw std::system_error(ec, msg);
-	}
-
-	inline void TIFEC(std::error_code ec, char const * msg = nullptr)
-	{
-		if (ec)
+	protected:
+		GVMaterializer()
 		{
-			TEC(ec, msg);
 		}
-	}
+
+	public:
+		virtual ~GVMaterializer()
+		{
+		}
+
+		virtual void Materialize(GlobalValue* gv) = 0;
+		virtual void MaterializeModule(LLVMModule* m) = 0;
+		virtual void MaterializeMetadata() = 0;
+	};
 }
 
-#endif		// _DILITHIUM_ERROR_HANDLING_HPP
+#endif		// _DILITHIUM_LLVM_MODULE_HPP

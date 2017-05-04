@@ -1,5 +1,5 @@
 /**
- * @file ErrorHandling.hpp
+ * @file LLVMModule.hpp
  * @author Minmin Gong
  *
  * @section DESCRIPTION
@@ -32,44 +32,35 @@
  * THE SOFTWARE.
  */
 
-#ifndef _DILITHIUM_ERROR_HANDLING_HPP
-#define _DILITHIUM_ERROR_HANDLING_HPP
+#ifndef _DILITHIUM_LLVM_MODULE_HPP
+#define _DILITHIUM_LLVM_MODULE_HPP
 
 #pragma once
 
-#include <Dilithium/Compiler.hpp>
-#include <system_error>
-#include <exception>
+#include <memory>
+#include <string>
+
+#include <boost/core/noncopyable.hpp>
 
 namespace Dilithium
 {
-#if defined(DILITHIUM_DEBUG) || !defined(DILITHIUM_BUILTIN_UNREACHABLE)
-	DILITHIUM_ATTRIBUTE_NORETURN void UnreachableInternal(char const * msg = nullptr, char const * file = nullptr, uint32_t line = 0);
+	class GVMaterializer;
+	class LLVMContext;
 
-	#define DILITHIUM_UNREACHABLE(msg) ::Dilithium::UnreachableInternal(msg, __FILE__, __LINE__)
-#else
-	#define DILITHIUM_UNREACHABLE(msg) DILITHIUM_BUILTIN_UNREACHABLE
-#endif
-
-	#define DILITHIUM_NOT_IMPLEMENTED DILITHIUM_UNREACHABLE("Not implemented")
-
-	inline void TERROR(char const * msg = nullptr)
+	class LLVMModule : boost::noncopyable
 	{
-		throw std::runtime_error(msg);
-	}
+	public:
+		LLVMModule(std::string const & name, std::shared_ptr<LLVMContext> const & context);
+		~LLVMModule();
 
-	inline void TEC(std::error_code ec, char const * msg = nullptr)
-	{
-		throw std::system_error(ec, msg);
-	}
+		void Materializer(std::shared_ptr<GVMaterializer> const & gvm);
+		void MaterializeAllPermanently();
 
-	inline void TIFEC(std::error_code ec, char const * msg = nullptr)
-	{
-		if (ec)
-		{
-			TEC(ec, msg);
-		}
-	}
+	private:
+		std::shared_ptr<LLVMContext> context_;
+		std::string name_;
+		std::shared_ptr<GVMaterializer> materializer_;
+	};
 }
 
-#endif		// _DILITHIUM_ERROR_HANDLING_HPP
+#endif		// _DILITHIUM_LLVM_MODULE_HPP

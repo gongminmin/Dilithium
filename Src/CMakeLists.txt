@@ -11,9 +11,12 @@ SET(DXC_HLSL_HEADER_FILES
 )
 
 SET(HEADER_FILES
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/BitcodeReader.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Compiler.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Dilithium.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/ErrorHandling.hpp
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/LLVMContext.hpp
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/LLVMModule.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Util.hpp
 )
 
@@ -22,6 +25,9 @@ SET(HLSL_SOURCE_FILES
 )
 
 SET(SOURCE_FILES
+	${DILITHIUM_ROOT_DIR}/Src/BitcodeReader.cpp
+	${DILITHIUM_ROOT_DIR}/Src/LLVMContext.cpp
+	${DILITHIUM_ROOT_DIR}/Src/LLVMModule.cpp
 	${DILITHIUM_ROOT_DIR}/Src/ErrorHandling.cpp
 )
 
@@ -32,6 +38,8 @@ SOURCE_GROUP("Header Files\\Detail" FILES ${DETAIL_HEADER_FILES})
 SOURCE_GROUP("Header Files\\dxc\\HLSL" FILES ${DXC_HLSL_HEADER_FILES})
 
 ADD_DEFINITIONS(-DDILITHIUM_SOURCE)
+
+INCLUDE_DIRECTORIES(${Boost_INCLUDE_DIR})
 
 ADD_LIBRARY(${LIB_NAME} STATIC
 	${HEADER_FILES} ${DETAIL_HEADER_FILES} ${DXC_HLSL_HEADER_FILES}

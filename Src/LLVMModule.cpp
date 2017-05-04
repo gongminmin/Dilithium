@@ -1,5 +1,5 @@
 /**
- * @file ErrorHandling.hpp
+ * @file LLVMModule.cpp
  * @author Minmin Gong
  *
  * @section DESCRIPTION
@@ -32,44 +32,36 @@
  * THE SOFTWARE.
  */
 
-#ifndef _DILITHIUM_ERROR_HANDLING_HPP
-#define _DILITHIUM_ERROR_HANDLING_HPP
+#include <Dilithium/LLVMModule.hpp>
 
-#pragma once
-
-#include <Dilithium/Compiler.hpp>
-#include <system_error>
-#include <exception>
+#include <Dilithium/ErrorHandling.hpp>
+#include <Dilithium/GVMaterializer.hpp>
+#include <Dilithium/LLVMContext.hpp>
 
 namespace Dilithium
 {
-#if defined(DILITHIUM_DEBUG) || !defined(DILITHIUM_BUILTIN_UNREACHABLE)
-	DILITHIUM_ATTRIBUTE_NORETURN void UnreachableInternal(char const * msg = nullptr, char const * file = nullptr, uint32_t line = 0);
-
-	#define DILITHIUM_UNREACHABLE(msg) ::Dilithium::UnreachableInternal(msg, __FILE__, __LINE__)
-#else
-	#define DILITHIUM_UNREACHABLE(msg) DILITHIUM_BUILTIN_UNREACHABLE
-#endif
-
-	#define DILITHIUM_NOT_IMPLEMENTED DILITHIUM_UNREACHABLE("Not implemented")
-
-	inline void TERROR(char const * msg = nullptr)
+	LLVMModule::LLVMModule(std::string const & name, std::shared_ptr<LLVMContext> const & context)
+		: context_(context), name_(name)
 	{
-		throw std::runtime_error(msg);
+		DILITHIUM_NOT_IMPLEMENTED;
 	}
 
-	inline void TEC(std::error_code ec, char const * msg = nullptr)
+	LLVMModule::~LLVMModule()
 	{
-		throw std::system_error(ec, msg);
+		//DILITHIUM_NOT_IMPLEMENTED;
 	}
 
-	inline void TIFEC(std::error_code ec, char const * msg = nullptr)
+	void LLVMModule::Materializer(std::shared_ptr<GVMaterializer> const & gvm)
 	{
-		if (ec)
+		materializer_ = gvm;
+	}
+
+	void LLVMModule::MaterializeAllPermanently()
+	{
+		if (materializer_)
 		{
-			TEC(ec, msg);
+			materializer_->MaterializeModule(this);
+			materializer_.reset();
 		}
 	}
 }
-
-#endif		// _DILITHIUM_ERROR_HANDLING_HPP

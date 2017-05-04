@@ -55,6 +55,8 @@
 #include <Dilithium/Compiler.hpp>
 #include <Dilithium/Util.hpp>
 #include <Dilithium/ErrorHandling.hpp>
+#include <Dilithium/BitcodeReader.hpp>
+#include <Dilithium/LLVMModule.hpp>
 
 #ifndef DILITHIUM_SOURCE
 	#define DILITHIUM_LIB_NAME Dilithium

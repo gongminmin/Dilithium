@@ -500,9 +500,19 @@ std::string Disassemble(std::vector<uint8_t> const & program)
 		}
 	}
 
-	//DILITHIUM_NOT_IMPLEMENTED;
+	try
+	{
+		auto module = Dilithium::LoadLLVMModule(il, il_length, "");
 
-	return oss.str();
+		//DILITHIUM_NOT_IMPLEMENTED;
+
+		return oss.str();
+	}
+	catch (std::error_code& ec)
+	{
+		std::cerr << ec.message() << std::endl;
+		return "";
+	}
 }
 
 int main(int argc, char** argv)

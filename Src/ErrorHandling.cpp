@@ -1,5 +1,5 @@
 /**
- * @file ErrorHandling.hpp
+ * @file ErrorHandling.cpp
  * @author Minmin Gong
  *
  * @section DESCRIPTION
