@@ -128,6 +128,10 @@
 		#error "Unsupported compiler version. Please install vc14 or up."
 	#endif
 
+	#if _MSVC_LANG > 201402
+		#define DILITHIUM_CXX17_LIBRARY_STRING_VIEW_SUPPORT
+	#endif
+
 	#define DILITHIUM_SYMBOL_EXPORT __declspec(dllexport)
 	#define DILITHIUM_SYMBOL_IMPORT __declspec(dllimport)
 

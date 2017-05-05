@@ -40,12 +40,17 @@ namespace Dilithium
 {
 	void ReportFatalError(char const * reason)
 	{
-		ReportFatalError(std::string(reason));
+		ReportFatalError(std::string_view(reason));
 	}
 
 	void ReportFatalError(std::string const & reason)
 	{
 		TERROR(("Fatal error: " + reason).c_str());
+	}
+
+	void ReportFatalError(std::string_view reason)
+	{
+		ReportFatalError(reason.to_string());
 	}
 
 #if defined(DILITHIUM_DEBUG) || !defined(DILITHIUM_BUILTIN_UNREACHABLE)
