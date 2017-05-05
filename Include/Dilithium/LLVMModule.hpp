@@ -37,10 +37,14 @@
 
 #pragma once
 
+#include <Dilithium/Function.hpp>
+
+#include <list>
 #include <memory>
 #include <string>
 
 #include <boost/core/noncopyable.hpp>
+#include <boost/range/iterator_range.hpp>
 
 namespace Dilithium
 {
@@ -50,14 +54,74 @@ namespace Dilithium
 	class LLVMModule : boost::noncopyable
 	{
 	public:
+		typedef std::list<std::unique_ptr<Function>> FunctionListType;
+
+		typedef FunctionListType::iterator                           iterator;
+		typedef FunctionListType::const_iterator               const_iterator;
+
+		typedef FunctionListType::reverse_iterator             reverse_iterator;
+		typedef FunctionListType::const_reverse_iterator const_reverse_iterator;
+
+	public:
 		LLVMModule(std::string const & name, std::shared_ptr<LLVMContext> const & context);
 		~LLVMModule();
 
 		void Materializer(std::shared_ptr<GVMaterializer> const & gvm);
 		void MaterializeAllPermanently();
 
+		iterator begin()
+		{
+			return function_list_.begin();
+		}
+		const_iterator begin() const
+		{
+			return function_list_.begin();
+		}
+		iterator end()
+		{
+			return function_list_.end();
+		}
+		const_iterator end() const
+		{
+			return function_list_.end();
+		}
+		reverse_iterator rbegin()
+		{
+			return function_list_.rbegin();
+		}
+		const_reverse_iterator rbegin() const
+		{
+			return function_list_.rbegin();
+		}
+		reverse_iterator rend()
+		{
+			return function_list_.rend();
+		}
+		const_reverse_iterator rend() const
+		{
+			return function_list_.rend();
+		}
+		size_t size() const
+		{
+			return function_list_.size();
+		}
+		bool empty() const
+		{
+			return function_list_.empty();
+		}
+
+		boost::iterator_range<iterator> functions()
+		{
+			return boost::iterator_range<iterator>(begin(), end());
+		}
+		boost::iterator_range<const_iterator> functions() const
+		{
+			return boost::iterator_range<const_iterator>(begin(), end());
+		}
+
 	private:
 		std::shared_ptr<LLVMContext> context_;
+		FunctionListType function_list_;
 		std::string name_;
 		std::shared_ptr<GVMaterializer> materializer_;
 	};

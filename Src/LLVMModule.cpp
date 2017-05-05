@@ -43,7 +43,6 @@ namespace Dilithium
 	LLVMModule::LLVMModule(std::string const & name, std::shared_ptr<LLVMContext> const & context)
 		: context_(context), name_(name)
 	{
-		DILITHIUM_NOT_IMPLEMENTED;
 	}
 
 	LLVMModule::~LLVMModule()

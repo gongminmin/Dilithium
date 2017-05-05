@@ -38,6 +38,16 @@
 
 namespace Dilithium
 {
+	void ReportFatalError(char const * reason)
+	{
+		ReportFatalError(std::string(reason));
+	}
+
+	void ReportFatalError(std::string const & reason)
+	{
+		TERROR(("Fatal error: " + reason).c_str());
+	}
+
 #if defined(DILITHIUM_DEBUG) || !defined(DILITHIUM_BUILTIN_UNREACHABLE)
 	void UnreachableInternal(char const * msg, char const * file, uint32_t line)
 	{

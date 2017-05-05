@@ -37,12 +37,26 @@
 
 #pragma once
 
+#include <memory>
 #include <boost/core/noncopyable.hpp>
 
 namespace Dilithium
 {
+	struct LLVMContextImpl;
+
 	class LLVMContext : boost::noncopyable
 	{
+	public:
+		LLVMContext();
+		~LLVMContext();
+
+		LLVMContextImpl& Impl()
+		{
+			return *impl_;
+		}
+
+	private:
+		std::unique_ptr<LLVMContextImpl> impl_;
 	};
 }
 

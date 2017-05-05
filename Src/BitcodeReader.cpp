@@ -34,12 +34,17 @@
 
 #include <Dilithium/BitcodeReader.hpp>
 
+#include <Dilithium/BasicBlock.hpp>
 #include <Dilithium/ErrorHandling.hpp>
 #include <Dilithium/GVMaterializer.hpp>
 #include <Dilithium/LLVMContext.hpp>
 #include <Dilithium/LLVMModule.hpp>
 #include <Dilithium/Util.hpp>
 
+#include <deque>
+#include <unordered_map>
+
+#include <boost/assert.hpp>
 #include <boost/core/noncopyable.hpp>
 #include <boost/endian/conversion.hpp>
 
@@ -146,8 +151,37 @@ namespace
 		void MaterializeModule(LLVMModule* mod) override
 		{
 			DILITHIUM_UNUSED(mod);
+			BOOST_ASSERT_MSG(mod == the_module_, "Can only Materialize the Module this BitcodeReader is attached to.");
 
-			DILITHIUM_NOT_IMPLEMENTED;
+			this->MaterializeMetadata();
+
+			// Promise to materialize all forward references.
+			will_materialize_all_forward_refs_ = true;
+
+			for (auto func_iter = the_module_->begin(), end_iter = the_module_->end(); func_iter != end_iter; ++ func_iter)
+			{
+				this->Materialize(func_iter->get());
+			}
+			if (next_unread_bit_)
+			{
+				this->ParseModule(true);
+			}
+
+			// Check that all block address forward references got resolved (as we promised above).
+			if (!basic_block_fwd_refs_.empty())
+			{
+				this->Error("Never resolved function from blockaddress");
+				return;
+			}
+
+			// TODO: LLVM upgrades any intrinsic calls that slipped through (should not happen!) and
+			// delete the old functions to clean up. We can't do this unless the entire
+			// module is materialized because there could always be another function body
+			// with calls to the old function. But it doesn't seems we need it for DXIL.
+
+			// TODO: LLVM upgrades any instructions with TBAATag. But DXIL instructions doesn't come with TBAATag.
+
+			// TODO: LLVM upgrades debug information. We haven't implemented debug processing.
 		}
 
 		void MaterializeMetadata() override
@@ -167,6 +201,28 @@ namespace
 		}
 
 	private:
+		void Error(BitcodeError err, char const * message)
+		{
+			TEC(MakeErrorCode(err), message);
+		}
+		void Error(BitcodeError err)
+		{
+			auto ec = MakeErrorCode(err);
+			TEC(ec, ec.message().c_str());
+		}
+		void Error(char const * message)
+		{
+			this->Error(BitcodeError::CorruptedBitcode, message);
+		}
+
+		void ParseModule(bool resume, bool should_lazy_load_metadata = false)
+		{
+			DILITHIUM_UNUSED(resume);
+			DILITHIUM_UNUSED(should_lazy_load_metadata);
+
+			DILITHIUM_NOT_IMPLEMENTED;
+		}
+
 		void InitStream()
 		{
 			uint8_t const * buff_beg = buffer_;
@@ -196,6 +252,12 @@ namespace
 		LLVMModule* the_module_ = nullptr;
 		uint8_t const * buffer_ = nullptr;
 		uint32_t buffer_length_ = 0;
+		uint64_t next_unread_bit_ = 0;
+
+		std::unordered_map<Function*, std::vector<BasicBlock*>> basic_block_fwd_refs_;
+		std::deque<Function*> basic_block_fwd_ref_queue_;
+
+		bool will_materialize_all_forward_refs_ = false;
 	};
 }
 

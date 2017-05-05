@@ -33,7 +33,16 @@
  */
 
 #include <Dilithium/LLVMContext.hpp>
+#include "LLVMContextImpl.hpp"
 
 namespace Dilithium
 {
+	LLVMContext::LLVMContext()
+		: impl_(std::make_unique<LLVMContextImpl>(*this))
+	{
+	}
+
+	LLVMContext::~LLVMContext()
+	{
+	}
 }

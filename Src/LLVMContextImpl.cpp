@@ -1,5 +1,5 @@
 /**
- * @file ErrorHandling.hpp
+ * @file LLVMContextImpl.cpp
  * @author Minmin Gong
  *
  * @section DESCRIPTION
@@ -32,47 +32,18 @@
  * THE SOFTWARE.
  */
 
-#ifndef _DILITHIUM_ERROR_HANDLING_HPP
-#define _DILITHIUM_ERROR_HANDLING_HPP
-
-#pragma once
-
-#include <Dilithium/Compiler.hpp>
-#include <system_error>
-#include <exception>
+#include "LLVMContextImpl.hpp"
+#include <Dilithium/LLVMContext.hpp>
+#include <Dilithium/Util.hpp>
 
 namespace Dilithium
 {
-	DILITHIUM_ATTRIBUTE_NORETURN void ReportFatalError(char const * reason);
-	DILITHIUM_ATTRIBUTE_NORETURN void ReportFatalError(std::string const & reason);
-
-#if defined(DILITHIUM_DEBUG) || !defined(DILITHIUM_BUILTIN_UNREACHABLE)
-	DILITHIUM_ATTRIBUTE_NORETURN void UnreachableInternal(char const * msg = nullptr, char const * file = nullptr, uint32_t line = 0);
-
-	#define DILITHIUM_UNREACHABLE(msg) ::Dilithium::UnreachableInternal(msg, __FILE__, __LINE__)
-#else
-	#define DILITHIUM_UNREACHABLE(msg) DILITHIUM_BUILTIN_UNREACHABLE
-#endif
-
-	#define DILITHIUM_NOT_IMPLEMENTED DILITHIUM_UNREACHABLE("Not implemented")
-
-	inline void TERROR(char const * msg = nullptr)
+	LLVMContextImpl::LLVMContextImpl(LLVMContext& context)
 	{
-		throw std::runtime_error(msg);
+		DILITHIUM_UNUSED(context);
 	}
 
-	inline void TEC(std::error_code ec, char const * msg = nullptr)
+	LLVMContextImpl::~LLVMContextImpl()
 	{
-		throw std::system_error(ec, msg);
-	}
-
-	inline void TIFEC(std::error_code ec, char const * msg = nullptr)
-	{
-		if (ec)
-		{
-			TEC(ec, msg);
-		}
 	}
 }
-
-#endif		// _DILITHIUM_ERROR_HANDLING_HPP
