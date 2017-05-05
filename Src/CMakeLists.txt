@@ -17,6 +17,8 @@ SET(DXC_HLSL_HEADER_FILES
 SET(HEADER_FILES
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/BasicBlock.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/BitcodeReader.hpp
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/BitCodes.hpp
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/BitstreamReader.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Compiler.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Constant.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Dilithium.hpp
@@ -24,8 +26,10 @@ SET(HEADER_FILES
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Function.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/GlobalObject.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/GlobalValue.hpp
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/LLVMBitCodes.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/LLVMContext.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/LLVMModule.hpp
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/MemStreamBuf.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/User.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Util.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Value.hpp
@@ -38,10 +42,12 @@ SET(HLSL_SOURCE_FILES
 
 SET(SOURCE_FILES
 	${DILITHIUM_ROOT_DIR}/Src/BitcodeReader.cpp
+	${DILITHIUM_ROOT_DIR}/Src/BitstreamReader.cpp
 	${DILITHIUM_ROOT_DIR}/Src/ErrorHandling.cpp
 	${DILITHIUM_ROOT_DIR}/Src/LLVMContext.cpp
 	${DILITHIUM_ROOT_DIR}/Src/LLVMContextImpl.cpp
 	${DILITHIUM_ROOT_DIR}/Src/LLVMModule.cpp
+	${DILITHIUM_ROOT_DIR}/Src/MemStreamBuf.cpp
 )
 
 SOURCE_GROUP("Source Files" FILES ${SOURCE_FILES})

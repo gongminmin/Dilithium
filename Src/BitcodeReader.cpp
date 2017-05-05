@@ -35,8 +35,10 @@
 #include <Dilithium/BitcodeReader.hpp>
 
 #include <Dilithium/BasicBlock.hpp>
+#include <Dilithium/BitstreamReader.hpp>
 #include <Dilithium/ErrorHandling.hpp>
 #include <Dilithium/GVMaterializer.hpp>
+#include <Dilithium/LLVMBitCodes.hpp>
 #include <Dilithium/LLVMContext.hpp>
 #include <Dilithium/LLVMModule.hpp>
 #include <Dilithium/Util.hpp>
@@ -197,7 +199,44 @@ namespace
 
 			this->InitStream();
 
-			DILITHIUM_NOT_IMPLEMENTED;
+			// Sniff for the signature.
+			if ((stream_cursor_.Read(8) != 'B')
+				|| (stream_cursor_.Read(8) != 'C')
+				|| (stream_cursor_.Read(8) != 0xC0)
+				|| (stream_cursor_.Read(8) != 0xDE))
+			{
+				TERROR("Invalid bitcode signature");
+			}
+
+			// We expect a number of well-defined blocks, though we don't necessarily
+			// need to understand them all.
+			for (;;)
+			{
+				if (stream_cursor_.AtEndOfStream())
+				{
+					TERROR("Malformed IR file");
+				}
+
+				BitStreamEntry entry = stream_cursor_.Advance(BitStreamCursor::AF_DontAutoprocessAbbrevs);
+
+				if (entry.kind != BitStreamEntry::SubBlock)
+				{
+					TERROR("Malformed block");
+				}
+
+				if (entry.id == BitCode::BlockId::Module)
+				{
+					this->ParseModule(false, should_lazy_load_metadata);
+					break;
+				}
+				else
+				{
+					if (stream_cursor_.SkipBlock())
+					{
+						TERROR("Invalid record");
+					}
+				}
+			}
 		}
 
 	private:
@@ -243,7 +282,8 @@ namespace
 				}
 			}
 
-			DILITHIUM_NOT_IMPLEMENTED;
+			stream_file_ = std::make_unique<BitStreamReader>(buff_beg, buff_end);
+			stream_cursor_.Init(stream_file_.get());
 		}
 
 	private:
@@ -252,6 +292,8 @@ namespace
 		LLVMModule* the_module_ = nullptr;
 		uint8_t const * buffer_ = nullptr;
 		uint32_t buffer_length_ = 0;
+		std::unique_ptr<BitStreamReader> stream_file_;
+		BitStreamCursor stream_cursor_;
 		uint64_t next_unread_bit_ = 0;
 
 		std::unordered_map<Function*, std::vector<BasicBlock*>> basic_block_fwd_refs_;
