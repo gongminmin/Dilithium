@@ -37,6 +37,7 @@
 
 #pragma once
 
+#include <Dilithium/CXX17/string_view.hpp>
 #include <Dilithium/Function.hpp>
 
 #include <list>
@@ -50,6 +51,7 @@ namespace Dilithium
 {
 	class GVMaterializer;
 	class LLVMContext;
+	class NamedMDNode;
 
 	class LLVMModule : boost::noncopyable
 	{
@@ -65,6 +67,17 @@ namespace Dilithium
 	public:
 		LLVMModule(std::string const & name, std::shared_ptr<LLVMContext> const & context);
 		~LLVMModule();
+
+		void SetDataLayout(std::string_view desc);
+
+		void SetTargetTriple(std::string_view sv)
+		{
+			target_triple_ = sv.to_string();
+		}
+
+		uint32_t MDKindID(std::string_view name) const;
+
+		NamedMDNode* GetOrInsertNamedMetadata(std::string_view name);
 
 		void Materializer(std::shared_ptr<GVMaterializer> const & gvm);
 		void MaterializeAllPermanently();
@@ -124,6 +137,7 @@ namespace Dilithium
 		FunctionListType function_list_;
 		std::string name_;
 		std::shared_ptr<GVMaterializer> materializer_;
+		std::string target_triple_;
 	};
 }
 

@@ -1,5 +1,5 @@
 /**
- * @file Constant.hpp
+ * @file TrackingMDRef.hpp
  * @author Minmin Gong
  *
  * @section DESCRIPTION
@@ -32,26 +32,67 @@
  * THE SOFTWARE.
  */
 
-#ifndef _DILITHIUM_CONSTANT_HPP
-#define _DILITHIUM_CONSTANT_HPP
+#ifndef _DILITHIUM_TRACKING_MD_REF_HPP
+#define _DILITHIUM_TRACKING_MD_REF_HPP
 
 #pragma once
 
-#include <Dilithium/User.hpp>
+#include <Dilithium/Util.hpp>
 
 namespace Dilithium
 {
-	class Constant : public User
+	class TrackingMDRef
 	{
 	public:
-		static Constant* NullValue(Type* ty);
-
-		static bool classof(Value const * v)
+		TrackingMDRef()
+			: metadata_(nullptr)
 		{
-			return (v->GetValueId() >= ConstantFirstVal) && (v->GetValueId() <= ConstantLastVal);
 		}
+		explicit TrackingMDRef(Metadata* md)
+			: metadata_(md)
+		{
+			DILITHIUM_NOT_IMPLEMENTED;
+		}
+
+		TrackingMDRef(TrackingMDRef&& rhs)
+			: metadata_(rhs.metadata_)
+		{
+			DILITHIUM_NOT_IMPLEMENTED;
+		}
+		TrackingMDRef(TrackingMDRef const & rhs)
+			: metadata_(rhs.metadata_)
+		{
+			DILITHIUM_NOT_IMPLEMENTED;
+		}
+		~TrackingMDRef()
+		{
+			//DILITHIUM_NOT_IMPLEMENTED;
+		}
+
+		TrackingMDRef& operator=(TrackingMDRef&& rhs);
+		TrackingMDRef& operator=(TrackingMDRef const & rhs);
+
+		Metadata* Get() const
+		{
+			return metadata_;
+		}
+		Metadata* operator->() const
+		{
+			return this->Get();
+		}
+		Metadata& operator*() const
+		{
+			return *this->Get();
+		}
+
+		void Reset();
+		void Reset(Metadata* md);
+
+	private:
+		Metadata* metadata_;
+
 		// DILITHIUM_NOT_IMPLEMENTED
 	};
 }
 
-#endif		// _DILITHIUM_CONSTANT_HPP
+#endif		// _DILITHIUM_TRACKING_MD_REF_HPP

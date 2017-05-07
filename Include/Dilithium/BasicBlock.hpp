@@ -37,12 +37,100 @@
 
 #pragma once
 
+#include <Dilithium/Instruction.hpp>
 #include <Dilithium/Value.hpp>
+
+#include <list>
+#include <memory>
 
 namespace Dilithium
 {
+	class Function;
+
 	class BasicBlock : public Value
 	{
+	public:
+		typedef std::list<std::unique_ptr<Instruction>> InstListType;
+		typedef InstListType::iterator iterator;
+		typedef InstListType::const_iterator const_iterator;
+		typedef InstListType::reverse_iterator reverse_iterator;
+		typedef InstListType::const_reverse_iterator const_reverse_iterator;
+
+	public:
+		static BasicBlock* Create(LLVMContext& context, std::string_view name, Function* parent);
+
+		iterator begin()
+		{
+			return inst_list_.begin();
+		}
+		const_iterator begin() const
+		{
+			return inst_list_.begin();
+		}
+		iterator end()
+		{
+			return inst_list_.end();
+		}
+		const_iterator end() const
+		{
+			return inst_list_.end();
+		}
+
+		reverse_iterator rbegin()
+		{
+			return inst_list_.rbegin();
+		}
+		const_reverse_iterator rbegin() const
+		{
+			return inst_list_.rbegin();
+		}
+		reverse_iterator rend()
+		{
+			return inst_list_.rend();
+		}
+		const_reverse_iterator rend() const
+		{
+			return inst_list_.rend();
+		}
+
+		size_t size() const
+		{
+			return inst_list_.size();
+		}
+		bool empty() const
+		{
+			return inst_list_.empty();
+		}
+		Instruction const & front() const
+		{
+			return *inst_list_.front();
+		}
+		Instruction& front()
+		{
+			return *inst_list_.front();
+		}
+		Instruction const & back() const
+		{
+			return *inst_list_.back();
+		}
+		Instruction& back()
+		{
+			return *inst_list_.back();
+		}
+
+		InstListType const & InstList() const
+		{
+			return inst_list_;
+		}
+		InstListType& InstList()
+		{
+			return inst_list_;
+		}
+
+	private:
+		InstListType inst_list_;
+		Function* parent_;
+
 		// DILITHIUM_NOT_IMPLEMENTED
 	};
 }

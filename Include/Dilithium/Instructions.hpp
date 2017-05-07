@@ -1,5 +1,5 @@
 /**
- * @file Function.hpp
+ * @file Instructions.hpp
  * @author Minmin Gong
  *
  * @section DESCRIPTION
@@ -32,84 +32,69 @@
  * THE SOFTWARE.
  */
 
-#ifndef _DILITHIUM_FUNCTION_HPP
-#define _DILITHIUM_FUNCTION_HPP
+#ifndef _DILITHIUM_INSTRUCTUIONS_HPP
+#define _DILITHIUM_INSTRUCTUIONS_HPP
 
 #pragma once
 
 #include <Dilithium/CXX17/string_view.hpp>
-#include <Dilithium/Argument.hpp>
+#include <Dilithium/ArrayRef.hpp>
 #include <Dilithium/Attributes.hpp>
-#include <Dilithium/BasicBlock.hpp>
 #include <Dilithium/CallingConv.hpp>
-#include <Dilithium/GlobalObject.hpp>
-
-#include <list>
-#include <memory>
+#include <Dilithium/InstrTypes.hpp>
 
 namespace Dilithium
 {
+	class BasicBlock;
 	class FunctionType;
-	class LLVMModule;
+	class LLVMContext;
+	class Value;
 
-	class Function : public GlobalObject
+	class ReturnInst : public TerminatorInst
 	{
 	public:
-		typedef std::list<std::unique_ptr<Argument>> ArgumentListType;
-		typedef ArgumentListType::iterator arg_iterator;
-		typedef ArgumentListType::const_iterator const_arg_iterator;
+		static ReturnInst* Create(LLVMContext& context, Value* ret_val = nullptr, Instruction* insert_before = nullptr);
+		static ReturnInst* Create(LLVMContext& context, Value* ret_val, BasicBlock* insert_at_end);
+		static ReturnInst* Create(LLVMContext& context, BasicBlock* insert_at_end);
+		// DILITHIUM_NOT_IMPLEMENTED
+	};
 
-		typedef std::list<std::unique_ptr<BasicBlock>> BasicBlockListType;
-		typedef BasicBlockListType::iterator iterator;
-		typedef BasicBlockListType::const_iterator const_iterator;
+	class CallInst : public Instruction
+	{
+	public:
+		enum TailCallKind
+		{
+			TCK_None = 0,
+			TCK_Tail = 1,
+			TCK_MustTail = 2
+		};
 
 	public:
-		static Function* Create(FunctionType* ty, LinkageTypes linkage, std::string_view name = "", LLVMModule* mod = nullptr);
+		static CallInst* Create(Value* func, ArrayRef<Value*> args, std::string_view name_str = "", Instruction* insert_before = nullptr);
+		static CallInst *Create(FunctionType* ty, Value *Func, ArrayRef<Value *> args, std::string_view name_str = "",
+			Instruction* insert_before = nullptr);
+		static CallInst *Create(Value* func, ArrayRef<Value*> args, std::string_view name_str, BasicBlock* insert_at_end);
+		static CallInst *Create(Value* func, std::string_view name_str = "", Instruction* insert_before = nullptr);
+		static CallInst *Create(Value* func, std::string_view name_str, BasicBlock* insert_at_end);
 
-		bool HasPersonalityFn() const;
-		Constant* PersonalityFn() const;
-		void PersonalityFn(Constant* c);
-
-		bool IsVarArg() const;
-
-		bool IsMaterializable() const;
-		void IsMaterializable(bool m);
+		TailCallKind GetTailCallKind() const;
+		void SetTailCallKind(TailCallKind TCK);
 
 		CallingConv::ID GetCallingConv() const;
 		void SetCallingConv(CallingConv::ID cc);
 
-		AttributeSet GetAttributes() const
+		AttributeSet const & GetAttributes() const
 		{
-			return attr_sets_;
+			return attr_list_;
 		}
 		void SetAttributes(AttributeSet const & attrs)
 		{
-			attr_sets_ = attrs;
-		}
-
-		arg_iterator ArgBegin();
-		const_arg_iterator ArgBegin() const;
-		arg_iterator ArgEnd();
-		const_arg_iterator ArgEnd() const;
-
-		bool HasPrefixData() const;
-		Constant* PrefixData() const;
-		void PrefixData(Constant* prefix_data);
-
-		bool HasPrologueData() const;
-		Constant* PrologueData() const;
-		void PrologueData(Constant* prologue_data);
-
-		static bool classof(Value const * v)
-		{
-			return v->GetValueId() == Value::FunctionVal;
+			attr_list_ = attrs;
 		}
 
 	private:
-		AttributeSet attr_sets_;
-
-		// DILITHIUM_NOT_IMPLEMENTED
+		AttributeSet attr_list_;
 	};
 }
 
-#endif		// _DILITHIUM_FUNCTION_HPP
+#endif		// _DILITHIUM_INSTRUCTUIONS_HPP

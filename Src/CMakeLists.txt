@@ -15,24 +15,46 @@ SET(DXC_HLSL_HEADER_FILES
 )
 
 SET(HEADER_FILES
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Argument.hpp
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/ArrayRef.hpp
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Attributes.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/BasicBlock.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/BitcodeReader.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/BitCodes.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/BitstreamReader.hpp
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/CallingConv.hpp
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Casting.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Compiler.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Constant.hpp
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Constants.hpp
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/DerivedType.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Dilithium.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/ErrorHandling.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Function.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/GlobalObject.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/GlobalValue.hpp
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/GVMaterializer.hpp
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/InstrTypes.hpp
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Instruction.hpp
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Instructions.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/LLVMBitCodes.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/LLVMContext.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/LLVMModule.hpp
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/MathExtras.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/MemStreamBuf.hpp
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Metadata.hpp
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Metadata.inc
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/SmallString.hpp
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/SymbolTableList.hpp
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/TrackingMDRef.hpp
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Type.hpp
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/TypeTraits.hpp
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Use.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/User.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Util.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Value.hpp
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Value.inc
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/ValueHandle.hpp
 	${DILITHIUM_ROOT_DIR}/Src/LLVMContextImpl.hpp
 )
 

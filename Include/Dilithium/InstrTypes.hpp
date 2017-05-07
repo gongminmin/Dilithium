@@ -1,5 +1,5 @@
 /**
- * @file Constant.hpp
+ * @file InstrTypes.hpp
  * @author Minmin Gong
  *
  * @section DESCRIPTION
@@ -32,26 +32,26 @@
  * THE SOFTWARE.
  */
 
-#ifndef _DILITHIUM_CONSTANT_HPP
-#define _DILITHIUM_CONSTANT_HPP
+#ifndef _DILITHIUM_INSTR_TYPES_HPP
+#define _DILITHIUM_INSTR_TYPES_HPP
 
 #pragma once
 
-#include <Dilithium/User.hpp>
+#include <Dilithium/Instruction.hpp>
 
 namespace Dilithium
 {
-	class Constant : public User
+	class Value;
+
+	class TerminatorInst : public Instruction
 	{
 	public:
-		static Constant* NullValue(Type* ty);
-
 		static bool classof(Value const * v)
 		{
-			return (v->GetValueId() >= ConstantFirstVal) && (v->GetValueId() <= ConstantLastVal);
+			return isa<Instruction>(v) && classof(cast<Instruction>(v));
 		}
 		// DILITHIUM_NOT_IMPLEMENTED
 	};
 }
 
-#endif		// _DILITHIUM_CONSTANT_HPP
+#endif		// _DILITHIUM_INSTR_TYPES_HPP

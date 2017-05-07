@@ -89,6 +89,7 @@
 	#endif
 
 	#define DILITHIUM_ATTRIBUTE_NORETURN __attribute__((noreturn))
+	#define DILITHIUM_ATTRIBUTE_UNUSED_RESULT __attribute__((__warn_unused_result__))
 #elif defined(__GNUC__)
 	#define DILITHIUM_COMPILER_GCC
 
@@ -116,6 +117,7 @@
 	#endif
 
 	#define DILITHIUM_ATTRIBUTE_NORETURN __attribute__((noreturn))
+	#define DILITHIUM_ATTRIBUTE_UNUSED_RESULT __attribute__((__warn_unused_result__))
 #elif defined(_MSC_VER)
 	#define DILITHIUM_COMPILER_MSVC
 	#define DILITHIUM_COMPILER_NAME vc
@@ -143,6 +145,7 @@
 	#endif
 
 	#define DILITHIUM_ATTRIBUTE_NORETURN __declspec(noreturn)
+	#define DILITHIUM_ATTRIBUTE_UNUSED_RESULT
 #else
 	#error "Unknown compiler. Please install vc, g++ or clang."
 #endif

@@ -1,5 +1,5 @@
 /**
- * @file Constant.hpp
+ * @file CallingConv.hpp
  * @author Minmin Gong
  *
  * @section DESCRIPTION
@@ -32,26 +32,28 @@
  * THE SOFTWARE.
  */
 
-#ifndef _DILITHIUM_CONSTANT_HPP
-#define _DILITHIUM_CONSTANT_HPP
+#ifndef _DILITHIUM_CALLING_CONV_HPP
+#define _DILITHIUM_CALLING_CONV_HPP
 
 #pragma once
 
-#include <Dilithium/User.hpp>
+#include <Dilithium/Util.hpp>
 
 namespace Dilithium
 {
-	class Constant : public User
+	namespace CallingConv
 	{
-	public:
-		static Constant* NullValue(Type* ty);
+		typedef uint32_t ID;
 
-		static bool classof(Value const * v)
+		enum
 		{
-			return (v->GetValueId() >= ConstantFirstVal) && (v->GetValueId() <= ConstantLastVal);
-		}
-		// DILITHIUM_NOT_IMPLEMENTED
-	};
+			/// C - The default llvm calling convention, compatible with C.  This
+			/// convention is the only calling convention that supports varargs calls.
+			/// As with typical C calling conventions, the callee/caller have to
+			/// tolerate certain amounts of prototype mismatch.
+			C = 0,
+		};
+	}
 }
 
-#endif		// _DILITHIUM_CONSTANT_HPP
+#endif		// _DILITHIUM_ATTRIBUTES_HPP

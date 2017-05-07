@@ -37,12 +37,132 @@
 
 #pragma once
 
+#include <Dilithium/Util.hpp>
 #include <Dilithium/Constant.hpp>
 
 namespace Dilithium
 {
 	class GlobalValue : public Constant
 	{
+	public:
+		enum LinkageTypes
+		{
+			ExternalLinkage = 0,
+			AvailableExternallyLinkage,
+			LinkOnceAnyLinkage,
+			LinkOnceODRLinkage,
+			WeakAnyLinkage,
+			WeakODRLinkage,
+			AppendingLinkage,
+			InternalLinkage,
+			PrivateLinkage,
+			ExternalWeakLinkage,
+			CommonLinkage
+		};
+
+		enum VisibilityTypes
+		{
+			DefaultVisibility = 0,
+			HiddenVisibility,
+			ProtectedVisibility
+		};
+
+		enum DLLStorageClassTypes
+		{
+			DefaultStorageClass = 0,
+			DLLImportStorageClass = 1,
+			DLLExportStorageClass = 2
+		};
+
+		enum ThreadLocalMode
+		{
+			NotThreadLocal = 0,
+			GeneralDynamicTLSModel,
+			LocalDynamicTLSModel,
+			InitialExecTLSModel,
+			LocalExecTLSModel
+		};
+
+	public:
+		bool HasUnnamedAddr() const
+		{
+			return unnamed_addr_;
+		}
+		void UnnamedAddr(bool Val)
+		{
+			unnamed_addr_ = Val;
+		}
+
+		VisibilityTypes Visibility() const
+		{
+			return static_cast<VisibilityTypes>(visibility_);
+		}
+		void Visibility(VisibilityTypes v)
+		{
+			BOOST_ASSERT_MSG(!this->HasLocalLinkage() || (v == DefaultVisibility), "local linkage requires default visibility");
+			visibility_ = v;
+		}
+		bool HasDefaultVisibility() const
+		{
+			return visibility_ == DefaultVisibility;
+		}
+		bool HasHiddenVisibility() const
+		{
+			return visibility_ == HiddenVisibility;
+		}
+		bool HasProtectedVisibility() const
+		{
+			return visibility_ == ProtectedVisibility;
+		}
+
+		DLLStorageClassTypes DLLStorageClass() const
+		{
+			return DLLStorageClassTypes(dll_storage_class_);
+		}
+		void DLLStorageClass(DLLStorageClassTypes c)
+		{
+			dll_storage_class_ = c;
+		}
+
+		static bool IsInternalLinkage(LinkageTypes lt)
+		{
+			return lt == InternalLinkage;
+		}
+		static bool IsPrivateLinkage(LinkageTypes lt)
+		{
+			return lt == PrivateLinkage;
+		}
+		static bool IsLocalLinkage(LinkageTypes lt)
+		{
+			return IsInternalLinkage(lt) || IsPrivateLinkage(lt);
+		}
+
+		bool HasLocalLinkage() const
+		{
+			return IsLocalLinkage(linkage_);
+		}
+
+		LinkageTypes Linkage() const
+		{
+			return linkage_;
+		}
+		void Linkage(LinkageTypes lt)
+		{
+			if (IsLocalLinkage(lt))
+			{
+				visibility_ = DefaultVisibility;
+			}
+			linkage_ = lt;
+		}
+
+	protected:
+		// Note: VC++ treats enums as signed, so an extra bit is required to prevent
+		// Linkage and Visibility from turning into negative values.
+		LinkageTypes linkage_ : 5;
+		uint8_t visibility_ : 2;
+		uint8_t unnamed_addr_ : 1;
+		uint8_t dll_storage_class_ : 2;
+
 		// DILITHIUM_NOT_IMPLEMENTED
 	};
 }

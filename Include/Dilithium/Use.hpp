@@ -1,5 +1,5 @@
 /**
- * @file Constant.hpp
+ * @file Use.hpp
  * @author Minmin Gong
  *
  * @section DESCRIPTION
@@ -32,26 +32,32 @@
  * THE SOFTWARE.
  */
 
-#ifndef _DILITHIUM_CONSTANT_HPP
-#define _DILITHIUM_CONSTANT_HPP
+#ifndef _DILITHIUM_USE_HPP
+#define _DILITHIUM_USE_HPP
 
 #pragma once
 
-#include <Dilithium/User.hpp>
+#include <boost/core/noncopyable.hpp>
 
 namespace Dilithium
 {
-	class Constant : public User
-	{
-	public:
-		static Constant* NullValue(Type* ty);
+	class User;
 
-		static bool classof(Value const * v)
-		{
-			return (v->GetValueId() >= ConstantFirstVal) && (v->GetValueId() <= ConstantLastVal);
-		}
+	class Use : boost::noncopyable
+	{
+		friend class Value;
+
+	public:
+		User* GetUser() const;
+
+		Use* GetNext() const;
+
+	private:
+		void AddToList(Use** node);
+		void RemoveFromList();
+
 		// DILITHIUM_NOT_IMPLEMENTED
 	};
 }
 
-#endif		// _DILITHIUM_CONSTANT_HPP
+#endif		// _DILITHIUM_USER_HPP

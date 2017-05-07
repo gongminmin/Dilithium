@@ -1,5 +1,5 @@
 /**
- * @file Constant.hpp
+ * @file Instruction.hpp
  * @author Minmin Gong
  *
  * @section DESCRIPTION
@@ -32,26 +32,30 @@
  * THE SOFTWARE.
  */
 
-#ifndef _DILITHIUM_CONSTANT_HPP
-#define _DILITHIUM_CONSTANT_HPP
+#ifndef _DILITHIUM_INSTRUCTUION_HPP
+#define _DILITHIUM_INSTRUCTUION_HPP
 
 #pragma once
 
 #include <Dilithium/User.hpp>
+#include <Dilithium/Value.hpp>
 
 namespace Dilithium
 {
-	class Constant : public User
+	class BasicBlock;
+
+	class Instruction : public User
 	{
 	public:
-		static Constant* NullValue(Type* ty);
+		typedef BasicBlock ParentType;
 
 		static bool classof(Value const * v)
 		{
-			return (v->GetValueId() >= ConstantFirstVal) && (v->GetValueId() <= ConstantLastVal);
+			return v->GetValueId() >= Value::InstructionVal;
 		}
+
 		// DILITHIUM_NOT_IMPLEMENTED
 	};
 }
 
-#endif		// _DILITHIUM_CONSTANT_HPP
+#endif		// _DILITHIUM_INSTRUCTUION_HPP

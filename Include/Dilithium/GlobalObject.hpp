@@ -43,6 +43,11 @@ namespace Dilithium
 {
 	class GlobalObject : public GlobalValue
 	{
+	public:
+		void SetAlignment(uint32_t align);
+
+		void Section(std::string_view sec);
+
 		// DILITHIUM_NOT_IMPLEMENTED
 	};
 }

@@ -1,5 +1,5 @@
 /**
- * @file Constant.hpp
+ * @file TypeTraits.hpp
  * @author Minmin Gong
  *
  * @section DESCRIPTION
@@ -32,26 +32,38 @@
  * THE SOFTWARE.
  */
 
-#ifndef _DILITHIUM_CONSTANT_HPP
-#define _DILITHIUM_CONSTANT_HPP
+#ifndef _DILITHIUM_TYPE_TRAITS_HPP
+#define _DILITHIUM_TYPE_TRAITS_HPP
 
-#pragma once
-
-#include <Dilithium/User.hpp>
+#include <type_traits>
+#include <utility>
 
 namespace Dilithium
 {
-	class Constant : public User
+	template <typename T, typename Enable = void>
+	struct add_lvalue_reference_if_not_pointer
 	{
-	public:
-		static Constant* NullValue(Type* ty);
-
-		static bool classof(Value const * v)
-		{
-			return (v->GetValueId() >= ConstantFirstVal) && (v->GetValueId() <= ConstantLastVal);
-		}
-		// DILITHIUM_NOT_IMPLEMENTED
+		typedef T &type;
 	};
+
+	template <typename T>
+	struct add_lvalue_reference_if_not_pointer<T, typename std::enable_if<std::is_pointer<T>::value>::type>
+	{
+		typedef T type;
+	};
+
+	template<typename T, typename Enable = void>
+	struct add_const_past_pointer
+	{
+		typedef const T type;
+	};
+
+	template <typename T>
+	struct add_const_past_pointer<T, typename std::enable_if<std::is_pointer<T>::value>::type>
+	{
+		typedef const typename std::remove_pointer<T>::type *type;
+	};
+
 }
 
-#endif		// _DILITHIUM_CONSTANT_HPP
+#endif		// _DILITHIUM_TYPE_TRAITS_HPP

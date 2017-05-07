@@ -1,5 +1,5 @@
 /**
- * @file Constant.hpp
+ * @file Argument.hpp
  * @author Minmin Gong
  *
  * @section DESCRIPTION
@@ -32,26 +32,24 @@
  * THE SOFTWARE.
  */
 
-#ifndef _DILITHIUM_CONSTANT_HPP
-#define _DILITHIUM_CONSTANT_HPP
+#ifndef _DILITHIUM_ARGUMENT_HPP
+#define _DILITHIUM_ARGUMENT_HPP
 
 #pragma once
 
-#include <Dilithium/User.hpp>
+#include <Dilithium/Value.hpp>
 
 namespace Dilithium
 {
-	class Constant : public User
+	class Argument : public Value
 	{
 	public:
-		static Constant* NullValue(Type* ty);
-
 		static bool classof(Value const * v)
 		{
-			return (v->GetValueId() >= ConstantFirstVal) && (v->GetValueId() <= ConstantLastVal);
+			return v->GetValueId() == ArgumentVal;
 		}
 		// DILITHIUM_NOT_IMPLEMENTED
 	};
 }
 
-#endif		// _DILITHIUM_CONSTANT_HPP
+#endif		// _DILITHIUM_ARGUMENT_HPP

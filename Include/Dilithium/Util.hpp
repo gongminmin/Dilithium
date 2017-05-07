@@ -39,6 +39,7 @@
 
 #include <cstdint>
 
+#define DILITHIUM_IMPLICIT
 #define DILITHIUM_UNUSED(x) (void)(x)
 
 #ifdef DILITHIUM_DEBUG

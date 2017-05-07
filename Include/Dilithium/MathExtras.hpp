@@ -1,5 +1,5 @@
 /**
- * @file Constant.hpp
+ * @file MathExtras.hpp
  * @author Minmin Gong
  *
  * @section DESCRIPTION
@@ -32,26 +32,19 @@
  * THE SOFTWARE.
  */
 
-#ifndef _DILITHIUM_CONSTANT_HPP
-#define _DILITHIUM_CONSTANT_HPP
+#ifndef _DILITHIUM_MATH_EXTRAS_HPP
+#define _DILITHIUM_MATH_EXTRAS_HPP
 
 #pragma once
 
-#include <Dilithium/User.hpp>
+#include <Dilithium/Util.hpp>
 
 namespace Dilithium
 {
-	class Constant : public User
+	inline bool IsPowerOfTwo32(uint32_t Value)
 	{
-	public:
-		static Constant* NullValue(Type* ty);
-
-		static bool classof(Value const * v)
-		{
-			return (v->GetValueId() >= ConstantFirstVal) && (v->GetValueId() <= ConstantLastVal);
-		}
-		// DILITHIUM_NOT_IMPLEMENTED
-	};
+		return Value && !(Value & (Value - 1));
+	}
 }
 
-#endif		// _DILITHIUM_CONSTANT_HPP
+#endif		// _DILITHIUM_MATH_EXTRAS_HPP

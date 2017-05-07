@@ -1,5 +1,5 @@
 /**
- * @file Constant.hpp
+ * @file SymbolTableList.hpp
  * @author Minmin Gong
  *
  * @section DESCRIPTION
@@ -32,26 +32,16 @@
  * THE SOFTWARE.
  */
 
-#ifndef _DILITHIUM_CONSTANT_HPP
-#define _DILITHIUM_CONSTANT_HPP
-
-#pragma once
-
-#include <Dilithium/User.hpp>
+#ifndef _DILITHIUM_SYMBOL_TABLE_LIST_HPP
+#define _DILITHIUM_SYMBOL_TABLE_LIST_HPP
 
 namespace Dilithium
 {
-	class Constant : public User
-	{
-	public:
-		static Constant* NullValue(Type* ty);
+	template <typename NodeType>
+	inline void AddToSymbolTableList(NodeType* ptr, typename NodeType::ParentType* parent);
 
-		static bool classof(Value const * v)
-		{
-			return (v->GetValueId() >= ConstantFirstVal) && (v->GetValueId() <= ConstantLastVal);
-		}
-		// DILITHIUM_NOT_IMPLEMENTED
-	};
+	template <typename NodeType>
+	inline void RemoveFromSymbolTableList(NodeType* ptr);
 }
 
-#endif		// _DILITHIUM_CONSTANT_HPP
+#endif		// _DILITHIUM_SYMBOL_TABLE_LIST_HPP
