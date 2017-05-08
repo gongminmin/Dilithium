@@ -598,6 +598,22 @@ namespace
 		{
 			buffer_ = nullptr;
 			buffer_length_ = 0;
+			type_list_.clear();
+			type_list_.shrink_to_fit();
+			value_list_.clear();
+			value_list_.shrink_to_fit();
+			md_value_list_.clear();
+			md_value_list_.shrink_to_fit();
+
+			std::vector<AttributeSet>().swap(m_attribs_);
+			std::vector<BasicBlock*>().swap(func_bbs_);
+			std::vector<Function*>().swap(func_with_bodies_);
+			deferred_func_info_.clear();
+			deferred_metadata_info_.clear();
+			md_kind_map_.clear();
+
+			BOOST_ASSERT_MSG(basic_block_fwd_refs_.empty(), "Unresolved blockaddress fwd references");
+			basic_block_fwd_ref_queue_.clear();
 		}
 
 		void Materialize(GlobalValue* gv) override
@@ -945,12 +961,10 @@ namespace
 						break;
 
 					case BitCode::StandardBlockId::BlockInfoBlockId:
+						if (stream_cursor_.ReadBlockInfoBlock())
 						{
-							if (stream_cursor_.ReadBlockInfoBlock())
-							{
-								this->Error("Malformed block");
-								return;
-							}
+							this->Error("Malformed block");
+							return;
 						}
 						break;
 
@@ -1023,191 +1037,191 @@ namespace
 				switch (stream_cursor_.ReadRecord(entry.id, record))
 				{
 				case BitCode::ModuleCode::Version: // VERSION: [version#]
-				{
-					if (record.size() < 1)
 					{
-						this->Error("Invalid record");
-						return;
+						if (record.size() < 1)
+						{
+							this->Error("Invalid record");
+							return;
+						}
+						// Only version #0 and #1 are supported so far.
+						uint32_t module_version = static_cast<uint32_t>(record[0]);
+						switch (module_version)
+						{
+						case 0:
+							use_relative_ids_ = false;
+							break;
+						case 1:
+							use_relative_ids_ = true;
+							break;
+						default:
+							this->Error("Invalid value");
+							return;
+						}
 					}
-					// Only version #0 and #1 are supported so far.
-					uint32_t module_version = static_cast<uint32_t>(record[0]);
-					switch (module_version)
-					{
-					case 0:
-						use_relative_ids_ = false;
-						break;
-					case 1:
-						use_relative_ids_ = true;
-						break;
-					default:
-						this->Error("Invalid value");
-						return;
-					}
-				}
-				break;
+					break;
 
 				case BitCode::ModuleCode::Triple: // TRIPLE: [strchr x N]
-				{
-					std::string str;
-					if (ConvertToString(record, 0, str))
 					{
-						this->Error("Invalid record");
-						return;
+						std::string str;
+						if (ConvertToString(record, 0, str))
+						{
+							this->Error("Invalid record");
+							return;
+						}
+						the_module_->SetTargetTriple(str);
 					}
-					the_module_->SetTargetTriple(str);
-				}
-				break;
+					break;
 
 				case BitCode::ModuleCode::DataLayout: // DATALAYOUT: [strchr x N]
-				{
-					std::string str;
-					if (ConvertToString(record, 0, str))
 					{
-						this->Error("Invalid record");
-						return;
+						std::string str;
+						if (ConvertToString(record, 0, str))
+						{
+							this->Error("Invalid record");
+							return;
+						}
+						the_module_->SetDataLayout(str);
 					}
-					the_module_->SetDataLayout(str);
-				}
-				break;
+					break;
 
-				case BitCode::ModuleCode::Asm:  // ASM: [strchr x N]
-				case BitCode::ModuleCode::DepLib:  // DEPLIB: [strchr x N]
-												// FIXME: Remove in 4.0.
-				case BitCode::ModuleCode::SectionName:  // SECTIONNAME: [strchr x N]
-				case BitCode::ModuleCode::GcName:  // SECTIONNAME: [strchr x N]
+				case BitCode::ModuleCode::Asm: // ASM: [strchr x N]
+				case BitCode::ModuleCode::DepLib: // DEPLIB: [strchr x N]
+				// FIXME: Remove in 4.0.
+				case BitCode::ModuleCode::SectionName: // SECTIONNAME: [strchr x N]
+				case BitCode::ModuleCode::GcName: // SECTIONNAME: [strchr x N]
 				case BitCode::ModuleCode::Comdat: // COMDAT: [selection_kind, name]
-											   // GLOBALVAR: [pointer type, isconst, initid,
-											   //             linkage, alignment, section, visibility, threadlocal,
-											   //             unnamed_addr, externally_initialized, dllstorageclass,
-											   //             comdat]
+				// GLOBALVAR: [pointer type, isconst, initid,
+				//             linkage, alignment, section, visibility, threadlocal,
+				//             unnamed_addr, externally_initialized, dllstorageclass,
+				//             comdat]
 				case BitCode::ModuleCode::GlobalVar:
 					DILITHIUM_NOT_IMPLEMENTED;
 					break;
 
-					// FUNCTION:  [type, callingconv, isproto, linkage, paramattr,
-					//             alignment, section, visibility, gc, unnamed_addr,
-					//             prologuedata, dllstorageclass, comdat, prefixdata]
+				// FUNCTION:  [type, callingconv, isproto, linkage, paramattr,
+				//             alignment, section, visibility, gc, unnamed_addr,
+				//             prologuedata, dllstorageclass, comdat, prefixdata]
 				case BitCode::ModuleCode::Function:
-				{
-					if (record.size() < 8)
 					{
-						this->Error("Invalid record");
-						return;
-					}
-
-					auto ty = this->TypeByID(static_cast<uint32_t>(record[0]));
-					if (!ty)
-					{
-						this->Error("Invalid record");
-						return;
-					}
-					auto pty = dyn_cast<PointerType>(ty);
-					if (pty)
-					{
-						ty = pty->ElementType();
-					}
-					auto fty = dyn_cast<FunctionType>(ty);
-					if (!fty)
-					{
-						this->Error("Invalid type for value");
-						return;
-					}
-
-					auto func = Function::Create(fty, GlobalValue::ExternalLinkage, "", the_module_);
-
-					func->SetCallingConv(static_cast<CallingConv::ID>(record[1]));
-					if (func->GetCallingConv() != CallingConv::C)
-					{
-						DILITHIUM_NOT_IMPLEMENTED;
-					}
-					bool proto = record[2];
-					uint32_t raw_linkage = static_cast<uint32_t>(record[3]);
-					func->Linkage(DecodedLinkage(raw_linkage));
-					func->SetAttributes(this->Attributes(static_cast<uint32_t>(record[4])));
-
-					uint32_t alignment;
-					this->ParseAlignmentValue(record[5], alignment);
-					func->SetAlignment(alignment);
-					if (record[6])
-					{
-						if (record[6] - 1 >= section_tab.size())
+						if (record.size() < 8)
 						{
-							this->Error("Invalid ID");
+							this->Error("Invalid record");
 							return;
 						}
-						func->Section(section_tab[record[6] - 1]);
-					}
-					// Local linkage must have default visibility.
-					if (!func->HasLocalLinkage())
-					{
-						// FIXME: Change to an error if non-default in 4.0.
-						func->Visibility(DecodedVisibility(static_cast<uint32_t>(record[7])));
-					}
-					if ((record.size() > 8) && record[8])
-					{
-						// GC
-						DILITHIUM_NOT_IMPLEMENTED;
-					}
 
-					bool unnamed_addr = false;
-					if (record.size() > 9)
-					{
-						unnamed_addr = record[9];
-					}
-					func->UnnamedAddr(unnamed_addr);
-					if ((record.size() > 10) && (record[10] != 0))
-					{
-						func_prologues_.push_back(std::make_pair(func, static_cast<uint32_t>(record[10] - 1)));
-					}
+						auto ty = this->TypeByID(static_cast<uint32_t>(record[0]));
+						if (!ty)
+						{
+							this->Error("Invalid record");
+							return;
+						}
+						auto pty = dyn_cast<PointerType>(ty);
+						if (pty)
+						{
+							ty = pty->ElementType();
+						}
+						auto fty = dyn_cast<FunctionType>(ty);
+						if (!fty)
+						{
+							this->Error("Invalid type for value");
+							return;
+						}
 
-					if (record.size() > 11)
-					{
-						func->DLLStorageClass(DecodedDLLStorageClass(static_cast<uint32_t>(record[11])));
-					}
-					else
-					{
-						UpgradeDLLImportExportLinkage(func, raw_linkage);
-					}
+						auto func = Function::Create(fty, GlobalValue::ExternalLinkage, "", the_module_);
 
-					if (record.size() > 12)
-					{
-						uint32_t comdat_id = static_cast<uint32_t>(record[12]);
-						if (comdat_id)
+						func->SetCallingConv(static_cast<CallingConv::ID>(record[1]));
+						if (func->GetCallingConv() != CallingConv::C)
 						{
 							DILITHIUM_NOT_IMPLEMENTED;
 						}
-					}
-					else if (HasImplicitComdat(raw_linkage))
-					{
-						DILITHIUM_NOT_IMPLEMENTED;
-					}
+						bool proto = record[2];
+						uint32_t raw_linkage = static_cast<uint32_t>(record[3]);
+						func->Linkage(DecodedLinkage(raw_linkage));
+						func->SetAttributes(this->Attributes(static_cast<uint32_t>(record[4])));
 
-					if ((record.size() > 13) && (record[13] != 0))
-					{
-						func_prefixes_.push_back(std::make_pair(func, static_cast<uint32_t>(record[13] - 1)));
-					}
-					if ((record.size() > 14) && (record[14] != 0))
-					{
-						func_personality_fns_.push_back(std::make_pair(func, static_cast<uint32_t>(record[14] - 1)));
-					}
+						uint32_t alignment;
+						this->ParseAlignmentValue(record[5], alignment);
+						func->SetAlignment(alignment);
+						if (record[6])
+						{
+							if (record[6] - 1 >= section_tab.size())
+							{
+								this->Error("Invalid ID");
+								return;
+							}
+							func->Section(section_tab[record[6] - 1]);
+						}
+						// Local linkage must have default visibility.
+						if (!func->HasLocalLinkage())
+						{
+							// FIXME: Change to an error if non-default in 4.0.
+							func->Visibility(DecodedVisibility(static_cast<uint32_t>(record[7])));
+						}
+						if ((record.size() > 8) && record[8])
+						{
+							// GC
+							DILITHIUM_NOT_IMPLEMENTED;
+						}
 
-					value_list_.push_back(func);
+						bool unnamed_addr = false;
+						if (record.size() > 9)
+						{
+							unnamed_addr = record[9];
+						}
+						func->UnnamedAddr(unnamed_addr);
+						if ((record.size() > 10) && (record[10] != 0))
+						{
+							func_prologues_.push_back(std::make_pair(func, static_cast<uint32_t>(record[10] - 1)));
+						}
 
-					// If this is a function with a body, remember the prototype we are
-					// creating now, so that we can match up the body with them later.
-					if (!proto)
-					{
-						func->IsMaterializable(true);
-						func_with_bodies_.push_back(func);
-						deferred_func_info_[func] = 0;
+						if (record.size() > 11)
+						{
+							func->DLLStorageClass(DecodedDLLStorageClass(static_cast<uint32_t>(record[11])));
+						}
+						else
+						{
+							UpgradeDLLImportExportLinkage(func, raw_linkage);
+						}
+
+						if (record.size() > 12)
+						{
+							uint32_t comdat_id = static_cast<uint32_t>(record[12]);
+							if (comdat_id)
+							{
+								DILITHIUM_NOT_IMPLEMENTED;
+							}
+						}
+						else if (HasImplicitComdat(raw_linkage))
+						{
+							DILITHIUM_NOT_IMPLEMENTED;
+						}
+
+						if ((record.size() > 13) && (record[13] != 0))
+						{
+							func_prefixes_.push_back(std::make_pair(func, static_cast<uint32_t>(record[13] - 1)));
+						}
+						if ((record.size() > 14) && (record[14] != 0))
+						{
+							func_personality_fns_.push_back(std::make_pair(func, static_cast<uint32_t>(record[14] - 1)));
+						}
+
+						value_list_.push_back(func);
+
+						// If this is a function with a body, remember the prototype we are
+						// creating now, so that we can match up the body with them later.
+						if (!proto)
+						{
+							func->IsMaterializable(true);
+							func_with_bodies_.push_back(func);
+							deferred_func_info_[func] = 0;
+						}
 					}
-				}
-				break;
+					break;
 
 				// ALIAS: [alias type, aliasee val#, linkage]
 				// ALIAS: [alias type, aliasee val#, linkage, visibility, dllstorageclass]
 				case BitCode::ModuleCode::Alias:
-					/// ModuleCode::PurgeVals: [numvals]
+				// ModuleCode::PurgeVals: [numvals]
 				case BitCode::ModuleCode::PurgeVals:
 					DILITHIUM_NOT_IMPLEMENTED;
 					break;
@@ -1255,36 +1269,36 @@ namespace
 				switch (stream_cursor_.ReadRecord(entry.id, record))
 				{
 				case BitCode::ParamAttrCode::EntryOld: // ENTRY: [paramidx0, attr0, ...]
-				{
-					// FIXME: Remove in 4.0.
-					if (record.size() & 1)
 					{
-						this->Error("Invalid record");
-					}
+						// FIXME: Remove in 4.0.
+						if (record.size() & 1)
+						{
+							this->Error("Invalid record");
+						}
 
-					for (uint32_t i = 0, e = static_cast<uint32_t>(record.size()); i != e; i += 2)
-					{
-						AttrBuilder ab;
-						DecodeLLVMAttributesForBitcode(ab, record[i + 1]);
-						attrs.push_back(AttributeSet::Get(*context_, static_cast<uint32_t>(record[i]), ab));
-					}
+						for (uint32_t i = 0, e = static_cast<uint32_t>(record.size()); i != e; i += 2)
+						{
+							AttrBuilder ab;
+							DecodeLLVMAttributesForBitcode(ab, record[i + 1]);
+							attrs.push_back(AttributeSet::Get(*context_, static_cast<uint32_t>(record[i]), ab));
+						}
 
-					m_attribs_.push_back(AttributeSet::Get(*context_, attrs));
-					attrs.clear();
-				}
-				break;
+						m_attribs_.push_back(AttributeSet::Get(*context_, attrs));
+						attrs.clear();
+					}
+					break;
 
 				case BitCode::ParamAttrCode::Entry: // ENTRY: [attrgrp0, attrgrp1, ...]
-				{
-					for (uint32_t i = 0, e = static_cast<uint32_t>(record.size()); i != e; ++ i)
 					{
-						attrs.push_back(m_attrib_groups_[static_cast<uint32_t>(record[i])]);
-					}
+						for (uint32_t i = 0, e = static_cast<uint32_t>(record.size()); i != e; ++ i)
+						{
+							attrs.push_back(m_attrib_groups_[static_cast<uint32_t>(record[i])]);
+						}
 
-					m_attribs_.push_back(AttributeSet::Get(*context_, attrs));
-					attrs.clear();
-				}
-				break;
+						m_attribs_.push_back(AttributeSet::Get(*context_, attrs));
+						attrs.clear();
+					}
+					break;
 
 				default:
 					break;

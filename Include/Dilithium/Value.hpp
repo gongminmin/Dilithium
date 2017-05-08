@@ -37,6 +37,7 @@
 
 #pragma once
 
+#include <Dilithium/CXX17/string_view.hpp>
 #include <Dilithium/Use.hpp>
 
 #include <functional>
@@ -46,7 +47,10 @@
 
 namespace Dilithium
 {
+	class BasicBlock;
 	class LLVMContext;
+	class LLVMModule;
+	class ModuleSlotTracker;
 	class Type;
 	class User;
 
@@ -188,6 +192,14 @@ namespace Dilithium
 		};
 
 	public:
+		virtual ~Value();
+
+		void Print(std::ostream& os) const;
+		void Print(std::ostream& os, ModuleSlotTracker& mst) const;
+
+		void PrintAsOperand(std::ostream& os, bool print_type = true, LLVMModule const * mod = nullptr) const;
+		void PrintAsOperand(std::ostream& os, bool print_type, ModuleSlotTracker& mst) const;
+
 		Type* GetType() const
 		{
 			return type_;
@@ -206,6 +218,9 @@ namespace Dilithium
 
 		std::string_view Name() const;
 		void Name(std::string_view name);
+
+		void ReplaceAllUsesWith(Value* val);
+		void ReplaceUsesOutsideBlock(Value* val, BasicBlock* bb);
 
 		bool UseEmpty() const
 		{
@@ -289,9 +304,48 @@ namespace Dilithium
 			return subclass_id_;
 		}
 
+		uint32_t GetRawSubclassOptionalData() const
+		{
+			return subclass_optional_data_;
+		}
+
+		bool IsUsedByMetadata() const
+		{
+			return is_used_by_md_;
+		}
+
+		Value* StripPointerCasts();
+
+		void MutateType(Type* ty)
+		{
+			type_ = ty;
+		}
+
 		void SortUseList(std::function<bool(Use const & lhs, Use const & rhs)> cmp);
 
 	protected:
+		Value(Type* ty, uint32_t subclass_id);
+
+		uint16_t GetSubclassDataFromValue() const
+		{
+			return subclass_data_;
+		}
+		void SetValueSubclassData(uint16_t d)
+		{
+			subclass_data_ = d;
+		}
+
+	private:
+		void DestroyValueName();
+
+		static Use* MergeUseLists(Use* l, Use* r, std::function<bool(Use const & lhs, Use const & rhs)> cmp);
+		static void MergeUseListsImpl(Use* l, Use* r, Use** next, std::function<bool(Use const & lhs, Use const & rhs)> cmp);
+
+	protected:
+		static uint32_t constexpr NUM_USER_OPERANDS_BITS = 31;
+		uint32_t num_user_operands_ : NUM_USER_OPERANDS_BITS;
+		bool is_used_by_md_ : 1;
+
 		std::string name_;
 		uint64_t name_hash_;
 
@@ -301,6 +355,12 @@ namespace Dilithium
 
 		uint8_t const subclass_id_;
 		uint8_t has_value_handle_ : 1;
+
+	protected:
+		uint8_t subclass_optional_data_ : 7;
+
+	private:
+		uint16_t subclass_data_;
 
 		// DILITHIUM_NOT_IMPLEMENTED
 	};

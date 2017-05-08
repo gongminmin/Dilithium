@@ -42,19 +42,76 @@
 namespace Dilithium
 {
 	class User;
+	class Value;
 
 	class Use : boost::noncopyable
 	{
 		friend class Value;
 
 	public:
+		Use()
+			: val_(nullptr)
+		{
+		}
+		Use(Use&& rhs)
+		{
+			this->Set(rhs.val_);
+		}
+		~Use();
+
+		Use& operator=(Use const & rhs);
+		Use& operator=(Use&& rhs);
+
+		Value* operator->()
+		{
+			return val_;
+		}
+		Value const * operator->() const
+		{
+			return val_;
+		}
+
+		// TODO: Try to make it explicit
+		operator Value*() const
+		{
+			return val_;
+		}
+		Value* Get() const
+		{
+			return val_;
+		}
+
+		void Set(Value* val);
+
 		User* GetUser() const;
 
-		Use* GetNext() const;
+		Use* GetNext() const
+		{
+			return next_;
+		}
+
+		void Swap(Use& rhs);
+
+		static Use* InitTags(Use* beg, Use* end);
 
 	private:
+		Use const * GetImpliedUser() const;
 		void AddToList(Use** node);
 		void RemoveFromList();
+
+	private:
+		enum PrevPtrTag
+		{
+			ZeroDigitTag,
+			OneDigitTag,
+			StopTag,
+			FullStopTag
+		};
+
+		Value* val_;
+		Use* next_;
+		Use** prev_ptr_;
+		PrevPtrTag tag_;
 
 		// DILITHIUM_NOT_IMPLEMENTED
 	};

@@ -1,5 +1,5 @@
 /**
- * @file LLVMContextImpl.hpp
+ * @file Operator.hpp
  * @author Minmin Gong
  *
  * @section DESCRIPTION
@@ -32,66 +32,45 @@
  * THE SOFTWARE.
  */
 
-#ifndef _DILITHIUM_LLVM_CONTEXT_IMPL_HPP
-#define _DILITHIUM_LLVM_CONTEXT_IMPL_HPP
+#ifndef _DILITHIUM_OPERATOR_HPP
+#define _DILITHIUM_OPERATOR_HPP
 
-#include <Dilithium/TrackingMDRef.hpp>
+#pragma once
 
-#include <unordered_map>
-#include <unordered_set>
+#include <Dilithium/Constants.hpp>
+#include <Dilithium/Instruction.hpp>
+#include <Dilithium/User.hpp>
 
-#include <boost/container/small_vector.hpp>
-
+#include <boost/assert.hpp>
 
 namespace Dilithium
 {
-	class ConstantInt;
-	class ConstantFP;
-	class LLVMContext;
-	class Type;
-	class Value;
-
-	class MDAttachmentMap
+	class Operator : public User
 	{
-	public:
-		bool empty() const
-		{ 
-			return attachments_.empty();
-		}
-		size_t size() const
-		{
-			return attachments_.size();
-		}
-
-		MDNode* Lookup(uint32_t id) const;
-
-		void Set(uint32_t id, MDNode& md);
-
-		void Erase(uint32_t id);
-
-		void GetAll(boost::container::small_vector_base<std::pair<uint32_t, MDNode*>>& result) const;
-
-		template <typename PredTy>
-		void remove_if(PredTy should_remove)
-		{
-			attachments_.erase(std::remove_if(attachments_.begin(), attachments_.end(), should_remove), attachments_.end());
-		}
-
-	private:
-		boost::container::small_vector<std::pair<uint32_t, TrackingMDNodeRef>, 2> attachments_;
 	};
 
-	// TODO: Consider merged with LLVMContext
-	struct LLVMContextImpl
+	template <typename SuperClass, uint32_t Opc>
+	class ConcreteOperator : public SuperClass
 	{
-		explicit LLVMContextImpl(LLVMContext& context);
-		~LLVMContextImpl();
+	public:
+		static bool classof(Instruction const * inst)
+		{
+			return inst->Opcode() == Opc;
+		}
+		static bool classof(ConstantExpr const * ce)
+		{
+			return ce->Opcode() == Opc;
+		}
+		static bool classof(Value const * v)
+		{
+			return (isa<Instruction>(v) && classof(cast<Instruction>(v)))
+				|| (isa<ConstantExpr>(v) && classof(cast<ConstantExpr>(v)));
+		}
+	};
 
-		// Metadata string to ID mapping
-		std::unordered_map<std::string, uint32_t> custom_md_kind_names;
-
-		//DILITHIUM_NOT_IMPLEMENTED;
+	class GEPOperator : public ConcreteOperator<Operator, Instruction::GetElementPtr>
+	{
 	};
 }
 
-#endif		// _DILITHIUM_LLVM_CONTEXT_IMPL_HPP
+#endif		// _DILITHIUM_OPERATOR_HPP

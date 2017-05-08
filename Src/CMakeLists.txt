@@ -36,6 +36,7 @@ SET(HEADER_FILES
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/GVMaterializer.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/InstrTypes.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Instruction.hpp
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Instruction.inc
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Instructions.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/LLVMBitCodes.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/LLVMContext.hpp
@@ -44,6 +45,9 @@ SET(HEADER_FILES
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/MemStreamBuf.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Metadata.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Metadata.inc
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/MetadataTracking.hpp
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Operator.hpp
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/PointerUnion.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/SmallString.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/SymbolTableList.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/TrackingMDRef.hpp
@@ -70,6 +74,7 @@ SET(SOURCE_FILES
 	${DILITHIUM_ROOT_DIR}/Src/LLVMContextImpl.cpp
 	${DILITHIUM_ROOT_DIR}/Src/LLVMModule.cpp
 	${DILITHIUM_ROOT_DIR}/Src/MemStreamBuf.cpp
+	${DILITHIUM_ROOT_DIR}/Src/Use.cpp
 )
 
 SOURCE_GROUP("Source Files" FILES ${SOURCE_FILES})

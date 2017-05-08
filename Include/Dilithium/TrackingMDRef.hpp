@@ -37,10 +37,19 @@
 
 #pragma once
 
+#include <Dilithium/Casting.hpp>
+#include <Dilithium/ErrorHandling.hpp>
+#include <Dilithium/MetadataTracking.hpp>
 #include <Dilithium/Util.hpp>
+
+#include <boost/assert.hpp>
 
 namespace Dilithium
 {
+	class Metadata;
+	class MDNode;
+	class ValueAsMetadata;
+
 	class TrackingMDRef
 	{
 	public:
@@ -51,26 +60,43 @@ namespace Dilithium
 		explicit TrackingMDRef(Metadata* md)
 			: metadata_(md)
 		{
-			DILITHIUM_NOT_IMPLEMENTED;
+			this->Track();
 		}
-
 		TrackingMDRef(TrackingMDRef&& rhs)
 			: metadata_(rhs.metadata_)
 		{
-			DILITHIUM_NOT_IMPLEMENTED;
+			this->Retrack(rhs);
 		}
 		TrackingMDRef(TrackingMDRef const & rhs)
 			: metadata_(rhs.metadata_)
 		{
-			DILITHIUM_NOT_IMPLEMENTED;
+			this->Track();
 		}
 		~TrackingMDRef()
 		{
-			//DILITHIUM_NOT_IMPLEMENTED;
+			this->Untrack();
 		}
 
-		TrackingMDRef& operator=(TrackingMDRef&& rhs);
-		TrackingMDRef& operator=(TrackingMDRef const & rhs);
+		TrackingMDRef& operator=(TrackingMDRef&& rhs)
+		{
+			if (this != &rhs)
+			{
+				this->Untrack();
+				metadata_ = rhs.metadata_;
+				this->Retrack(rhs);
+			}
+			return *this;
+		}
+		TrackingMDRef& operator=(TrackingMDRef const & rhs)
+		{
+			if (this != &rhs)
+			{
+				this->Untrack();
+				metadata_ = rhs.metadata_;
+				this->Track();
+			}
+			return *this;
+		}
 
 		Metadata* Get() const
 		{
@@ -85,13 +111,185 @@ namespace Dilithium
 			return *this->Get();
 		}
 
-		void Reset();
-		void Reset(Metadata* md);
+		void Reset()
+		{
+			this->Untrack();
+			metadata_ = nullptr;
+		}
+		void Reset(Metadata* md)
+		{
+			this->Untrack();
+			metadata_ = md;
+			this->Track();
+		}
+
+		bool HasTrivialDestructor() const
+		{
+			return !metadata_ || !MetadataTracking::IsReplaceable(*metadata_);
+		}
+
+		bool operator==(TrackingMDRef const & rhs) const
+		{
+			return metadata_ == rhs.metadata_;
+		}
+		bool operator!=(TrackingMDRef const & rhs) const
+		{
+			return metadata_ != rhs.metadata_;
+		}
+
+	private:
+		void Track()
+		{
+			if (metadata_)
+			{
+				MetadataTracking::Track(metadata_);
+			}
+		}
+		void Untrack()
+		{
+			if (metadata_)
+			{
+				MetadataTracking::Untrack(metadata_);
+			}
+		}
+		void Retrack(TrackingMDRef& rhs)
+		{
+			BOOST_ASSERT_MSG(metadata_ == rhs.metadata_, "Expected values to match");
+			if (rhs.metadata_)
+			{
+				MetadataTracking::Retrack(rhs.metadata_, metadata_);
+				rhs.metadata_ = nullptr;
+			}
+		}
 
 	private:
 		Metadata* metadata_;
+	};
 
-		// DILITHIUM_NOT_IMPLEMENTED
+	template <typename T>
+	class TypedTrackingMDRef
+	{
+	public:
+		TypedTrackingMDRef()
+		{
+		}
+		explicit TypedTrackingMDRef(T* md)
+			: ref_(static_cast<Metadata*>(md))
+		{
+		}
+		TypedTrackingMDRef(TypedTrackingMDRef&& rhs)
+			: ref_(std::move(rhs.ref))
+		{
+		}
+		TypedTrackingMDRef(TypedTrackingMDRef const & rhs)
+			: ref_(rhs.ref_)
+		{
+		}
+		
+		TypedTrackingMDRef& operator=(TypedTrackingMDRef&& rhs)
+		{
+			if (this != &rhs)
+			{
+				ref_ = std::move(rhs.ref);
+			}
+			return *this;
+		}
+		TypedTrackingMDRef& operator=(TypedTrackingMDRef const & rhs)
+		{
+			if (this != &rhs)
+			{
+				ref_ = rhs.ref_;
+			}
+			return *this;
+		}
+
+		T* Get() const
+		{
+			return static_cast<T*>(ref_.Get());
+		}
+		// TODO: Consider making it explicit
+		operator T*() const
+		{
+			return this->Get();
+		}
+		T* operator->() const
+		{
+			return this->Get();
+		}
+		T& operator*() const
+		{
+			return *this->Get();
+		}
+
+		bool operator==(TypedTrackingMDRef const & rhs) const
+		{
+			return ref_ == rhs.ref_;
+		}
+		bool operator!=(TypedTrackingMDRef const & rhs) const
+		{
+			return ref_ != rhs.ref_;
+		}
+
+		void reset()
+		{
+			ref_.reset();
+		}
+		void reset(T* md)
+		{
+			ref.reset(static_cast<Metadata*>(md));
+		}
+
+		bool HasTrivialDestructor() const
+		{
+			return ref_.HasTrivialDestructor();
+		}
+
+	private:
+		TrackingMDRef ref_;
+	};
+
+	typedef TypedTrackingMDRef<MDNode> TrackingMDNodeRef;
+	typedef TypedTrackingMDRef<ValueAsMetadata> TrackingValueAsMetadataRef;
+
+	// Expose the underlying metadata to casting.
+	template <>
+	struct simplify_type<TrackingMDRef>
+	{
+		typedef Metadata *SimpleType;
+		static SimpleType SimplifiedValue(TrackingMDRef& md)
+		{
+			return md.Get();
+		}
+	};
+
+	template <>
+	struct simplify_type<TrackingMDRef const>
+	{
+		typedef Metadata *SimpleType;
+		static SimpleType SimplifiedValue(TrackingMDRef const & md)
+		{
+			return md.Get();
+		}
+	};
+
+	template <typename T>
+	struct simplify_type<TypedTrackingMDRef<T>>
+	{
+		typedef T* SimpleType;
+		static SimpleType SimplifiedValue(TypedTrackingMDRef<T> &md)
+		{
+			return md.Get();
+		}
+	};
+
+	template <typename T>
+	struct simplify_type<TypedTrackingMDRef<T> const>
+	{
+		typedef T* SimpleType;
+		static SimpleType SimplifiedValue(TypedTrackingMDRef<T> const & md)
+		{
+			return md.Get();
+		}
 	};
 }
 

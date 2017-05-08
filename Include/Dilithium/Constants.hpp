@@ -48,6 +48,12 @@ namespace Dilithium
 	public:
 		static Constant* Get(Type* ty, uint64_t v, bool is_signed = false);
 		static ConstantInt* Get(IntegerType* ty, uint64_t v, bool is_signed = false);
+		// DILITHIUM_NOT_IMPLEMENTED
+	};
+
+	class ConstantExpr : public Constant
+	{
+		// DILITHIUM_NOT_IMPLEMENTED
 	};
 
 	class UndefValue : public Constant

@@ -37,7 +37,11 @@
 
 #pragma once
 
+#include <Dilithium/CXX17/string_view.hpp>
+
 #include <memory>
+
+#include <boost/container/small_vector.hpp>
 #include <boost/core/noncopyable.hpp>
 
 namespace Dilithium
@@ -49,6 +53,29 @@ namespace Dilithium
 	public:
 		LLVMContext();
 		~LLVMContext();
+
+		// Pinned metadata names, which always have the same value.  This is a
+		// compile-time performance optimization, not a correctness optimization.
+		enum
+		{
+			MD_Dbg = 0,					// "dbg"
+			MD_Tbaa,					// "tbaa"
+			MD_Prof,					// "prof"
+			MD_FpMath,					// "fpmath"
+			MD_Range,					// "range"
+			MD_TbaaStruct,				// "tbaa.struct"
+			MD_InvariantLoad,			// "invariant.load"
+			MD_AliasScope,				// "alias.scope"
+			MD_NoAlias,					// "noalias"
+			MD_NonTemporal,				// "nontemporal"
+			MD_MemParallelLoopAccess,	// "llvm.mem.parallel_loop_access"
+			MD_NonNull,					// "nonnull"
+			MD_Dereferenceable,			// "dereferenceable"
+			MD_DereferenceableOrNull	// "dereferenceable_or_null"
+		};
+
+		uint32_t MdKindId(std::string_view name) const;
+		void MdKindNames(boost::container::small_vector_base<std::string_view>& result) const;
 
 		LLVMContextImpl& Impl()
 		{
