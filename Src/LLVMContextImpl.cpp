@@ -39,8 +39,20 @@
 namespace Dilithium
 {
 	LLVMContextImpl::LLVMContextImpl(LLVMContext& context)
+		: the_true_val(nullptr), the_false_val(nullptr),
+			void_ty(context, Type::TID_Void),
+			label_ty(context, Type::TID_Label),
+			half_ty(context, Type::TID_Half),
+			float_ty(context, Type::TID_Float),
+			double_ty(context, Type::TID_Double),
+			metadata_ty(context, Type::TID_Metadata),
+			int1_ty(context, 1),
+			int8_ty(context, 8),
+			int16_ty(context, 16),
+			int32_ty(context, 32),
+			int64_ty(context, 64)
 	{
-		DILITHIUM_UNUSED(context);
+		named_struct_types_unique_id = 0;
 	}
 
 	LLVMContextImpl::~LLVMContextImpl()

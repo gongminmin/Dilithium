@@ -76,6 +76,7 @@ SET(SOURCE_FILES
 	${DILITHIUM_ROOT_DIR}/Src/LLVMContextImpl.cpp
 	${DILITHIUM_ROOT_DIR}/Src/LLVMModule.cpp
 	${DILITHIUM_ROOT_DIR}/Src/MemStreamBuf.cpp
+	${DILITHIUM_ROOT_DIR}/Src/Type.cpp
 	${DILITHIUM_ROOT_DIR}/Src/Use.cpp
 	${DILITHIUM_ROOT_DIR}/Src/Value.cpp
 	${DILITHIUM_ROOT_DIR}/Src/ValueSymbolTable.cpp

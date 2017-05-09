@@ -35,8 +35,10 @@
 #ifndef _DILITHIUM_LLVM_CONTEXT_IMPL_HPP
 #define _DILITHIUM_LLVM_CONTEXT_IMPL_HPP
 
+#include <Dilithium/DerivedType.hpp>
 #include <Dilithium/TrackingMDRef.hpp>
 
+#include <memory>
 #include <unordered_map>
 #include <unordered_set>
 
@@ -86,6 +88,23 @@ namespace Dilithium
 	{
 		explicit LLVMContextImpl(LLVMContext& context);
 		~LLVMContextImpl();
+
+		ConstantInt* the_true_val;
+		ConstantInt* the_false_val;
+
+		Type void_ty, label_ty, half_ty, float_ty, double_ty, metadata_ty;
+		IntegerType int1_ty, int8_ty, int16_ty, int32_ty, int64_ty;
+
+		std::unordered_map<uint32_t, std::unique_ptr<IntegerType>> integer_types;
+		std::unordered_map<uint64_t, std::unique_ptr<FunctionType>> function_types;
+		std::unordered_map<uint64_t, std::unique_ptr<StructType>> anon_struct_types;
+		std::unordered_map<std::string, std::unique_ptr<StructType>> named_struct_types;
+		uint32_t named_struct_types_unique_id;
+
+		std::unordered_map<std::pair<Type*, uint64_t>, std::unique_ptr<ArrayType>> array_types;
+		std::unordered_map<std::pair<Type*, uint32_t>, std::unique_ptr<VectorType>> vector_types;
+		std::unordered_map<Type*, std::unique_ptr<PointerType>> pointer_types;  // Pointers in addrress space = 0
+		std::unordered_map<std::pair<Type*, uint32_t>, std::unique_ptr<PointerType>> as_pointer_types;
 
 		// Metadata string to ID mapping
 		std::unordered_map<std::string, uint32_t> custom_md_kind_names;

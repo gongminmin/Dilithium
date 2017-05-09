@@ -37,14 +37,22 @@
 
 #pragma once
 
+#include <Dilithium/CXX17/string_view.hpp>
+#include <Dilithium/ArrayRef.hpp>
+#include <Dilithium/Casting.hpp>
+#include <Dilithium/Hashing.hpp>
+
 namespace Dilithium
 {
 	class IntegerType;
 	class LLVMContext;
+	struct LLVMContextImpl;
 	class PointerType;
 
 	class Type
 	{
+		friend struct LLVMContextImpl;
+
 	public:
 		enum TypeId
 		{
@@ -182,8 +190,77 @@ namespace Dilithium
 		}
 		bool IsSized() const;
 
+		uint32_t PrimitiveSizeInBits() const;
+		uint32_t ScalarSizeInBits() const;
+		int FpMantissaWidth() const;
+
 		Type* ScalarType();
 		Type const * ScalarType() const;
+
+		typedef Type * const * subtype_iterator;
+		subtype_iterator SubtypeBegin() const
+		{
+			return contained_types_.data();
+		}
+		subtype_iterator SubtypeEnd() const
+		{
+			return SubtypeBegin() + contained_types_.size();
+		}
+		ArrayRef<Type*> Subtypes() const
+		{
+			return ArrayRef<Type*>(contained_types_);
+		}
+
+		typedef std::reverse_iterator<subtype_iterator> subtype_reverse_iterator;
+		subtype_reverse_iterator SubtypeRBegin() const
+		{
+			return subtype_reverse_iterator(SubtypeEnd());
+		}
+		subtype_reverse_iterator SubtypeREnd() const
+		{
+			return subtype_reverse_iterator(SubtypeBegin());
+		}
+
+		Type* ContainedType(uint32_t i) const
+		{
+			return contained_types_[i];
+		}
+
+		uint32_t NumContainedTypes() const
+		{
+			return static_cast<uint32_t>(contained_types_.size());
+		}
+
+		uint32_t IntegerBitWidth() const;
+
+		Type* FunctionParamType(uint32_t i) const;
+		uint32_t FunctionNumParams() const;
+		bool IsFunctionVarArg() const;
+
+		std::string_view StructName() const;
+		uint32_t StructNumElements() const;
+		Type* StructElementType(uint32_t i) const;
+
+		Type* SequentialElementType() const;
+
+		uint64_t ArrayNumElements() const;
+		Type* ArrayElementType() const
+		{
+			return this->SequentialElementType();
+		}
+
+		uint32_t VectorNumElements() const;
+		Type* VectorElementType() const
+		{
+			return this->SequentialElementType();
+		}
+
+		Type* PointerElementType() const
+		{
+			return this->SequentialElementType();
+		}
+
+		uint32_t PointerAddressSpace() const;
 
 		static Type* VoidType(LLVMContext& context);
 		static Type* LabelType(LLVMContext& context);
@@ -247,6 +324,15 @@ namespace Dilithium
 		ty.Print(os);
 		return os;
 	}
+
+	template <>
+	struct isa_impl<PointerType, Type>
+	{
+		static bool doit(Type const & ty)
+		{
+			return ty.GetTypeId() == Type::TID_Pointer;
+		}
+	};
 }
 
 #endif		// _DILITHIUM_TYPE_HPP
