@@ -91,10 +91,27 @@ namespace Dilithium
 		};
 
 	public:
+		BasicBlock const * Parent() const
+		{
+			return parent_;
+		}
+		BasicBlock* Parent()
+		{
+			return parent_;
+		}
+
+		uint32_t Opcode() const
+		{
+			return this->GetValueId() - Value::InstructionVal;
+		}
+
 		static bool classof(Value const * v)
 		{
 			return v->GetValueId() >= Value::InstructionVal;
 		}
+
+	private:
+		BasicBlock* parent_;
 
 		// DILITHIUM_NOT_IMPLEMENTED
 	};

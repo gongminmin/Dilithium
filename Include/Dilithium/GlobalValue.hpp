@@ -155,13 +155,31 @@ namespace Dilithium
 			linkage_ = lt;
 		}
 
+		LLVMModule const * Parent() const
+		{
+			return parent_;
+		}
+		LLVMModule* Parent()
+		{
+			return parent_;
+		}
+
 	protected:
+		LLVMModule* parent_;
+
 		// Note: VC++ treats enums as signed, so an extra bit is required to prevent
 		// Linkage and Visibility from turning into negative values.
 		LinkageTypes linkage_ : 5;
 		uint8_t visibility_ : 2;
 		uint8_t unnamed_addr_ : 1;
 		uint8_t dll_storage_class_ : 2;
+
+		static uint32_t constexpr GLOBAL_VALUE_SUB_CLASS_DATA_BITS = 19;
+
+	private:
+		// Give subclasses access to what otherwise would be wasted padding.
+		// (19 + 3 + 2 + 1 + 2 + 5) == 32.
+		uint32_t sub_class_data_ : GLOBAL_VALUE_SUB_CLASS_DATA_BITS;
 
 		// DILITHIUM_NOT_IMPLEMENTED
 	};

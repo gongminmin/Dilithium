@@ -41,6 +41,9 @@
 
 namespace Dilithium
 {
+	template<typename From>
+	struct simplify_type;
+
 	template <typename T>
 	inline T* TombstonePointer()
 	{
@@ -189,6 +192,25 @@ namespace Dilithium
 		operator Value*() const
 		{
 			return this->ValPtr();
+		}
+	};
+
+	template <>
+	struct simplify_type<WeakVH>
+	{
+		typedef Value* SimpleType;
+		static SimpleType getSimplifiedValue(WeakVH& wvh)
+		{
+			return wvh;
+		}
+	};
+	template <>
+	struct simplify_type<WeakVH const>
+	{
+		typedef Value /*const*/ * SimpleType;
+		static SimpleType getSimplifiedValue(WeakVH const & wvh)
+		{
+			return wvh;
 		}
 	};
 }

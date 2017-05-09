@@ -39,6 +39,7 @@
 
 #include <Dilithium/CXX17/string_view.hpp>
 #include <Dilithium/Function.hpp>
+#include <Dilithium/ValueSymbolTable.hpp>
 
 #include <list>
 #include <memory>
@@ -82,6 +83,15 @@ namespace Dilithium
 		void Materializer(std::shared_ptr<GVMaterializer> const & gvm);
 		void MaterializeAllPermanently();
 
+		ValueSymbolTable const * GetValueSymbolTable() const
+		{
+			return &val_sym_tab_;
+		}
+		ValueSymbolTable* GetValueSymbolTable()
+		{
+			return &val_sym_tab_;
+		}
+
 		iterator begin()
 		{
 			return function_list_.begin();
@@ -123,11 +133,11 @@ namespace Dilithium
 			return function_list_.empty();
 		}
 
-		boost::iterator_range<iterator> functions()
+		boost::iterator_range<iterator> Functions()
 		{
 			return boost::iterator_range<iterator>(begin(), end());
 		}
-		boost::iterator_range<const_iterator> functions() const
+		boost::iterator_range<const_iterator> Functions() const
 		{
 			return boost::iterator_range<const_iterator>(begin(), end());
 		}
@@ -135,6 +145,7 @@ namespace Dilithium
 	private:
 		std::shared_ptr<LLVMContext> context_;
 		FunctionListType function_list_;
+		ValueSymbolTable val_sym_tab_;
 		std::string name_;
 		std::shared_ptr<GVMaterializer> materializer_;
 		std::string target_triple_;

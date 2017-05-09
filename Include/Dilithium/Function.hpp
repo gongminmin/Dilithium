@@ -43,6 +43,7 @@
 #include <Dilithium/BasicBlock.hpp>
 #include <Dilithium/CallingConv.hpp>
 #include <Dilithium/GlobalObject.hpp>
+#include <Dilithium/ValueSymbolTable.hpp>
 
 #include <list>
 #include <memory>
@@ -87,6 +88,14 @@ namespace Dilithium
 			attr_sets_ = attrs;
 		}
 
+		ValueSymbolTable const * GetValueSymbolTable() const
+		{
+			return &sym_tab_;
+		}
+		ValueSymbolTable* GetValueSymbolTable()
+		{
+			return &sym_tab_;
+		}
 		arg_iterator ArgBegin();
 		const_arg_iterator ArgBegin() const;
 		arg_iterator ArgEnd();
@@ -106,6 +115,7 @@ namespace Dilithium
 		}
 
 	private:
+		ValueSymbolTable sym_tab_;
 		AttributeSet attr_sets_;
 
 		// DILITHIUM_NOT_IMPLEMENTED

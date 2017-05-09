@@ -46,6 +46,7 @@
 namespace Dilithium
 {
 	class Function;
+	class ValueSymbolTable;
 
 	class BasicBlock : public Value
 	{
@@ -57,7 +58,18 @@ namespace Dilithium
 		typedef InstListType::const_reverse_iterator const_reverse_iterator;
 
 	public:
+		~BasicBlock() override;
+
 		static BasicBlock* Create(LLVMContext& context, std::string_view name, Function* parent);
+
+		Function const * Parent() const
+		{
+			return parent_;
+		}
+		Function* Parent()
+		{
+			return parent_;
+		}
 
 		iterator begin()
 		{
@@ -125,6 +137,15 @@ namespace Dilithium
 		InstListType& InstList()
 		{
 			return inst_list_;
+		}
+
+		ValueSymbolTable* GetValueSymbolTable();
+
+		void ReplaceSuccessorsPhiUsesWith(BasicBlock* new_bb);
+
+		static bool classof(Value const * v)
+		{
+			return v->GetValueId() == Value::BasicBlockVal;
 		}
 
 	private:

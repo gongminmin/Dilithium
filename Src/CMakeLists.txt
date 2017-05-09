@@ -34,6 +34,7 @@ SET(HEADER_FILES
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/GlobalObject.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/GlobalValue.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/GVMaterializer.hpp
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Hashing.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/InstrTypes.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Instruction.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Instruction.inc
@@ -59,6 +60,7 @@ SET(HEADER_FILES
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Value.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Value.inc
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/ValueHandle.hpp
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/ValueSymbolTable.hpp
 	${DILITHIUM_ROOT_DIR}/Src/LLVMContextImpl.hpp
 )
 
@@ -75,6 +77,8 @@ SET(SOURCE_FILES
 	${DILITHIUM_ROOT_DIR}/Src/LLVMModule.cpp
 	${DILITHIUM_ROOT_DIR}/Src/MemStreamBuf.cpp
 	${DILITHIUM_ROOT_DIR}/Src/Use.cpp
+	${DILITHIUM_ROOT_DIR}/Src/Value.cpp
+	${DILITHIUM_ROOT_DIR}/Src/ValueSymbolTable.cpp
 )
 
 SOURCE_GROUP("Source Files" FILES ${SOURCE_FILES})

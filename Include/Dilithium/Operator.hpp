@@ -40,6 +40,7 @@
 #include <Dilithium/Constants.hpp>
 #include <Dilithium/Instruction.hpp>
 #include <Dilithium/User.hpp>
+#include <Dilithium/Util.hpp>
 
 #include <boost/assert.hpp>
 
@@ -47,6 +48,42 @@ namespace Dilithium
 {
 	class Operator : public User
 	{
+	public:
+		static uint32_t Opcode(Value const * v)
+		{
+			Instruction const * inst = dyn_cast<Instruction>(v);
+			if (inst)
+			{
+				return inst->Opcode();
+			}
+			else
+			{
+				ConstantExpr const * ce = dyn_cast<ConstantExpr>(v);
+				if (ce)
+				{
+					return ce->Opcode();
+				}
+				else
+				{
+					return Instruction::UserOp1;
+				}
+			}
+		}
+
+		static bool classof(Instruction const * inst)
+		{
+			DILITHIUM_UNUSED(inst);
+			return true;
+		}
+		static bool classof(ConstantExpr const * ce)
+		{
+			DILITHIUM_UNUSED(ce);
+			return true;
+		}
+		static bool classof(Value const * val)
+		{
+			return isa<Instruction>(val) || isa<ConstantExpr>(val);
+		}
 	};
 
 	template <typename SuperClass, uint32_t Opc>
@@ -70,6 +107,13 @@ namespace Dilithium
 
 	class GEPOperator : public ConcreteOperator<Operator, Instruction::GetElementPtr>
 	{
+	public:
+		Value* PointerOperand()
+		{
+			return this->Operand(0);
+		}
+
+		bool HasAllZeroIndices() const;
 	};
 }
 

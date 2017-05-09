@@ -86,6 +86,9 @@ namespace Dilithium
 	{
 	public:
 		static ValueAsMetadata* Get(Value* val);
+
+		static void HandleDeletion(Value* val);
+		static void HandleRAUW(Value* from, Value* to);
 		// DILITHIUM_NOT_IMPLEMENTED
 	};
 

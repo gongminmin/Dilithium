@@ -1,5 +1,5 @@
 /**
- * @file Argument.hpp
+ * @file Hashing.hpp
  * @author Minmin Gong
  *
  * @section DESCRIPTION
@@ -32,39 +32,37 @@
  * THE SOFTWARE.
  */
 
-#ifndef _DILITHIUM_ARGUMENT_HPP
-#define _DILITHIUM_ARGUMENT_HPP
+#ifndef _DILITHIUM_HASHING_HPP
+#define _DILITHIUM_HASHING_HPP
 
-#pragma once
+#include <Dilithium/CXX17/string_view.hpp>
 
-#include <Dilithium/Value.hpp>
+#include <functional>
 
-namespace Dilithium
+#include <boost/functional/hash.hpp>
+
+namespace boost
 {
-	class Function;
-
-	class Argument : public Value
+	template <typename T>
+	std::size_t hash_value(std::basic_string_view<T> const & v)
 	{
-	public:
-		Function const * Parent() const
-		{
-			return parent_;
-		}
-		Function* Parent()
-		{
-			return parent_;
-		}
+		return boost::hash_range(v.begin(), v.end());
+	}
+}
 
-		static bool classof(Value const * v)
+namespace std
+{
+	template <typename T1, typename T2>
+	struct hash<std::pair<T1, T2>>
+	{
+		typedef std::size_t result_type;
+		typedef std::pair<T1, T2> argument_type;
+
+		result_type operator()(argument_type const & rhs) const
 		{
-			return v->GetValueId() == ArgumentVal;
+			return boost::hash_value(rhs);
 		}
-
-	private:
-		Function* parent_;
-
-		// DILITHIUM_NOT_IMPLEMENTED
 	};
 }
 
-#endif		// _DILITHIUM_ARGUMENT_HPP
+#endif		// _DILITHIUM_CASTING_HPP

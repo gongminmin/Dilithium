@@ -44,6 +44,8 @@ namespace Dilithium
 	class Constant : public User
 	{
 	public:
+		void HandleOperandChange(Value* from, Value* to, Use* u);
+
 		static Constant* NullValue(Type* ty);
 
 		static bool classof(Value const * v)

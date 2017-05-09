@@ -1,5 +1,5 @@
 /**
- * @file Argument.hpp
+ * @file ValueSymbolTable.hpp
  * @author Minmin Gong
  *
  * @section DESCRIPTION
@@ -32,39 +32,77 @@
  * THE SOFTWARE.
  */
 
-#ifndef _DILITHIUM_ARGUMENT_HPP
-#define _DILITHIUM_ARGUMENT_HPP
+#ifndef _DILITHIUM_VALUE_SYMBOL_TABLE_HPP
+#define _DILITHIUM_VALUE_SYMBOL_TABLE_HPP
 
 #pragma once
 
+#include <Dilithium/CXX17/string_view.hpp>
 #include <Dilithium/Value.hpp>
+
+#include <unordered_map>
+
+#include <boost/core/noncopyable.hpp>
 
 namespace Dilithium
 {
-	class Function;
-
-	class Argument : public Value
+	class ValueSymbolTable
 	{
+		friend class Value;
+		friend class BasicBlock;
+		friend class Function;
+		template <typename NodeType>
+		friend void AddToSymbolTableList(NodeType*, typename NodeType::ParentType*);
+		template <typename NodeType>
+		friend void RemoveFromSymbolTableList(NodeType*);
+
 	public:
-		Function const * Parent() const
+		typedef std::unordered_map<uint64_t, Value*> ValueMap;
+		typedef ValueMap::iterator iterator;
+		typedef ValueMap::const_iterator const_iterator;
+
+	public:
+		ValueSymbolTable()
+			: vmap_(0), last_unique_(0)
 		{
-			return parent_;
 		}
-		Function* Parent()
+		~ValueSymbolTable();
+
+		bool empty() const
 		{
-			return parent_;
+			return vmap_.empty();
+		}
+		size_t size() const
+		{
+			return vmap_.size();
 		}
 
-		static bool classof(Value const * v)
+		iterator begin()
 		{
-			return v->GetValueId() == ArgumentVal;
+			return vmap_.begin();
+		}
+		const_iterator begin() const
+		{
+			return vmap_.begin();
+		}
+		iterator end()
+		{
+			return vmap_.end();
+		}
+		const_iterator end() const
+		{
+			return vmap_.end();
 		}
 
 	private:
-		Function* parent_;
+		void ReinsertValue(Value* val);
+		std::string CreateValueName(std::string_view name, Value* val);
+		void RemoveValueName(uint64_t name_hash);
 
-		// DILITHIUM_NOT_IMPLEMENTED
+	private:
+		ValueMap vmap_;
+		mutable uint32_t last_unique_;
 	};
 }
 
-#endif		// _DILITHIUM_ARGUMENT_HPP
+#endif		// _DILITHIUM_VALUE_SYMBOL_TABLE_HPP

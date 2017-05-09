@@ -43,6 +43,8 @@ namespace Dilithium
 {
 	class User;
 	class Value;
+	template <typename>
+	struct simplify_type;
 
 	class Use : boost::noncopyable
 	{
@@ -114,6 +116,25 @@ namespace Dilithium
 		PrevPtrTag tag_;
 
 		// DILITHIUM_NOT_IMPLEMENTED
+	};
+
+	template <>
+	struct simplify_type<Use>
+	{
+		typedef Value* SimpleType;
+		static SimpleType SimplifiedValue(Use& val)
+		{
+			return val.Get();
+		}
+	};
+	template <>
+	struct simplify_type<Use const>
+	{
+		typedef Value /*const*/ * SimpleType;
+		static SimpleType SimplifiedValue(Use const & val)
+		{
+			return val.Get();
+		}
 	};
 }
 

@@ -41,6 +41,7 @@
 #include <Dilithium/Use.hpp>
 
 #include <functional>
+#include <iosfwd>
 
 #include <boost/core/noncopyable.hpp>
 #include <boost/range/iterator_range.hpp>
@@ -364,6 +365,12 @@ namespace Dilithium
 
 		// DILITHIUM_NOT_IMPLEMENTED
 	};
+
+	inline std::ostream& operator<<(std::ostream& os, Value const & val)
+	{
+		val.Print(os);
+		return os;
+	}
 }
 
 #endif		// _DILITHIUM_VALUE_HPP

@@ -39,11 +39,44 @@
 
 #include <Dilithium/Value.hpp>
 
+#include <boost/range/iterator_range.hpp>
+
 namespace Dilithium
 {
 	class User : public Value
 	{
+	public:
+		typedef Use* op_iterator;
+		typedef Use const * const_op_iterator;
+		typedef boost::iterator_range<op_iterator> op_range;
+		typedef boost::iterator_range<const_op_iterator> const_op_range;
+
+	public:
+		Value* Operand(uint32_t idx) const;
+
+		const_op_range Operands() const;
+		op_range Operands();
+
 		// DILITHIUM_NOT_IMPLEMENTED
+	};
+
+	template<>
+	struct simplify_type<User::op_iterator>
+	{
+		typedef Value* SimpleType;
+		static SimpleType getSimplifiedValue(User::op_iterator& val)
+		{
+			return val->Get();
+		}
+	};
+	template<>
+	struct simplify_type<User::const_op_iterator>
+	{
+		typedef Value /*const*/ * SimpleType;
+		static SimpleType getSimplifiedValue(User::const_op_iterator& val)
+		{
+			return val->Get();
+		}
 	};
 }
 

@@ -53,6 +53,16 @@ namespace Dilithium
 
 	class ConstantExpr : public Constant
 	{
+	public:
+		uint32_t Opcode() const
+		{
+			return this->GetSubclassDataFromValue();
+		}
+
+		static bool classof(Value const * val)
+		{
+			return val->GetValueId() == ConstantExprVal;
+		}
 		// DILITHIUM_NOT_IMPLEMENTED
 	};
 
