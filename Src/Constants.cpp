@@ -1,5 +1,5 @@
 /**
- * @file LLVMModule.cpp
+ * @file Constants.cpp
  * @author Minmin Gong
  *
  * @section DESCRIPTION
@@ -32,53 +32,33 @@
  * THE SOFTWARE.
  */
 
-#include <Dilithium/LLVMModule.hpp>
+#include <Dilithium/Constants.hpp>
 
 #include <Dilithium/ErrorHandling.hpp>
-#include <Dilithium/GVMaterializer.hpp>
-#include <Dilithium/LLVMContext.hpp>
+#include <Dilithium/Util.hpp>
 
-namespace Dilithium
+namespace Dilithium 
 {
-	LLVMModule::LLVMModule(std::string const & name, std::shared_ptr<LLVMContext> const & context)
-		: context_(context), name_(name)
+	Constant* ConstantInt::Get(Type* ty, uint64_t v, bool is_signed)
 	{
-	}
-
-	LLVMModule::~LLVMModule()
-	{
-		//DILITHIUM_NOT_IMPLEMENTED;
-	}
-
-	void LLVMModule::SetDataLayout(std::string_view desc)
-	{
-		DILITHIUM_UNUSED(desc);
+		DILITHIUM_UNUSED(ty);
+		DILITHIUM_UNUSED(v);
+		DILITHIUM_UNUSED(is_signed);
 		DILITHIUM_NOT_IMPLEMENTED;
 	}
 
-	uint32_t LLVMModule::MDKindID(std::string_view name) const
+	ConstantInt* ConstantInt::Get(IntegerType* ty, uint64_t v, bool is_signed)
 	{
-		DILITHIUM_UNUSED(name);
+		DILITHIUM_UNUSED(ty);
+		DILITHIUM_UNUSED(v);
+		DILITHIUM_UNUSED(is_signed);
 		DILITHIUM_NOT_IMPLEMENTED;
 	}
 
-	NamedMDNode* LLVMModule::GetOrInsertNamedMetadata(std::string_view name)
+
+	UndefValue* UndefValue::Get(Type* ty)
 	{
-		DILITHIUM_UNUSED(name);
+		DILITHIUM_UNUSED(ty);
 		DILITHIUM_NOT_IMPLEMENTED;
-	}
-
-	void LLVMModule::Materializer(std::shared_ptr<GVMaterializer> const & gvm)
-	{
-		materializer_ = gvm;
-	}
-
-	void LLVMModule::MaterializeAllPermanently()
-	{
-		if (materializer_)
-		{
-			materializer_->MaterializeModule(this);
-			materializer_.reset();
-		}
 	}
 }

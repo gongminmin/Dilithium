@@ -46,6 +46,11 @@ namespace Dilithium
 
 	class Instruction : public User
 	{
+		template <typename NodeType>
+		friend void AddToSymbolTableList(NodeType*, typename NodeType::ParentType*);
+		template <typename NodeType>
+		friend void RemoveFromSymbolTableList(NodeType*);
+
 	public:
 		typedef BasicBlock ParentType;
 
@@ -109,6 +114,9 @@ namespace Dilithium
 		{
 			return v->GetValueId() >= Value::InstructionVal;
 		}
+
+	private:
+		void Parent(BasicBlock* parent);
 
 	private:
 		BasicBlock* parent_;

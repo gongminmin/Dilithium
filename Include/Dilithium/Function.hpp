@@ -55,6 +55,11 @@ namespace Dilithium
 
 	class Function : public GlobalObject
 	{
+		template <typename NodeType>
+		friend void AddToSymbolTableList(NodeType*, typename NodeType::ParentType*);
+		template <typename NodeType>
+		friend void RemoveFromSymbolTableList(NodeType*);
+
 	public:
 		typedef std::list<std::unique_ptr<Argument>> ArgumentListType;
 		typedef ArgumentListType::iterator arg_iterator;
@@ -113,6 +118,9 @@ namespace Dilithium
 		{
 			return v->GetValueId() == Value::FunctionVal;
 		}
+
+	private:
+		void Parent(LLVMModule* parent);
 
 	private:
 		ValueSymbolTable sym_tab_;

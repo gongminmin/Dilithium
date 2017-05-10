@@ -357,4 +357,15 @@ namespace Dilithium
 	{
 		return Type::Int64Type(context)->PointerTo(as);
 	}
+
+	PointerType* Type::PointerTo(uint32_t addr_space)
+	{
+		return PointerType::Get(this, addr_space);
+	}
+
+	void Type::Print(std::ostream& os) const
+	{
+		DILITHIUM_UNUSED(os);
+		DILITHIUM_NOT_IMPLEMENTED;
+	}
 }

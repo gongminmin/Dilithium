@@ -32,6 +32,7 @@
  * THE SOFTWARE.
  */
 
+#include <Dilithium/Dilithium.hpp>
 #include <Dilithium/ErrorHandling.hpp>
 
 #include <iostream>

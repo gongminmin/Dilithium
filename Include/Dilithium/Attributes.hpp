@@ -115,7 +115,7 @@ namespace Dilithium
 		friend class AttrBuilder;
 
 	public:
-		static AttributeSet Get(LLVMContext& context, ArrayRef<AttributeSet> Attrs);
+		static AttributeSet Get(LLVMContext& context, ArrayRef<AttributeSet> attrs);
 		static AttributeSet Get(LLVMContext& context, uint32_t index, ArrayRef<Attribute::AttrKind> kind);
 		static AttributeSet Get(LLVMContext& context, uint32_t index, AttrBuilder const & ab);
 	};

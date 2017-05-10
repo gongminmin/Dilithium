@@ -1,5 +1,5 @@
 /**
- * @file LLVMModule.cpp
+ * @file Metadata.cpp
  * @author Minmin Gong
  *
  * @section DESCRIPTION
@@ -32,53 +32,87 @@
  * THE SOFTWARE.
  */
 
-#include <Dilithium/LLVMModule.hpp>
+#include <Dilithium/Metadata.hpp>
 
 #include <Dilithium/ErrorHandling.hpp>
-#include <Dilithium/GVMaterializer.hpp>
-#include <Dilithium/LLVMContext.hpp>
+#include <Dilithium/Util.hpp>
 
-namespace Dilithium
+namespace Dilithium 
 {
-	LLVMModule::LLVMModule(std::string const & name, std::shared_ptr<LLVMContext> const & context)
-		: context_(context), name_(name)
+	MetadataAsValue* MetadataAsValue::Get(LLVMContext& context, Metadata* md)
 	{
-	}
-
-	LLVMModule::~LLVMModule()
-	{
-		//DILITHIUM_NOT_IMPLEMENTED;
-	}
-
-	void LLVMModule::SetDataLayout(std::string_view desc)
-	{
-		DILITHIUM_UNUSED(desc);
+		DILITHIUM_UNUSED(context);
+		DILITHIUM_UNUSED(md);
 		DILITHIUM_NOT_IMPLEMENTED;
 	}
 
-	uint32_t LLVMModule::MDKindID(std::string_view name) const
+
+	ValueAsMetadata* ValueAsMetadata::Get(Value* val)
 	{
-		DILITHIUM_UNUSED(name);
+		DILITHIUM_UNUSED(val);
 		DILITHIUM_NOT_IMPLEMENTED;
 	}
 
-	NamedMDNode* LLVMModule::GetOrInsertNamedMetadata(std::string_view name)
+	void ValueAsMetadata::HandleDeletion(Value* val)
 	{
-		DILITHIUM_UNUSED(name);
+		DILITHIUM_UNUSED(val);
 		DILITHIUM_NOT_IMPLEMENTED;
 	}
 
-	void LLVMModule::Materializer(std::shared_ptr<GVMaterializer> const & gvm)
+	void ValueAsMetadata::HandleRAUW(Value* from, Value* to)
 	{
-		materializer_ = gvm;
+		DILITHIUM_UNUSED(from);
+		DILITHIUM_UNUSED(to);
+		DILITHIUM_NOT_IMPLEMENTED;
 	}
 
-	void LLVMModule::MaterializeAllPermanently()
+
+	MDString* MDString::Get(LLVMContext& context, std::string_view sv)
 	{
-		if (materializer_)
-		{
-			materializer_->MaterializeModule(this);
-			materializer_.reset();
-		}
+		DILITHIUM_UNUSED(context);
+		DILITHIUM_UNUSED(sv);
+		DILITHIUM_NOT_IMPLEMENTED;
+	}
+
+
+	void TempMDNodeDeleter::operator()(MDNode* node) const
+	{
+		DILITHIUM_UNUSED(node);
+		DILITHIUM_NOT_IMPLEMENTED;
+	}
+
+
+	MDTuple* MDNode::Get(LLVMContext& context, ArrayRef<Metadata*> mds)
+	{
+		DILITHIUM_UNUSED(context);
+		DILITHIUM_UNUSED(mds);
+		DILITHIUM_NOT_IMPLEMENTED;
+	}
+
+	MDTuple* MDNode::GetIfExists(LLVMContext& context, ArrayRef<Metadata*> mds)
+	{
+		DILITHIUM_UNUSED(context);
+		DILITHIUM_UNUSED(mds);
+		DILITHIUM_NOT_IMPLEMENTED;
+	}
+
+	MDTuple* MDNode::GetDistinct(LLVMContext& context, ArrayRef<Metadata*> mds)
+	{
+		DILITHIUM_UNUSED(context);
+		DILITHIUM_UNUSED(mds);
+		DILITHIUM_NOT_IMPLEMENTED;
+	}
+
+	void MDNode::ReplaceAllUsesWith(Metadata* md)
+	{
+		DILITHIUM_UNUSED(md);
+		DILITHIUM_NOT_IMPLEMENTED;
+	}
+
+
+	void NamedMDNode::AddOperand(MDNode* mn)
+	{
+		DILITHIUM_UNUSED(mn);
+		DILITHIUM_NOT_IMPLEMENTED;
 	}
 }

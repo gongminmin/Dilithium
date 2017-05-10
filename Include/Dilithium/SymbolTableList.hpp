@@ -38,10 +38,39 @@
 namespace Dilithium
 {
 	template <typename NodeType>
-	inline void AddToSymbolTableList(NodeType* ptr, typename NodeType::ParentType* parent);
+	inline void AddToSymbolTableList(NodeType* ptr, typename NodeType::ParentType* parent)
+	{
+		if (parent)
+		{
+			ptr->Parent(parent);
+			if (ptr->HasName())
+			{
+				auto symbol_tab = parent->GetValueSymbolTable();
+				if (symbol_tab)
+				{
+					symbol_tab->ReinsertValue(ptr);
+				}
+			}
+		}
+	}
 
 	template <typename NodeType>
-	inline void RemoveFromSymbolTableList(NodeType* ptr);
+	inline void RemoveFromSymbolTableList(NodeType* ptr)
+	{
+		auto parent = ptr->Parent();
+		if (parent)
+		{
+			if (ptr->HasName())
+			{
+				auto symbol_tab = parent->GetValueSymbolTable();
+				if (symbol_tab)
+				{
+					symbol_tab->RemoveValueName(ptr->NameHash());
+				}
+			}
+			ptr->Parent(nullptr);
+		}
+	}
 }
 
 #endif		// _DILITHIUM_SYMBOL_TABLE_LIST_HPP

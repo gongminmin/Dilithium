@@ -1,5 +1,5 @@
 /**
- * @file LLVMModule.cpp
+ * @file MetadataTracking.cpp
  * @author Minmin Gong
  *
  * @section DESCRIPTION
@@ -32,53 +32,40 @@
  * THE SOFTWARE.
  */
 
-#include <Dilithium/LLVMModule.hpp>
+#include <Dilithium/MetadataTracking.hpp>
 
 #include <Dilithium/ErrorHandling.hpp>
-#include <Dilithium/GVMaterializer.hpp>
-#include <Dilithium/LLVMContext.hpp>
+#include <Dilithium/Util.hpp>
 
-namespace Dilithium
+namespace Dilithium 
 {
-	LLVMModule::LLVMModule(std::string const & name, std::shared_ptr<LLVMContext> const & context)
-		: context_(context), name_(name)
-	{
-	}
 
-	LLVMModule::~LLVMModule()
+	bool MetadataTracking::Track(void* ref, Metadata& md, OwnerTy owner)
 	{
-		//DILITHIUM_NOT_IMPLEMENTED;
-	}
-
-	void LLVMModule::SetDataLayout(std::string_view desc)
-	{
-		DILITHIUM_UNUSED(desc);
+		DILITHIUM_UNUSED(ref);
+		DILITHIUM_UNUSED(md);
+		DILITHIUM_UNUSED(owner);
 		DILITHIUM_NOT_IMPLEMENTED;
 	}
 
-	uint32_t LLVMModule::MDKindID(std::string_view name) const
+	void MetadataTracking::Untrack(void* ref, Metadata& md)
 	{
-		DILITHIUM_UNUSED(name);
+		DILITHIUM_UNUSED(ref);
+		DILITHIUM_UNUSED(md);
 		DILITHIUM_NOT_IMPLEMENTED;
 	}
 
-	NamedMDNode* LLVMModule::GetOrInsertNamedMetadata(std::string_view name)
+	bool MetadataTracking::Retrack(void* ref, Metadata& md, void* new_md)
 	{
-		DILITHIUM_UNUSED(name);
+		DILITHIUM_UNUSED(ref);
+		DILITHIUM_UNUSED(md);
+		DILITHIUM_UNUSED(new_md);
 		DILITHIUM_NOT_IMPLEMENTED;
 	}
 
-	void LLVMModule::Materializer(std::shared_ptr<GVMaterializer> const & gvm)
+	bool MetadataTracking::IsReplaceable(Metadata const & md)
 	{
-		materializer_ = gvm;
-	}
-
-	void LLVMModule::MaterializeAllPermanently()
-	{
-		if (materializer_)
-		{
-			materializer_->MaterializeModule(this);
-			materializer_.reset();
-		}
+		DILITHIUM_UNUSED(md);
+		DILITHIUM_NOT_IMPLEMENTED;
 	}
 }

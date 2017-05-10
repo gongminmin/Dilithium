@@ -60,20 +60,20 @@ namespace Dilithium
 		// DILITHIUM_NOT_IMPLEMENTED
 	};
 
-	template<>
+	template <>
 	struct simplify_type<User::op_iterator>
 	{
 		typedef Value* SimpleType;
-		static SimpleType getSimplifiedValue(User::op_iterator& val)
+		static SimpleType SimplifiedValue(User::op_iterator& val)
 		{
 			return val->Get();
 		}
 	};
-	template<>
+	template <>
 	struct simplify_type<User::const_op_iterator>
 	{
 		typedef Value /*const*/ * SimpleType;
-		static SimpleType getSimplifiedValue(User::const_op_iterator& val)
+		static SimpleType SimplifiedValue(User::const_op_iterator& val)
 		{
 			return val->Get();
 		}

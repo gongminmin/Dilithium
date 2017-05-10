@@ -71,14 +71,14 @@ namespace Dilithium
 
 	public:
 		static CallInst* Create(Value* func, ArrayRef<Value*> args, std::string_view name_str = "", Instruction* insert_before = nullptr);
-		static CallInst *Create(FunctionType* ty, Value *Func, ArrayRef<Value *> args, std::string_view name_str = "",
+		static CallInst* Create(FunctionType* ty, Value* func, ArrayRef<Value*> args, std::string_view name_str = "",
 			Instruction* insert_before = nullptr);
-		static CallInst *Create(Value* func, ArrayRef<Value*> args, std::string_view name_str, BasicBlock* insert_at_end);
-		static CallInst *Create(Value* func, std::string_view name_str = "", Instruction* insert_before = nullptr);
-		static CallInst *Create(Value* func, std::string_view name_str, BasicBlock* insert_at_end);
+		static CallInst* Create(Value* func, ArrayRef<Value*> args, std::string_view name_str, BasicBlock* insert_at_end);
+		static CallInst* Create(Value* func, std::string_view name_str = "", Instruction* insert_before = nullptr);
+		static CallInst* Create(Value* func, std::string_view name_str, BasicBlock* insert_at_end);
 
 		TailCallKind GetTailCallKind() const;
-		void SetTailCallKind(TailCallKind TCK);
+		void SetTailCallKind(TailCallKind tck);
 
 		CallingConv::ID GetCallingConv() const;
 		void SetCallingConv(CallingConv::ID cc);

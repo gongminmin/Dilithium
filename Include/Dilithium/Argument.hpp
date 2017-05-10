@@ -45,6 +45,11 @@ namespace Dilithium
 
 	class Argument : public Value
 	{
+		template <typename NodeType>
+		friend void AddToSymbolTableList(NodeType*, typename NodeType::ParentType*);
+		template <typename NodeType>
+		friend void RemoveFromSymbolTableList(NodeType*);
+
 	public:
 		Function const * Parent() const
 		{
@@ -59,6 +64,9 @@ namespace Dilithium
 		{
 			return v->GetValueId() == ArgumentVal;
 		}
+
+	private:
+		void Parent(Function* parent);
 
 	private:
 		Function* parent_;

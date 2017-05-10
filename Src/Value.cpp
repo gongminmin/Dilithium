@@ -493,4 +493,33 @@ namespace Dilithium
 		*next = l;
 		Value::MergeUseListsImpl(l->next_, r, &l->next_, cmp);
 	}
+
+	void Value::Print(std::ostream& os) const
+	{
+		DILITHIUM_UNUSED(os);
+		DILITHIUM_NOT_IMPLEMENTED;
+	}
+
+	void Value::Print(std::ostream& os, ModuleSlotTracker& mst) const
+	{
+		DILITHIUM_UNUSED(os);
+		DILITHIUM_UNUSED(mst);
+		DILITHIUM_NOT_IMPLEMENTED;
+	}
+
+	void Value::PrintAsOperand(std::ostream& os, bool print_type, LLVMModule const * mod) const
+	{
+		DILITHIUM_UNUSED(os);
+		DILITHIUM_UNUSED(print_type);
+		DILITHIUM_UNUSED(mod);
+		DILITHIUM_NOT_IMPLEMENTED;
+	}
+
+	void Value::PrintAsOperand(std::ostream& os, bool print_type, ModuleSlotTracker& mst) const
+	{
+		DILITHIUM_UNUSED(os);
+		DILITHIUM_UNUSED(print_type);
+		DILITHIUM_UNUSED(mst);
+		DILITHIUM_NOT_IMPLEMENTED;
+	}
 }

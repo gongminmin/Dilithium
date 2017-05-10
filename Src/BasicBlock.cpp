@@ -1,5 +1,5 @@
 /**
- * @file LLVMModule.cpp
+ * @file BasicBlock.cpp
  * @author Minmin Gong
  *
  * @section DESCRIPTION
@@ -32,53 +32,33 @@
  * THE SOFTWARE.
  */
 
-#include <Dilithium/LLVMModule.hpp>
+#include <Dilithium/BasicBlock.hpp>
 
 #include <Dilithium/ErrorHandling.hpp>
-#include <Dilithium/GVMaterializer.hpp>
-#include <Dilithium/LLVMContext.hpp>
+#include <Dilithium/Util.hpp>
 
-namespace Dilithium
+namespace Dilithium 
 {
-	LLVMModule::LLVMModule(std::string const & name, std::shared_ptr<LLVMContext> const & context)
-		: context_(context), name_(name)
+	BasicBlock::~BasicBlock()
 	{
 	}
 
-	LLVMModule::~LLVMModule()
+	BasicBlock* BasicBlock::Create(LLVMContext& context, std::string_view name, Function* parent)
 	{
-		//DILITHIUM_NOT_IMPLEMENTED;
-	}
-
-	void LLVMModule::SetDataLayout(std::string_view desc)
-	{
-		DILITHIUM_UNUSED(desc);
-		DILITHIUM_NOT_IMPLEMENTED;
-	}
-
-	uint32_t LLVMModule::MDKindID(std::string_view name) const
-	{
+		DILITHIUM_UNUSED(context);
 		DILITHIUM_UNUSED(name);
+		DILITHIUM_UNUSED(parent);
 		DILITHIUM_NOT_IMPLEMENTED;
 	}
 
-	NamedMDNode* LLVMModule::GetOrInsertNamedMetadata(std::string_view name)
+	ValueSymbolTable* BasicBlock::GetValueSymbolTable()
 	{
-		DILITHIUM_UNUSED(name);
 		DILITHIUM_NOT_IMPLEMENTED;
 	}
 
-	void LLVMModule::Materializer(std::shared_ptr<GVMaterializer> const & gvm)
+	void BasicBlock::ReplaceSuccessorsPhiUsesWith(BasicBlock* new_bb)
 	{
-		materializer_ = gvm;
-	}
-
-	void LLVMModule::MaterializeAllPermanently()
-	{
-		if (materializer_)
-		{
-			materializer_->MaterializeModule(this);
-			materializer_.reset();
-		}
+		DILITHIUM_UNUSED(new_bb);
+		DILITHIUM_NOT_IMPLEMENTED;
 	}
 }

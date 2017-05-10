@@ -59,11 +59,7 @@ namespace Dilithium
 		};
 
 	public:
-		IntegerType(LLVMContext& context, uint32_t num_bits)
-			: Type(context, TID_Integer)
-		{
-			this->SubclassData(num_bits);
-		}
+		IntegerType(LLVMContext& context, uint32_t num_bits);
 
 		static IntegerType* Get(LLVMContext& context, uint32_t num_bits);
 
@@ -152,10 +148,7 @@ namespace Dilithium
 		}
 
 	protected:
-		explicit CompositeType(LLVMContext& context, TypeId tid)
-			: Type(context, tid)
-		{
-		}
+		explicit CompositeType(LLVMContext& context, TypeId tid);
 	};
 
 	class StructType : boost::noncopyable, public CompositeType
@@ -169,10 +162,7 @@ namespace Dilithium
 		};
 
 	public:
-		StructType(LLVMContext& context)
-			: CompositeType(context, TID_Struct)
-		{
-		}
+		explicit StructType(LLVMContext& context);
 
 		static StructType* Create(LLVMContext& context, std::string_view name);
 		static StructType* Create(LLVMContext& context);
@@ -261,11 +251,7 @@ namespace Dilithium
 		}
 
 	protected:
-		SequentialType(TypeId tid, Type* elem_type)
-			: CompositeType(elem_type->Context(), tid)
-		{
-			contained_types_.push_back(elem_type);
-		}
+		SequentialType(TypeId tid, Type* elem_type);
 	};
 	
 	class ArrayType : public SequentialType
@@ -298,37 +284,11 @@ namespace Dilithium
 
 		static VectorType* Get(Type* elem_type, uint32_t num_elements);
 
-		static VectorType* Integer(VectorType* vec_type)
-		{
-			uint32_t elem_bits = vec_type->ElementType()->PrimitiveSizeInBits();
-			BOOST_ASSERT_MSG(elem_bits, "Element size must be of a non-zero size");
-			Type* elem_type = IntegerType::Get(vec_type->Context(), elem_bits);
-			return VectorType::Get(elem_type, vec_type->NumElements());
-		}
-		static VectorType* ExtendedElementVectorType(VectorType* vec_type)
-		{
-			uint32_t elem_bits = vec_type->ElementType()->PrimitiveSizeInBits();
-			Type* elem_type = IntegerType::Get(vec_type->Context(), elem_bits * 2);
-			return VectorType::Get(elem_type, vec_type->NumElements());
-		}
-		static VectorType* TruncatedElementVectorType(VectorType* vec_type)
-		{
-			uint32_t elem_bits = vec_type->ElementType()->PrimitiveSizeInBits();
-			BOOST_ASSERT_MSG((elem_bits & 1) == 0, "Cannot truncate vector element with odd bit-width");
-			Type* elem_type = IntegerType::Get(vec_type->Context(), elem_bits / 2);
-			return VectorType::Get(elem_type, vec_type->NumElements());
-		}
-		static VectorType* HalfElementsVectorType(VectorType* vec_type)
-		{
-			uint32_t num_elements = vec_type->NumElements();
-			BOOST_ASSERT_MSG((num_elements & 1) == 0, "Cannot halve vector with odd number of elements.");
-			return VectorType::Get(vec_type->ElementType(), num_elements / 2);
-		}
-		static VectorType* DoubleElementsVectorType(VectorType* vec_type)
-		{
-			uint32_t num_elements = vec_type->NumElements();
-			return VectorType::Get(vec_type->ElementType(), num_elements * 2);
-		}
+		static VectorType* Integer(VectorType* vec_type);
+		static VectorType* ExtendedElementVectorType(VectorType* vec_type);
+		static VectorType* TruncatedElementVectorType(VectorType* vec_type);
+		static VectorType* HalfElementsVectorType(VectorType* vec_type);
+		static VectorType* DoubleElementsVectorType(VectorType* vec_type);
 
 		static bool IsValidElementType(Type* elem_type);
 

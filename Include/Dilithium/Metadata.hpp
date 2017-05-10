@@ -37,6 +37,9 @@
 
 #pragma once
 
+#include <Dilithium/ArrayRef.hpp>
+#include <Dilithium/Value.hpp>
+
 #include <memory>
 
 #include <boost/core/noncopyable.hpp>
@@ -102,7 +105,7 @@ namespace Dilithium
 
 	struct TempMDNodeDeleter
 	{
-		inline void operator()(MDNode *Node) const;
+		void operator()(MDNode* node) const;
 	};
 
 #define HANDLE_MDNODE_LEAF(CLASS) typedef std::unique_ptr<CLASS, TempMDNodeDeleter> Temp##CLASS;

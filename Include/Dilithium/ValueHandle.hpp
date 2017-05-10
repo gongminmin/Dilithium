@@ -37,6 +37,8 @@
 
 #pragma once
 
+#include <Dilithium/Value.hpp>
+
 #include <boost/core/noncopyable.hpp>
 
 namespace Dilithium
@@ -67,69 +69,14 @@ namespace Dilithium
 		};
 
 	public:
-		explicit ValueHandleBase(HandleBaseKind kind)
-			: kind_(kind), prev_(nullptr), next_(nullptr), val_(nullptr)
-		{
-		}
-		ValueHandleBase(HandleBaseKind kind, Value* val)
-			: kind_(kind), prev_(nullptr), next_(nullptr), val_(val)
-		{
-			if (this->IsValid(val_))
-			{
-				this->AddToUseList();
-			}
-		}
-		ValueHandleBase(HandleBaseKind kind, ValueHandleBase const & rhs)
-			: kind_(kind), prev_(nullptr), next_(nullptr), val_(rhs.val_)
-		{
-			if (this->IsValid(val_))
-			{
-				this->AddToExistingUseList(rhs.prev_);
-			}
-		}
-		~ValueHandleBase()
-		{
-			if (this->IsValid(val_))
-			{
-				this->RemoveFromUseList();
-			}
-		}
+		explicit ValueHandleBase(HandleBaseKind kind);
+		ValueHandleBase(HandleBaseKind kind, Value* val);
+		ValueHandleBase(HandleBaseKind kind, ValueHandleBase const & rhs);
+		~ValueHandleBase();
 
-		void Assign(Value* val)
-		{
-			if (val_ == val)
-			{
-				return;
-			}
-			if (this->IsValid(val_))
-			{
-				this->RemoveFromUseList();
-			}
-			val_ = val;
-			if (this->IsValid(val_))
-			{
-				this->AddToUseList();
-			}
-		}
+		void Assign(Value* val);
 
-		ValueHandleBase& operator=(ValueHandleBase const & rhs)
-		{
-			if (val_ == rhs.val_)
-			{
-				return *this;
-			}
-
-			if (this->IsValid(val_))
-			{
-				this->RemoveFromUseList();
-			}
-			val_ = rhs.val_;
-			if (this->IsValid(val_))
-			{
-				this->AddToExistingUseList(rhs.prev_);
-			}
-			return *this;
-		}
+		ValueHandleBase& operator=(ValueHandleBase const & rhs);
 
 		Value* operator->() const
 		{
@@ -141,8 +88,8 @@ namespace Dilithium
 		}
 
 		// Callbacks made from Value.
-		static void ValueIsDeleted(Value *V);
-		static void ValueIsRAUWd(Value *Old, Value *New);
+		static void ValueIsDeleted(Value* val);
+		static void ValueIsRAUWd(Value* old_val, Value* new_val);
 
 	protected:
 		Value* ValPtr() const
@@ -156,8 +103,8 @@ namespace Dilithium
 		}
 
 	private:
-		void AddToExistingUseList(ValueHandleBase **List);
-		void AddToExistingUseListAfter(ValueHandleBase *Node);
+		void AddToExistingUseList(ValueHandleBase** list);
+		void AddToExistingUseListAfter(ValueHandleBase* node);
 
 		void AddToUseList();
 		void RemoveFromUseList();
@@ -199,7 +146,7 @@ namespace Dilithium
 	struct simplify_type<WeakVH>
 	{
 		typedef Value* SimpleType;
-		static SimpleType getSimplifiedValue(WeakVH& wvh)
+		static SimpleType SimplifiedValue(WeakVH& wvh)
 		{
 			return wvh;
 		}
@@ -208,7 +155,7 @@ namespace Dilithium
 	struct simplify_type<WeakVH const>
 	{
 		typedef Value /*const*/ * SimpleType;
-		static SimpleType getSimplifiedValue(WeakVH const & wvh)
+		static SimpleType SimplifiedValue(WeakVH const & wvh)
 		{
 			return wvh;
 		}

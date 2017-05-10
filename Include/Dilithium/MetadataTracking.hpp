@@ -48,6 +48,9 @@ namespace Dilithium
 	class MetadataTracking
 	{
 	public:
+		typedef PointerUnion<MetadataAsValue*, Metadata*> OwnerTy;
+
+	public:
 		static bool Track(Metadata*& md)
 		{
 			return Track(&md, *md, static_cast<Metadata*>(nullptr));
@@ -74,8 +77,6 @@ namespace Dilithium
 		static bool Retrack(void* ref, Metadata& md, void* new_md);
 
 		static bool IsReplaceable(Metadata const & md);
-
-		typedef PointerUnion<MetadataAsValue*, Metadata*> OwnerTy;
 
 	private:
 		static bool Track(void* ref, Metadata& md, OwnerTy owner);

@@ -37,6 +37,7 @@
 
 #pragma once
 
+#include <Dilithium/Casting.hpp>
 #include <Dilithium/Constants.hpp>
 #include <Dilithium/Instruction.hpp>
 #include <Dilithium/User.hpp>
@@ -49,26 +50,7 @@ namespace Dilithium
 	class Operator : public User
 	{
 	public:
-		static uint32_t Opcode(Value const * v)
-		{
-			Instruction const * inst = dyn_cast<Instruction>(v);
-			if (inst)
-			{
-				return inst->Opcode();
-			}
-			else
-			{
-				ConstantExpr const * ce = dyn_cast<ConstantExpr>(v);
-				if (ce)
-				{
-					return ce->Opcode();
-				}
-				else
-				{
-					return Instruction::UserOp1;
-				}
-			}
-		}
+		static uint32_t Opcode(Value const * v);
 
 		static bool classof(Instruction const * inst)
 		{

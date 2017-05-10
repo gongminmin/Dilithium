@@ -1,5 +1,5 @@
 /**
- * @file LLVMModule.cpp
+ * @file Operator.cpp
  * @author Minmin Gong
  *
  * @section DESCRIPTION
@@ -32,53 +32,36 @@
  * THE SOFTWARE.
  */
 
-#include <Dilithium/LLVMModule.hpp>
+#include <Dilithium/Operator.hpp>
 
 #include <Dilithium/ErrorHandling.hpp>
-#include <Dilithium/GVMaterializer.hpp>
-#include <Dilithium/LLVMContext.hpp>
+#include <Dilithium/Util.hpp>
 
 namespace Dilithium
 {
-	LLVMModule::LLVMModule(std::string const & name, std::shared_ptr<LLVMContext> const & context)
-		: context_(context), name_(name)
+	uint32_t Operator::Opcode(Value const * v)
 	{
-	}
-
-	LLVMModule::~LLVMModule()
-	{
-		//DILITHIUM_NOT_IMPLEMENTED;
-	}
-
-	void LLVMModule::SetDataLayout(std::string_view desc)
-	{
-		DILITHIUM_UNUSED(desc);
-		DILITHIUM_NOT_IMPLEMENTED;
-	}
-
-	uint32_t LLVMModule::MDKindID(std::string_view name) const
-	{
-		DILITHIUM_UNUSED(name);
-		DILITHIUM_NOT_IMPLEMENTED;
-	}
-
-	NamedMDNode* LLVMModule::GetOrInsertNamedMetadata(std::string_view name)
-	{
-		DILITHIUM_UNUSED(name);
-		DILITHIUM_NOT_IMPLEMENTED;
-	}
-
-	void LLVMModule::Materializer(std::shared_ptr<GVMaterializer> const & gvm)
-	{
-		materializer_ = gvm;
-	}
-
-	void LLVMModule::MaterializeAllPermanently()
-	{
-		if (materializer_)
+		Instruction const * inst = dyn_cast<Instruction>(v);
+		if (inst)
 		{
-			materializer_->MaterializeModule(this);
-			materializer_.reset();
+			return inst->Opcode();
 		}
+		else
+		{
+			ConstantExpr const * ce = dyn_cast<ConstantExpr>(v);
+			if (ce)
+			{
+				return ce->Opcode();
+			}
+			else
+			{
+				return Instruction::UserOp1;
+			}
+		}
+	}
+
+	bool GEPOperator::HasAllZeroIndices() const
+	{
+		DILITHIUM_NOT_IMPLEMENTED;
 	}
 }

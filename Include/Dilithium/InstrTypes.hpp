@@ -38,6 +38,7 @@
 #pragma once
 
 #include <Dilithium/Instruction.hpp>
+#include <Dilithium/Casting.hpp>
 
 namespace Dilithium
 {

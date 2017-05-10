@@ -50,6 +50,11 @@ namespace Dilithium
 
 	class BasicBlock : public Value
 	{
+		template <typename NodeType>
+		friend void AddToSymbolTableList(NodeType*, typename NodeType::ParentType*);
+		template <typename NodeType>
+		friend void RemoveFromSymbolTableList(NodeType*);
+
 	public:
 		typedef std::list<std::unique_ptr<Instruction>> InstListType;
 		typedef InstListType::iterator iterator;
@@ -147,6 +152,9 @@ namespace Dilithium
 		{
 			return v->GetValueId() == Value::BasicBlockVal;
 		}
+
+	private:
+		void Parent(Function* new_parent);
 
 	private:
 		InstListType inst_list_;

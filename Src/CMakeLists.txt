@@ -69,16 +69,30 @@ SET(HLSL_SOURCE_FILES
 )
 
 SET(SOURCE_FILES
+	${DILITHIUM_ROOT_DIR}/Src/Attributes.cpp
+	${DILITHIUM_ROOT_DIR}/Src/BasicBlock.cpp
 	${DILITHIUM_ROOT_DIR}/Src/BitcodeReader.cpp
 	${DILITHIUM_ROOT_DIR}/Src/BitstreamReader.cpp
+	${DILITHIUM_ROOT_DIR}/Src/Constant.cpp
+	${DILITHIUM_ROOT_DIR}/Src/Constants.cpp
+	${DILITHIUM_ROOT_DIR}/Src/DerivedType.cpp
 	${DILITHIUM_ROOT_DIR}/Src/ErrorHandling.cpp
+	${DILITHIUM_ROOT_DIR}/Src/Function.cpp
+	${DILITHIUM_ROOT_DIR}/Src/GlobalObject.cpp
+	${DILITHIUM_ROOT_DIR}/Src/Instruction.cpp
+	${DILITHIUM_ROOT_DIR}/Src/Instructions.cpp
 	${DILITHIUM_ROOT_DIR}/Src/LLVMContext.cpp
 	${DILITHIUM_ROOT_DIR}/Src/LLVMContextImpl.cpp
 	${DILITHIUM_ROOT_DIR}/Src/LLVMModule.cpp
 	${DILITHIUM_ROOT_DIR}/Src/MemStreamBuf.cpp
+	${DILITHIUM_ROOT_DIR}/Src/Metadata.cpp
+	${DILITHIUM_ROOT_DIR}/Src/MetadataTracking.cpp
+	${DILITHIUM_ROOT_DIR}/Src/Operator.cpp
 	${DILITHIUM_ROOT_DIR}/Src/Type.cpp
 	${DILITHIUM_ROOT_DIR}/Src/Use.cpp
+	${DILITHIUM_ROOT_DIR}/Src/User.cpp
 	${DILITHIUM_ROOT_DIR}/Src/Value.cpp
+	${DILITHIUM_ROOT_DIR}/Src/ValueHandle.cpp
 	${DILITHIUM_ROOT_DIR}/Src/ValueSymbolTable.cpp
 )
 
