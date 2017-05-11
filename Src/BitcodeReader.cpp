@@ -32,6 +32,7 @@
  * THE SOFTWARE.
  */
 
+#include <Dilithium/Dilithium.hpp>
 #include <Dilithium/BitcodeReader.hpp>
 
 #include <Dilithium/Attributes.hpp>
@@ -41,7 +42,6 @@
 #include <Dilithium/Casting.hpp>
 #include <Dilithium/Constants.hpp>
 #include <Dilithium/DerivedType.hpp>
-#include <Dilithium/ErrorHandling.hpp>
 #include <Dilithium/GVMaterializer.hpp>
 #include <Dilithium/Instructions.hpp>
 #include <Dilithium/LLVMBitCodes.hpp>
@@ -53,7 +53,6 @@
 #include <Dilithium/SymbolTableList.hpp>
 #include <Dilithium/TrackingMDRef.hpp>
 #include <Dilithium/Use.hpp>
-#include <Dilithium/Util.hpp>
 #include <Dilithium/ValueHandle.hpp>
 
 #include <deque>
@@ -288,98 +287,98 @@ namespace
 		switch (Code)
 		{
 		case BitCode::AttributeKindCode::Alignment:
-			return Attribute::Alignment;
+			return Attribute::AK_Alignment;
 		case BitCode::AttributeKindCode::AlwaysInline:
-			return Attribute::AlwaysInline;
+			return Attribute::AK_AlwaysInline;
 		case BitCode::AttributeKindCode::ArgMemOnly:
-			return Attribute::ArgMemOnly;
+			return Attribute::AK_ArgMemOnly;
 		case BitCode::AttributeKindCode::Builtin:
-			return Attribute::Builtin;
+			return Attribute::AK_Builtin;
 		case BitCode::AttributeKindCode::ByVal:
-			return Attribute::ByVal;
+			return Attribute::AK_ByVal;
 		case BitCode::AttributeKindCode::InAlloca:
-			return Attribute::InAlloca;
+			return Attribute::AK_InAlloca;
 		case BitCode::AttributeKindCode::Cold:
-			return Attribute::Cold;
+			return Attribute::AK_Cold;
 		case BitCode::AttributeKindCode::Convergent:
-			return Attribute::Convergent;
+			return Attribute::AK_Convergent;
 		case BitCode::AttributeKindCode::InlineHint:
-			return Attribute::InlineHint;
+			return Attribute::AK_InlineHint;
 		case BitCode::AttributeKindCode::InReg:
-			return Attribute::InReg;
+			return Attribute::AK_InReg;
 		case BitCode::AttributeKindCode::JumpTable:
-			return Attribute::JumpTable;
+			return Attribute::AK_JumpTable;
 		case BitCode::AttributeKindCode::MinSize:
-			return Attribute::MinSize;
+			return Attribute::AK_MinSize;
 		case BitCode::AttributeKindCode::Naked:
-			return Attribute::Naked;
+			return Attribute::AK_Naked;
 		case BitCode::AttributeKindCode::Nest:
-			return Attribute::Nest;
+			return Attribute::AK_Nest;
 		case BitCode::AttributeKindCode::NoAlias:
-			return Attribute::NoAlias;
+			return Attribute::AK_NoAlias;
 		case BitCode::AttributeKindCode::NoBuiltin:
-			return Attribute::NoBuiltin;
+			return Attribute::AK_NoBuiltin;
 		case BitCode::AttributeKindCode::NoCapture:
-			return Attribute::NoCapture;
+			return Attribute::AK_NoCapture;
 		case BitCode::AttributeKindCode::NoDuplicate:
-			return Attribute::NoDuplicate;
+			return Attribute::AK_NoDuplicate;
 		case BitCode::AttributeKindCode::NoImplicitFloat:
-			return Attribute::NoImplicitFloat;
+			return Attribute::AK_NoImplicitFloat;
 		case BitCode::AttributeKindCode::NoInline:
-			return Attribute::NoInline;
+			return Attribute::AK_NoInline;
 		case BitCode::AttributeKindCode::NonLazyBind:
-			return Attribute::NonLazyBind;
+			return Attribute::AK_NonLazyBind;
 		case BitCode::AttributeKindCode::NonNull:
-			return Attribute::NonNull;
+			return Attribute::AK_NonNull;
 		case BitCode::AttributeKindCode::Dereferenceable:
-			return Attribute::Dereferenceable;
+			return Attribute::AK_Dereferenceable;
 		case BitCode::AttributeKindCode::DereferenceableOrNull:
-			return Attribute::DereferenceableOrNull;
+			return Attribute::AK_DereferenceableOrNull;
 		case BitCode::AttributeKindCode::NoRedZone:
-			return Attribute::NoRedZone;
+			return Attribute::AK_NoRedZone;
 		case BitCode::AttributeKindCode::NoReturn:
-			return Attribute::NoReturn;
+			return Attribute::AK_NoReturn;
 		case BitCode::AttributeKindCode::NoUnwind:
-			return Attribute::NoUnwind;
+			return Attribute::AK_NoUnwind;
 		case BitCode::AttributeKindCode::OptimizeForSize:
-			return Attribute::OptimizeForSize;
+			return Attribute::AK_OptimizeForSize;
 		case BitCode::AttributeKindCode::OptimizeNone:
-			return Attribute::OptimizeNone;
+			return Attribute::AK_OptimizeNone;
 		case BitCode::AttributeKindCode::ReadNone:
-			return Attribute::ReadNone;
+			return Attribute::AK_ReadNone;
 		case BitCode::AttributeKindCode::ReadOnly:
-			return Attribute::ReadOnly;
+			return Attribute::AK_ReadOnly;
 		case BitCode::AttributeKindCode::Returned:
-			return Attribute::Returned;
+			return Attribute::AK_Returned;
 		case BitCode::AttributeKindCode::ReturnsTwice:
-			return Attribute::ReturnsTwice;
+			return Attribute::AK_ReturnsTwice;
 		case BitCode::AttributeKindCode::SExt:
-			return Attribute::SExt;
+			return Attribute::AK_SExt;
 		case BitCode::AttributeKindCode::StackAlignment:
-			return Attribute::StackAlignment;
+			return Attribute::AK_StackAlignment;
 		case BitCode::AttributeKindCode::StackProtect:
-			return Attribute::StackProtect;
+			return Attribute::AK_StackProtect;
 		case BitCode::AttributeKindCode::StackProtectReq:
-			return Attribute::StackProtectReq;
+			return Attribute::AK_StackProtectReq;
 		case BitCode::AttributeKindCode::StackProtectStrong:
-			return Attribute::StackProtectStrong;
+			return Attribute::AK_StackProtectStrong;
 		case BitCode::AttributeKindCode::SafeStack:
-			return Attribute::SafeStack;
+			return Attribute::AK_SafeStack;
 		case BitCode::AttributeKindCode::StructRet:
-			return Attribute::StructRet;
+			return Attribute::AK_StructRet;
 		case BitCode::AttributeKindCode::SanitizeAddress:
-			return Attribute::SanitizeAddress;
+			return Attribute::AK_SanitizeAddress;
 		case BitCode::AttributeKindCode::SanitizeThread:
-			return Attribute::SanitizeThread;
+			return Attribute::AK_SanitizeThread;
 		case BitCode::AttributeKindCode::SanitizeMemory:
-			return Attribute::SanitizeMemory;
+			return Attribute::AK_SanitizeMemory;
 		case BitCode::AttributeKindCode::UwTable:
-			return Attribute::UWTable;
+			return Attribute::AK_UWTable;
 		case BitCode::AttributeKindCode::ZExt:
-			return Attribute::ZExt;
+			return Attribute::AK_ZExt;
 
 		default:
-			return Attribute::None;
+			return Attribute::AK_None;
 		}
 	}
 
@@ -914,7 +913,7 @@ namespace
 		void ParseAttrKind(uint64_t code, Attribute::AttrKind* kind)
 		{
 			*kind = AttrFromCode(code);
-			if (*kind == Attribute::None)
+			if (*kind == Attribute::AK_None)
 			{
 				this->Error(("Unknown attribute kind (" + std::to_string(code) + ")").c_str());
 				return;
@@ -1368,19 +1367,19 @@ namespace
 								this->ParseAttrKind(record[i], &kind);
 								switch (kind)
 								{
-								case Attribute::Alignment:
+								case Attribute::AK_Alignment:
 									++ i;
 									ab.AddAlignmentAttr(static_cast<uint32_t>(record[i]));
 									break;
-								case Attribute::StackAlignment:
+								case Attribute::AK_StackAlignment:
 									++ i;
 									ab.AddStackAlignmentAttr(static_cast<uint32_t>(record[i]));
 									break;
-								case Attribute::Dereferenceable:
+								case Attribute::AK_Dereferenceable:
 									++ i;
 									ab.AddDereferenceableAttr(record[i]);
 									break;
-								case Attribute::DereferenceableOrNull:
+								case Attribute::AK_DereferenceableOrNull:
 									++ i;
 									ab.AddDereferenceableOrNullAttr(record[i]);
 									break;

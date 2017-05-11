@@ -37,7 +37,7 @@
 
 #pragma once
 
-#include <Dilithium/ErrorHandling.hpp>
+#include <Dilithium/Dilithium.hpp>
 
 #include <boost/assert.hpp>
 #include <boost/container/small_vector.hpp>

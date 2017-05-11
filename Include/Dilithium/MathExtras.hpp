@@ -39,11 +39,58 @@
 
 #include <Dilithium/Util.hpp>
 
+#include <limits>
+
 namespace Dilithium
 {
-	inline bool IsPowerOfTwo32(uint32_t Value)
+	namespace Detail
 	{
-		return Value && !(Value & (Value - 1));
+		template <typename T, std::size_t SizeOfT>
+		struct LeadingZerosCounter
+		{
+			static std::size_t Count(T val)
+			{
+				if (!val)
+				{
+					return std::numeric_limits<T>::digits;
+				}
+				else
+				{
+					std::size_t zero_bits = 0;
+					for (T shift = std::numeric_limits<T>::digits >> 1; shift; shift >>= 1)
+					{
+						T tmp = val >> shift;
+						if (tmp)
+						{
+							val = tmp;
+						}
+						else
+						{
+							zero_bits |= shift;
+						}
+					}
+					return zero_bits;
+				}
+			}
+		};
+	}
+
+	template <typename T>
+	std::size_t CountLeadingZeros(T val)
+	{
+		static_assert(std::numeric_limits<T>::is_integer && !std::numeric_limits<T>::is_signed,
+			"Only unsigned integral types are allowed.");
+		return Detail::LeadingZerosCounter<T, sizeof(T)>::Count(val);
+	}
+
+	inline bool IsPowerOfTwo32(uint32_t val)
+	{
+		return val && !(val & (val - 1));
+	}
+
+	inline uint32_t Log2_32(uint32_t val)
+	{
+		return 31 - static_cast<uint32_t>(CountLeadingZeros(val));
 	}
 }
 

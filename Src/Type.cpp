@@ -32,11 +32,10 @@
  * THE SOFTWARE.
  */
 
+#include <Dilithium/Dilithium.hpp>
 #include <Dilithium/Type.hpp>
 #include <Dilithium/LLVMContext.hpp>
 #include <Dilithium/DerivedType.hpp>
-#include <Dilithium/ErrorHandling.hpp>
-#include <Dilithium/Util.hpp>
 #include "LLVMContextImpl.hpp"
 
 namespace Dilithium

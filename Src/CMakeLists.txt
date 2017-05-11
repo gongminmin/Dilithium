@@ -61,6 +61,7 @@ SET(HEADER_FILES
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Value.inc
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/ValueHandle.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/ValueSymbolTable.hpp
+	${DILITHIUM_ROOT_DIR}/Src/AttributeImpl.hpp
 	${DILITHIUM_ROOT_DIR}/Src/LLVMContextImpl.hpp
 )
 
@@ -69,6 +70,7 @@ SET(HLSL_SOURCE_FILES
 )
 
 SET(SOURCE_FILES
+	${DILITHIUM_ROOT_DIR}/Src/AttributeImpl.cpp
 	${DILITHIUM_ROOT_DIR}/Src/Attributes.cpp
 	${DILITHIUM_ROOT_DIR}/Src/BasicBlock.cpp
 	${DILITHIUM_ROOT_DIR}/Src/BitcodeReader.cpp

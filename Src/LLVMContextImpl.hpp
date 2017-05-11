@@ -37,6 +37,7 @@
 
 #include <Dilithium/DerivedType.hpp>
 #include <Dilithium/TrackingMDRef.hpp>
+#include "AttributeImpl.hpp"
 
 #include <memory>
 #include <unordered_map>
@@ -88,6 +89,10 @@ namespace Dilithium
 	{
 		explicit LLVMContextImpl(LLVMContext& context);
 		~LLVMContextImpl();
+
+		std::unordered_map<uint64_t, std::unique_ptr<AttributeImpl>> attrs_set;
+		std::unordered_map<uint64_t, std::unique_ptr<AttributeSetImpl>> attrs_lists;
+		std::unordered_map<uint64_t, std::unique_ptr<AttributeSetNode>> attrs_set_nodes;
 
 		ConstantInt* the_true_val;
 		ConstantInt* the_false_val;

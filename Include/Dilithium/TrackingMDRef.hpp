@@ -37,10 +37,9 @@
 
 #pragma once
 
+#include <Dilithium/Dilithium.hpp>
 #include <Dilithium/Casting.hpp>
-#include <Dilithium/ErrorHandling.hpp>
 #include <Dilithium/MetadataTracking.hpp>
-#include <Dilithium/Util.hpp>
 
 #include <boost/assert.hpp>
 

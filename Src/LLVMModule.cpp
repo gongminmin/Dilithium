@@ -32,9 +32,9 @@
  * THE SOFTWARE.
  */
 
+#include <Dilithium/Dilithium.hpp>
 #include <Dilithium/LLVMModule.hpp>
 
-#include <Dilithium/ErrorHandling.hpp>
 #include <Dilithium/GVMaterializer.hpp>
 #include <Dilithium/LLVMContext.hpp>
 

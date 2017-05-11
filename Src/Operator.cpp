@@ -32,10 +32,8 @@
  * THE SOFTWARE.
  */
 
+#include <Dilithium/Dilithium.hpp>
 #include <Dilithium/Operator.hpp>
-
-#include <Dilithium/ErrorHandling.hpp>
-#include <Dilithium/Util.hpp>
 
 namespace Dilithium
 {
