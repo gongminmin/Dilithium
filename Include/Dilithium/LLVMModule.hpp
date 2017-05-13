@@ -38,6 +38,7 @@
 #pragma once
 
 #include <Dilithium/CXX17/string_view.hpp>
+#include <Dilithium/DataLayout.hpp>
 #include <Dilithium/Function.hpp>
 #include <Dilithium/ValueSymbolTable.hpp>
 
@@ -70,6 +71,7 @@ namespace Dilithium
 		~LLVMModule();
 
 		void SetDataLayout(std::string_view desc);
+		void SetDataLayout(DataLayout const & dl);
 
 		void SetTargetTriple(std::string_view sv)
 		{
@@ -149,6 +151,7 @@ namespace Dilithium
 		std::string name_;
 		std::shared_ptr<GVMaterializer> materializer_;
 		std::string target_triple_;
+		DataLayout data_layout_;
 	};
 }
 

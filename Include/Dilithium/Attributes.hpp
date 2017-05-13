@@ -131,7 +131,7 @@ namespace Dilithium
 		bool IsIntAttribute() const;
 		bool IsStringAttribute() const;
 
-		bool HasAttribute(AttrKind val) const;
+		bool HasAttribute(AttrKind kind) const;
 		bool HasAttribute(std::string_view val) const;
 
 		AttrKind KindAsEnum() const;
@@ -208,6 +208,8 @@ namespace Dilithium
 
 		static AttributeSet Get(LLVMContext& context, ArrayRef<std::pair<uint32_t, Attribute>> attrs);
 		static AttributeSet Get(LLVMContext& context, ArrayRef<std::pair<uint32_t, AttributeSetNode*>> attrs);
+
+		static AttributeSet GetImpl(LLVMContext& context, ArrayRef<std::pair<uint32_t, AttributeSetNode*>> attrs);
 
 	private:
 		AttributeSetImpl* impl_;

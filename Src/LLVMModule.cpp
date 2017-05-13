@@ -41,7 +41,7 @@
 namespace Dilithium
 {
 	LLVMModule::LLVMModule(std::string const & name, std::shared_ptr<LLVMContext> const & context)
-		: context_(context), name_(name)
+		: context_(context), name_(name), data_layout_("")
 	{
 	}
 
@@ -52,8 +52,12 @@ namespace Dilithium
 
 	void LLVMModule::SetDataLayout(std::string_view desc)
 	{
-		DILITHIUM_UNUSED(desc);
-		DILITHIUM_NOT_IMPLEMENTED;
+		data_layout_.Reset(desc.to_string());
+	}
+
+	void LLVMModule::SetDataLayout(DataLayout const & dl)
+	{
+		data_layout_ = dl;
 	}
 
 	uint32_t LLVMModule::MDKindID(std::string_view name) const

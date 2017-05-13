@@ -83,14 +83,41 @@ namespace Dilithium
 		return Detail::LeadingZerosCounter<T, sizeof(T)>::Count(val);
 	}
 
+	template <uint32_t N>
+	inline bool IsUInt(uint64_t val)
+	{
+		return (N >= 64) || (val < (1ULL << N));
+	}
+
 	inline bool IsPowerOfTwo32(uint32_t val)
 	{
 		return val && !(val & (val - 1));
 	}
 
+	inline bool IsPowerOfTwo64(uint64_t val)
+	{
+		return val && !(val & (val - 1LL));
+	}
+
 	inline uint32_t Log2_32(uint32_t val)
 	{
 		return 31 - static_cast<uint32_t>(CountLeadingZeros(val));
+	}
+
+	inline uint64_t NextPowerOf2(uint64_t val)
+	{
+		val |= (val >> 1);
+		val |= (val >> 2);
+		val |= (val >> 4);
+		val |= (val >> 8);
+		val |= (val >> 16);
+		val |= (val >> 32);
+		return val + 1;
+	}
+
+	inline uint64_t RoundUpToAlignment(uint64_t value, uint64_t align)
+	{
+		return (value + align - 1) / align * align;
 	}
 }
 

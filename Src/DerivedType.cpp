@@ -34,6 +34,8 @@
 
 #include <Dilithium/Dilithium.hpp>
 #include <Dilithium/DerivedType.hpp>
+#include <Dilithium/LLVMContext.hpp>
+#include "LLVMContextImpl.hpp"
 
 namespace Dilithium 
 {
@@ -45,9 +47,36 @@ namespace Dilithium
 
 	IntegerType* IntegerType::Get(LLVMContext& context, uint32_t num_bits)
 	{
-		DILITHIUM_UNUSED(context);
-		DILITHIUM_UNUSED(num_bits);
-		DILITHIUM_NOT_IMPLEMENTED;
+		BOOST_ASSERT_MSG(num_bits >= MIN_INT_BITS, "bitwidth too small");
+		BOOST_ASSERT_MSG(num_bits <= MAX_INT_BITS, "bitwidth too large");
+
+		// Check for the built-in integer types
+		switch (num_bits)
+		{
+		case 1:
+			return cast<IntegerType>(Type::Int1Type(context));
+		case 8:
+			return cast<IntegerType>(Type::Int8Type(context));
+		case 16:
+			return cast<IntegerType>(Type::Int16Type(context));
+		case 32:
+			return cast<IntegerType>(Type::Int32Type(context));
+		case 64:
+			return cast<IntegerType>(Type::Int64Type(context));
+		case 128:
+			DILITHIUM_NOT_IMPLEMENTED;
+
+		default:
+			break;
+		}
+
+		auto& entry = context.Impl().integer_types[num_bits];
+		if (!entry)
+		{
+			entry = std::make_unique<IntegerType>(context, num_bits);
+		}
+
+		return entry.get();
 	}
 
 
@@ -69,29 +98,35 @@ namespace Dilithium
 
 	FunctionType* FunctionType::Get(Type* return_type, ArrayRef<Type*> params, bool is_var_args)
 	{
-		DILITHIUM_UNUSED(return_type);
-		DILITHIUM_UNUSED(params);
-		DILITHIUM_UNUSED(is_var_args);
-		DILITHIUM_NOT_IMPLEMENTED;
+		auto& impl = return_type->Context().Impl();
+
+		uint64_t hash_val = boost::hash_value(return_type);
+		boost::hash_combine(hash_val, boost::hash_range(params.begin(), params.end()));
+		boost::hash_combine(hash_val, is_var_args);
+
+		auto iter = impl.function_types.find(hash_val);
+		if (iter == impl.function_types.end())
+		{
+			auto ft = std::make_unique<FunctionType>(return_type, params, is_var_args);
+			iter = impl.function_types.emplace(hash_val, std::move(ft)).first;
+		}
+
+		return iter->second.get();
 	}
 
 	FunctionType* FunctionType::Get(Type* return_type, bool is_var_args)
 	{
-		DILITHIUM_UNUSED(return_type);
-		DILITHIUM_UNUSED(is_var_args);
-		DILITHIUM_NOT_IMPLEMENTED;
+		return FunctionType::Get(return_type, ArrayRef<Type*>(), is_var_args);
 	}
 
 	bool FunctionType::IsValidReturnType(Type* return_type)
 	{
-		DILITHIUM_UNUSED(return_type);
-		DILITHIUM_NOT_IMPLEMENTED;
+		return !return_type->IsFunctionType() && !return_type->IsLabelType() && !return_type->IsMetadataType();
 	}
 
 	bool FunctionType::IsValidArgumentType(Type* arg_type)
 	{
-		DILITHIUM_UNUSED(arg_type);
-		DILITHIUM_NOT_IMPLEMENTED;
+		return arg_type->IsFirstClassType();
 	}
 
 
@@ -334,20 +369,27 @@ namespace Dilithium
 
 	PointerType* PointerType::Get(Type* elem_type, uint32_t address_space)
 	{
-		DILITHIUM_UNUSED(elem_type);
-		DILITHIUM_UNUSED(address_space);
-		DILITHIUM_NOT_IMPLEMENTED;
+		BOOST_ASSERT_MSG(elem_type, "Can't get a pointer to <null> type!");
+		BOOST_ASSERT_MSG(PointerType::IsValidElementType(elem_type), "Invalid type for pointer element!");
+
+		auto& impl = elem_type->Context().Impl();
+
+		auto& entry = (address_space == 0) ? impl.pointer_types[elem_type]
+			: impl.as_pointer_types[std::make_pair(elem_type, address_space)];
+		if (!entry)
+		{
+			entry = std::make_unique<PointerType>(elem_type, address_space);
+		}
+		return entry.get();
 	}
 
 	bool PointerType::IsValidElementType(Type* elem_type)
 	{
-		DILITHIUM_UNUSED(elem_type);
-		DILITHIUM_NOT_IMPLEMENTED;
+		return !elem_type->IsVoidType() && !elem_type->IsLabelType() && !elem_type->IsMetadataType();
 	}
 
 	bool PointerType::IsLoadableOrStorableType(Type* elem_type)
 	{
-		DILITHIUM_UNUSED(elem_type);
-		DILITHIUM_NOT_IMPLEMENTED;
+		return PointerType::IsValidElementType(elem_type) && !elem_type->IsFunctionType();
 	}
 }

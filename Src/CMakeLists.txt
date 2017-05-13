@@ -27,6 +27,7 @@ SET(HEADER_FILES
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Compiler.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Constant.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Constants.hpp
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/DataLayout.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/DerivedType.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Dilithium.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/ErrorHandling.hpp
@@ -77,6 +78,7 @@ SET(SOURCE_FILES
 	${DILITHIUM_ROOT_DIR}/Src/BitstreamReader.cpp
 	${DILITHIUM_ROOT_DIR}/Src/Constant.cpp
 	${DILITHIUM_ROOT_DIR}/Src/Constants.cpp
+	${DILITHIUM_ROOT_DIR}/Src/DataLayout.cpp
 	${DILITHIUM_ROOT_DIR}/Src/DerivedType.cpp
 	${DILITHIUM_ROOT_DIR}/Src/ErrorHandling.cpp
 	${DILITHIUM_ROOT_DIR}/Src/Function.cpp

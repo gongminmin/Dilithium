@@ -128,10 +128,9 @@ namespace Dilithium
 		DILITHIUM_NOT_IMPLEMENTED;
 	}
 
-	bool Attribute::HasAttribute(AttrKind val) const
+	bool Attribute::HasAttribute(AttrKind kind) const
 	{
-		DILITHIUM_UNUSED(val);
-		DILITHIUM_NOT_IMPLEMENTED;
+		return (impl_ && impl_->HasAttribute(kind)) || (!impl_ && (kind == AK_None));
 	}
 
 	bool Attribute::HasAttribute(std::string_view val) const
@@ -216,17 +215,52 @@ namespace Dilithium
 
 	AttributeSet AttributeSet::Get(LLVMContext& context, ArrayRef<AttributeSet> attrs)
 	{
-		DILITHIUM_UNUSED(context);
-		DILITHIUM_UNUSED(attrs);
-		DILITHIUM_NOT_IMPLEMENTED;
+		if (attrs.empty())
+		{
+			return AttributeSet();
+		}
+		if (attrs.size() == 1)
+		{
+			return attrs[0];
+		}
+
+		boost::container::small_vector<std::pair<uint32_t, AttributeSetNode*>, 8> attr_node_vec;
+		AttributeSetImpl* asi = attrs[0].impl_;
+		if (asi)
+		{
+			attr_node_vec.insert(attr_node_vec.end(), asi->Node(0), asi->Node(asi->NumAttributes()));
+		}
+		for (size_t i = 1, e = attrs.size(); i != e; ++ i)
+		{
+			asi = attrs[i].impl_;
+			if (!asi)
+			{
+				continue;
+			}
+			auto anvi = attr_node_vec.begin();
+			auto anve = attr_node_vec.end();
+			for (auto ai = asi->Node(0), ae = asi->Node(asi->NumAttributes()); ai != ae; ++ ai)
+			{
+				anve = attr_node_vec.end();
+				while ((anvi != anve) && (anvi->first <= ai->first))
+				{
+					++ anvi;
+				}
+				anvi = attr_node_vec.insert(anvi, *ai) + 1;
+			}
+		}
+
+		return GetImpl(context, attr_node_vec);
 	}
 	
 	AttributeSet AttributeSet::Get(LLVMContext& context, uint32_t index, ArrayRef<Attribute::AttrKind> kind)
 	{
-		DILITHIUM_UNUSED(context);
-		DILITHIUM_UNUSED(index);
-		DILITHIUM_UNUSED(kind);
-		DILITHIUM_NOT_IMPLEMENTED;
+		boost::container::small_vector<std::pair<unsigned, Attribute>, 8> attrs;
+		for (auto iter = kind.begin(), end_iter = kind.end(); iter != end_iter; ++ iter)
+		{
+			attrs.push_back(std::make_pair(index, Attribute::Get(context, *iter)));
+		}
+		return AttributeSet::Get(context, attrs);
 	}
 
 	AttributeSet AttributeSet::Get(LLVMContext& context, uint32_t index, AttrBuilder const & ab)
@@ -277,16 +311,69 @@ namespace Dilithium
 
 	AttributeSet AttributeSet::Get(LLVMContext& context, ArrayRef<std::pair<uint32_t, Attribute>> attrs)
 	{
-		DILITHIUM_UNUSED(context);
-		DILITHIUM_UNUSED(attrs);
-		DILITHIUM_NOT_IMPLEMENTED;
+		if (attrs.empty())
+		{
+			return AttributeSet();
+		}
+		else
+		{
+#ifdef DILITHIUM_DEBUG
+			for (size_t i = 0, e = attrs.size(); i != e; ++ i)
+			{
+				BOOST_ASSERT_MSG(!i || (attrs[i - 1].first <= attrs[i].first), "Misordered Attributes list!");
+				BOOST_ASSERT_MSG(!attrs[i].second.HasAttribute(Attribute::AK_None), "Pointless attribute!");
+			}
+#endif
+
+			boost::container::small_vector<std::pair<unsigned, AttributeSetNode*>, 8> attr_pair_vec;
+			for (auto iter = attrs.begin(), end_iter = attrs.end(); iter != end_iter;)
+			{
+				uint32_t index = iter->first;
+				boost::container::small_vector<Attribute, 4> attr_vec;
+				while ((iter != end_iter) && (iter->first == index))
+				{
+					attr_vec.push_back(iter->second);
+					++ iter;
+				}
+
+				attr_pair_vec.push_back(std::make_pair(index, AttributeSetNode::Get(context, attr_vec)));
+			}
+
+			return GetImpl(context, attr_pair_vec);
+		}
 	}
 
 	AttributeSet AttributeSet::Get(LLVMContext& context, ArrayRef<std::pair<uint32_t, AttributeSetNode*>> attrs)
 	{
-		DILITHIUM_UNUSED(context);
-		DILITHIUM_UNUSED(attrs);
-		DILITHIUM_NOT_IMPLEMENTED;
+		if (attrs.empty())
+		{
+			return AttributeSet();
+		}
+		else
+		{
+			return GetImpl(context, attrs);
+		}
+	}
+
+	AttributeSet AttributeSet::GetImpl(LLVMContext& context, ArrayRef<std::pair<uint32_t, AttributeSetNode*>> attrs)
+	{
+		auto& context_impl = context.Impl();
+
+		size_t hash_val = 0;
+		for (auto iter = attrs.begin(), end_iter = attrs.end(); iter != end_iter; ++ iter)
+		{
+			boost::hash_combine(hash_val, iter->first);
+			boost::hash_combine(hash_val, iter->second);
+		}
+
+		auto iter = context_impl.attrs_lists.find(hash_val);
+		if (iter == context_impl.attrs_lists.end())
+		{
+			auto pa = std::make_unique<AttributeSetImpl>(context, attrs);
+			iter = context_impl.attrs_lists.emplace(hash_val, std::move(pa)).first;
+		}
+
+		return AttributeSet(iter->second.get());
 	}
 
 	AttributeSet::iterator AttributeSet::Begin(uint32_t slot) const
