@@ -33,17 +33,35 @@
  */
 
 #include <Dilithium/Dilithium.hpp>
+#include <Dilithium/DerivedType.hpp>
 #include <Dilithium/Function.hpp>
+#include <Dilithium/SymbolTableList.hpp>
 
 namespace Dilithium 
 {
+	Function::Function(FunctionType* ty, LinkageTypes linkage, std::string_view name, LLVMModule* mod)
+		: GlobalObject(PointerType::Get(ty, 0), Value::FunctionVal, 0, 1, linkage, name),
+			ty_(ty)
+	{
+		BOOST_ASSERT_MSG(FunctionType::IsValidReturnType(this->ReturnType()), "invalid return type");
+		this->GlobalObjectSubClassData(0);
+
+		// If the function has arguments, mark them as lazily built.
+		if (ty->NumParams())
+		{
+			this->SetValueSubclassData(1);   // Set the "has lazy arguments" bit.
+		}
+
+		if (mod)
+		{
+			mod->FunctionList().push_back(std::unique_ptr<Function>(this));
+			AddToSymbolTableList(this, mod);
+		}
+	}
+
 	Function* Function::Create(FunctionType* ty, LinkageTypes linkage, std::string_view name, LLVMModule* mod)
 	{
-		DILITHIUM_UNUSED(ty);
-		DILITHIUM_UNUSED(linkage);
-		DILITHIUM_UNUSED(name);
-		DILITHIUM_UNUSED(mod);
-		DILITHIUM_NOT_IMPLEMENTED;
+		return new Function(ty, linkage, name, mod);
 	}
 
 	bool Function::HasPersonalityFn() const
@@ -62,31 +80,39 @@ namespace Dilithium
 		DILITHIUM_NOT_IMPLEMENTED;
 	}
 
+	Type* Function::ReturnType() const
+	{
+		return ty_->ReturnType();
+	}
+
+	FunctionType* Function::GetFunctionType() const
+	{
+		return ty_;
+	}
+
 	bool Function::IsVarArg() const
 	{
-		DILITHIUM_NOT_IMPLEMENTED;
+		return ty_->IsVarArg();
 	}
 
 	bool Function::IsMaterializable() const
 	{
-		DILITHIUM_NOT_IMPLEMENTED;
+		return this->GlobalObjectSubClassData() & IsMaterializableBit;
 	}
 
 	void Function::IsMaterializable(bool m)
 	{
-		DILITHIUM_UNUSED(m);
-		DILITHIUM_NOT_IMPLEMENTED;
+		this->GlobalObjectSubClassData((~IsMaterializableBit & this->GlobalObjectSubClassData()) | (m ? IsMaterializableBit : 0));
 	}
 
 	CallingConv::ID Function::GetCallingConv() const
 	{
-		DILITHIUM_NOT_IMPLEMENTED;
+		return static_cast<CallingConv::ID>(this->GetSubclassDataFromValue() >> 3);
 	}
 
 	void Function::SetCallingConv(CallingConv::ID cc)
 	{
-		DILITHIUM_UNUSED(cc);
-		DILITHIUM_NOT_IMPLEMENTED;
+		this->SetValueSubclassData((this->GetSubclassDataFromValue() & 7) | (static_cast<uint16_t>(cc) << 3));
 	}
 
 	Function::arg_iterator Function::ArgBegin()

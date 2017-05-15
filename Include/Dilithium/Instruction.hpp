@@ -46,13 +46,12 @@ namespace Dilithium
 
 	class Instruction : public User
 	{
+		typedef BasicBlock ParentType;
+
 		template <typename NodeType>
 		friend void AddToSymbolTableList(NodeType*, typename NodeType::ParentType*);
 		template <typename NodeType>
 		friend void RemoveFromSymbolTableList(NodeType*);
-
-	public:
-		typedef BasicBlock ParentType;
 
 	public:
 		enum TermOps

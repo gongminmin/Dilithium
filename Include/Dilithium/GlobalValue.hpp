@@ -42,6 +42,8 @@
 
 namespace Dilithium
 {
+	class PointerType;
+
 	class GlobalValue : public Constant
 	{
 	public:
@@ -163,6 +165,14 @@ namespace Dilithium
 		{
 			return parent_;
 		}
+
+	protected:
+		GlobalValue(PointerType* ty, ValueTy vty, uint32_t num_ops, uint32_t num_uses, LinkageTypes linkage, std::string_view name);
+		uint32_t GlobalValueSubClassData() const
+		{
+			return sub_class_data_;
+		}
+		void GlobalValueSubClassData(uint32_t v);
 
 	protected:
 		LLVMModule* parent_;

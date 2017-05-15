@@ -255,7 +255,7 @@ namespace Dilithium
 	
 	AttributeSet AttributeSet::Get(LLVMContext& context, uint32_t index, ArrayRef<Attribute::AttrKind> kind)
 	{
-		boost::container::small_vector<std::pair<unsigned, Attribute>, 8> attrs;
+		boost::container::small_vector<std::pair<uint32_t, Attribute>, 8> attrs;
 		for (auto iter = kind.begin(), end_iter = kind.end(); iter != end_iter; ++ iter)
 		{
 			attrs.push_back(std::make_pair(index, Attribute::Get(context, *iter)));
@@ -271,7 +271,7 @@ namespace Dilithium
 		}
 		else
 		{
-			boost::container::small_vector<std::pair<unsigned, Attribute>, 8> attrs;
+			boost::container::small_vector<std::pair<uint32_t, Attribute>, 8> attrs;
 			for (uint32_t i = Attribute::AK_None; i != Attribute::AK_EndAttrKinds; ++ i)
 			{
 				auto kind = static_cast<Attribute::AttrKind>(i);
@@ -325,7 +325,7 @@ namespace Dilithium
 			}
 #endif
 
-			boost::container::small_vector<std::pair<unsigned, AttributeSetNode*>, 8> attr_pair_vec;
+			boost::container::small_vector<std::pair<uint32_t, AttributeSetNode*>, 8> attr_pair_vec;
 			for (auto iter = attrs.begin(), end_iter = attrs.end(); iter != end_iter;)
 			{
 				uint32_t index = iter->first;

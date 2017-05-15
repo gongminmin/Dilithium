@@ -55,10 +55,18 @@ namespace Dilithium
 
 	class Function : public GlobalObject
 	{
+		typedef LLVMModule ParentType;
+
 		template <typename NodeType>
 		friend void AddToSymbolTableList(NodeType*, typename NodeType::ParentType*);
 		template <typename NodeType>
 		friend void RemoveFromSymbolTableList(NodeType*);
+
+		enum
+		{
+			IsMaterializableBit = 1 << 0,
+			HasMetadataHashEntryBit = 1 << 1
+		};
 
 	public:
 		typedef std::list<std::unique_ptr<Argument>> ArgumentListType;
@@ -75,6 +83,11 @@ namespace Dilithium
 		bool HasPersonalityFn() const;
 		Constant* PersonalityFn() const;
 		void PersonalityFn(Constant* c);
+
+		Type* ReturnType() const;
+		FunctionType* GetFunctionType() const;
+
+		LLVMContext& Context() const;
 
 		bool IsVarArg() const;
 
@@ -120,11 +133,17 @@ namespace Dilithium
 		}
 
 	private:
-		void Parent(LLVMModule* parent);
+		Function(FunctionType* ty, LinkageTypes linkage, std::string_view name = "", LLVMModule* mod = nullptr);
+
+		void Parent(LLVMModule* parent)
+		{
+			parent_ = parent;
+		}
 
 	private:
 		ValueSymbolTable sym_tab_;
 		AttributeSet attr_sets_;
+		FunctionType* ty_;
 
 		// DILITHIUM_NOT_IMPLEMENTED
 	};

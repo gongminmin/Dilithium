@@ -85,6 +85,15 @@ namespace Dilithium
 		void Materializer(std::shared_ptr<GVMaterializer> const & gvm);
 		void MaterializeAllPermanently();
 
+		FunctionListType const & FunctionList() const
+		{
+			return function_list_;
+		}
+		FunctionListType& FunctionList()
+		{
+			return function_list_;
+		}
+
 		ValueSymbolTable const * GetValueSymbolTable() const
 		{
 			return &val_sym_tab_;

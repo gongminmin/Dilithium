@@ -34,9 +34,15 @@
 
 #include <Dilithium/Dilithium.hpp>
 #include <Dilithium/Constant.hpp>
+#include <Dilithium/DerivedType.hpp>
 
 namespace Dilithium 
 {
+	Constant::Constant(Type* ty, ValueTy vty, uint32_t num_ops, uint32_t num_uses)
+		: User(ty, vty, num_ops, num_uses)
+	{
+	}
+
 	void Constant::HandleOperandChange(Value* from, Value* to, Use* u)
 	{
 		DILITHIUM_UNUSED(from);

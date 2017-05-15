@@ -39,6 +39,8 @@
 
 #include <Dilithium/Value.hpp>
 
+#include <vector>
+
 #include <boost/range/iterator_range.hpp>
 
 namespace Dilithium
@@ -52,10 +54,53 @@ namespace Dilithium
 		typedef boost::iterator_range<const_op_iterator> const_op_range;
 
 	public:
+		~User() override;
+
+		Use* OperandList()
+		{
+			return num_user_operands_ > 0 ? operands_.data() : nullptr;
+		}
+		Use const * OperandList() const
+		{
+			return const_cast<User*>(this)->OperandList();
+		}
+
 		Value* Operand(uint32_t idx) const;
 
-		const_op_range Operands() const;
-		op_range Operands();
+		op_iterator OpBegin()
+		{
+			return this->OperandList();
+		}
+		const_op_iterator OpBegin() const
+		{
+			return this->OperandList();
+		}
+		op_iterator OpEnd()
+		{
+			return this->OperandList() + num_user_operands_;
+		}
+		const_op_iterator OpEnd() const
+		{
+			return this->OperandList() + num_user_operands_;
+		}
+
+		const_op_range Operands() const
+		{
+			return const_op_range(this->OpBegin(), this->OpEnd());
+		}
+		op_range Operands()
+		{
+			return op_range(this->OpBegin(), this->OpEnd());
+		}
+
+	protected:
+		User(Type* ty, uint32_t vty, uint32_t num_ops, uint32_t num_uses);
+
+	protected:
+		std::vector<Use> operands_;
+		std::vector<BasicBlock*> phi_bbs_;
+		User* user_;
+		bool ref_;
 
 		// DILITHIUM_NOT_IMPLEMENTED
 	};

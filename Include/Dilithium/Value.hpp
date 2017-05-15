@@ -57,6 +57,8 @@ namespace Dilithium
 
 	class Value : boost::noncopyable
 	{
+		friend class ValueHandleBase;
+
 	public:
 		static uint32_t constexpr MAX_ALIGNMENT_EXPONENT = 29;
 		static uint32_t constexpr MAX_ALIGNMENT = 1U << MAX_ALIGNMENT_EXPONENT;

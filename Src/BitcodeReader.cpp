@@ -1140,7 +1140,7 @@ namespace
 
 						uint32_t alignment;
 						this->ParseAlignmentValue(record[5], alignment);
-						func->SetAlignment(alignment);
+						func->Alignment(alignment);
 						if (record[6])
 						{
 							if (record[6] - 1 >= section_tab.size())

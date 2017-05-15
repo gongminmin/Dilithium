@@ -83,6 +83,7 @@ SET(SOURCE_FILES
 	${DILITHIUM_ROOT_DIR}/Src/ErrorHandling.cpp
 	${DILITHIUM_ROOT_DIR}/Src/Function.cpp
 	${DILITHIUM_ROOT_DIR}/Src/GlobalObject.cpp
+	${DILITHIUM_ROOT_DIR}/Src/GlobalValue.cpp
 	${DILITHIUM_ROOT_DIR}/Src/Instruction.cpp
 	${DILITHIUM_ROOT_DIR}/Src/Instructions.cpp
 	${DILITHIUM_ROOT_DIR}/Src/LLVMContext.cpp

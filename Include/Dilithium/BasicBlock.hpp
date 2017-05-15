@@ -50,6 +50,8 @@ namespace Dilithium
 
 	class BasicBlock : public Value
 	{
+		typedef Function ParentType;
+
 		template <typename NodeType>
 		friend void AddToSymbolTableList(NodeType*, typename NodeType::ParentType*);
 		template <typename NodeType>

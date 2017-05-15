@@ -37,6 +37,7 @@
 
 #pragma once
 
+#include <Dilithium/ArrayRef.hpp>
 #include <Dilithium/Constant.hpp>
 
 namespace Dilithium
@@ -48,6 +49,27 @@ namespace Dilithium
 	public:
 		static Constant* Get(Type* ty, uint64_t v, bool is_signed = false);
 		static ConstantInt* Get(IntegerType* ty, uint64_t v, bool is_signed = false);
+
+		static bool classof(Value const * val)
+		{
+			return val->GetValueId() == ConstantIntVal;
+		}
+		// DILITHIUM_NOT_IMPLEMENTED
+	};
+
+	class ConstantVector : public Constant
+	{
+	public:
+		static Constant* Get(ArrayRef<Constant*> elems);
+		static Constant* GetSplat(uint32_t num_elem, Constant* elem);
+
+		static bool classof(Value const * val)
+		{
+			return val->GetValueId() == ConstantVectorVal;
+		}
+
+	private:
+		static Constant* GetImpl(ArrayRef<Constant*> v);
 		// DILITHIUM_NOT_IMPLEMENTED
 	};
 

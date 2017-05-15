@@ -1,5 +1,5 @@
 /**
- * @file Constants.cpp
+ * @file GlobalValue.cpp
  * @author Minmin Gong
  *
  * @section DESCRIPTION
@@ -33,54 +33,23 @@
  */
 
 #include <Dilithium/Dilithium.hpp>
-#include <Dilithium/Casting.hpp>
-#include <Dilithium/Constants.hpp>
+#include <Dilithium/GlobalValue.hpp>
 #include <Dilithium/DerivedType.hpp>
-#include <Dilithium/LLVMContext.hpp>
-#include "LLVMContextImpl.hpp"
 
 namespace Dilithium 
 {
-	Constant* ConstantInt::Get(Type* ty, uint64_t v, bool is_signed)
+	GlobalValue::GlobalValue(PointerType* ty, ValueTy vty, uint32_t num_ops, uint32_t num_uses, LinkageTypes linkage,
+		std::string_view name)
+		: Constant(ty, vty, num_ops, num_uses),
+			linkage_(linkage), visibility_(DefaultVisibility), unnamed_addr_(0), dll_storage_class_(DefaultStorageClass),
+			parent_(nullptr)
 	{
-		Constant* ret = Get(cast<IntegerType>(ty->ScalarType()), v, is_signed);
-		VectorType* vty = dyn_cast<VectorType>(ty);
-		if (vty)
-		{
-			return ConstantVector::GetSplat(vty->NumElements(), ret);
-		}
-		else
-		{
-			return ret;
-		}
+		this->Name(name);
 	}
 
-	ConstantInt* ConstantInt::Get(IntegerType* ty, uint64_t v, bool is_signed)
+	void GlobalValue::GlobalValueSubClassData(uint32_t v)
 	{
-		DILITHIUM_UNUSED(ty);
-		DILITHIUM_UNUSED(v);
-		DILITHIUM_UNUSED(is_signed);
-		DILITHIUM_NOT_IMPLEMENTED;
-	}
-
-
-	Constant* ConstantVector::Get(ArrayRef<Constant*> elems)
-	{
-		DILITHIUM_UNUSED(elems);
-		DILITHIUM_NOT_IMPLEMENTED;
-	}
-
-	Constant* ConstantVector::GetSplat(uint32_t num_elem, Constant* elem)
-	{
-		DILITHIUM_UNUSED(num_elem);
-		DILITHIUM_UNUSED(elem);
-		DILITHIUM_NOT_IMPLEMENTED;
-	}
-
-
-	UndefValue* UndefValue::Get(Type* ty)
-	{
-		DILITHIUM_UNUSED(ty);
-		DILITHIUM_NOT_IMPLEMENTED;
+		BOOST_ASSERT_MSG(v < (1U << GLOBAL_VALUE_SUB_CLASS_DATA_BITS), "It will not fit");
+		sub_class_data_ = v;
 	}
 }

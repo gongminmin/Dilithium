@@ -37,19 +37,29 @@
 
 namespace Dilithium 
 {
+	User::User(Type* ty, uint32_t vty, uint32_t num_ops, uint32_t num_uses)
+		: Value(ty, vty)
+	{
+		BOOST_ASSERT_MSG(num_ops < (1U << NUM_USER_OPERANDS_BITS), "Too many operands");
+		num_user_operands_ = num_ops;
+		// If we have hung off uses, then the operand list should initially be
+		// null.
+		BOOST_ASSERT_MSG(!this->OperandList(), "Error in initializing hung off uses for User");
+
+		operands_.resize(num_uses);
+		if (num_uses > 0)
+		{
+			Use::InitTags(operands_.data(), operands_.data() + num_uses);
+		}
+	}
+
+	User::~User()
+	{
+	}
+
 	Value* User::Operand(uint32_t idx) const
 	{
-		DILITHIUM_UNUSED(idx);
-		DILITHIUM_NOT_IMPLEMENTED;
-	}
-
-	User::const_op_range User::Operands() const
-	{
-		DILITHIUM_NOT_IMPLEMENTED;
-	}
-
-	User::op_range User::Operands()
-	{
-		DILITHIUM_NOT_IMPLEMENTED;
+		BOOST_ASSERT_MSG(idx < num_user_operands_, "Operand() out of range!");
+		return this->OperandList()[idx];
 	}
 }

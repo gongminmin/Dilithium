@@ -52,6 +52,10 @@ namespace Dilithium
 		{
 			return (v->GetValueId() >= ConstantFirstVal) && (v->GetValueId() <= ConstantLastVal);
 		}
+
+	protected:
+		Constant(Type* ty, ValueTy vty, uint32_t num_ops, uint32_t num_uses);
+
 		// DILITHIUM_NOT_IMPLEMENTED
 	};
 }

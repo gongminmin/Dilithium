@@ -35,6 +35,7 @@
 #ifndef _DILITHIUM_LLVM_CONTEXT_IMPL_HPP
 #define _DILITHIUM_LLVM_CONTEXT_IMPL_HPP
 
+#include <Dilithium/Constants.hpp>
 #include <Dilithium/DerivedType.hpp>
 #include <Dilithium/TrackingMDRef.hpp>
 #include "AttributeImpl.hpp"
@@ -53,6 +54,7 @@ namespace Dilithium
 	class LLVMContext;
 	class Type;
 	class Value;
+	class ValueHandleBase;
 
 	class MDAttachmentMap
 	{
@@ -110,6 +112,9 @@ namespace Dilithium
 		std::unordered_map<std::pair<Type*, uint32_t>, std::unique_ptr<VectorType>> vector_types;
 		std::unordered_map<Type*, std::unique_ptr<PointerType>> pointer_types;  // Pointers in addrress space = 0
 		std::unordered_map<std::pair<Type*, uint32_t>, std::unique_ptr<PointerType>> as_pointer_types;
+
+		// This map keeps track of all of the value handles that are watching a Value*
+		std::unordered_map<Value*, ValueHandleBase*> value_handles;
 
 		// Metadata string to ID mapping
 		std::unordered_map<std::string, uint32_t> custom_md_kind_names;

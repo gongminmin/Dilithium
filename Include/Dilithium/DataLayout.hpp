@@ -177,7 +177,7 @@ namespace Dilithium
 		void Alignment(AlignTypeEnum align_type, uint32_t abi_align, uint32_t pref_align, uint32_t bit_width);
 		uint32_t Alignment(Type* ty, bool abi_or_pref) const;
 		void PointerAlignment(uint32_t addr_space, uint32_t abi_align, uint32_t pref_align, uint32_t type_byte_width);
-		unsigned AlignmentInfo(AlignTypeEnum align_type, uint32_t bit_width, bool abi_align, Type* ty) const;
+		uint32_t AlignmentInfo(AlignTypeEnum align_type, uint32_t bit_width, bool abi_align, Type* ty) const;
 
 		void ParseSpecifier(std::string_view desc);
 

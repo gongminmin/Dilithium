@@ -34,13 +34,45 @@
 
 #include <Dilithium/Dilithium.hpp>
 #include <Dilithium/GlobalObject.hpp>
+#include <Dilithium/DerivedType.hpp>
 
 namespace Dilithium 
 {
-	void GlobalObject::SetAlignment(uint32_t align)
+	GlobalObject::GlobalObject(PointerType* ty, ValueTy vty, uint32_t num_ops, uint32_t num_uses, LinkageTypes linkage,
+		std::string_view name)
+		: GlobalValue(ty, vty, num_ops, num_uses, linkage, name)
 	{
-		DILITHIUM_UNUSED(align);
-		DILITHIUM_NOT_IMPLEMENTED;
+		this->GlobalValueSubClassData(0);
+	}
+
+	uint32_t GlobalObject::Alignment() const
+	{
+		uint32_t data = this->GlobalValueSubClassData();
+		uint32_t alignment_data = data & ALIGNMENT_MASK;
+		return (1U << alignment_data) >> 1;
+	}
+
+	void GlobalObject::Alignment(uint32_t align)
+	{
+		BOOST_ASSERT_MSG((align & (align - 1)) == 0, "Alignment is not a power of 2!");
+		BOOST_ASSERT_MSG(align <= MAX_ALIGNMENT, "Alignment is greater than MAX_ALIGNMENT!");
+		uint32_t alignment_data = Log2_32(align) + 1;
+		uint32_t old_data = this->GlobalValueSubClassData();
+		this->GlobalValueSubClassData((old_data & ~ALIGNMENT_MASK) | alignment_data);
+		BOOST_ASSERT_MSG(this->Alignment() == align, "Alignment representation error!");
+	}
+
+	uint32_t GlobalObject::GlobalObjectSubClassData() const
+	{
+		uint32_t value_data = this->GlobalValueSubClassData();
+		return value_data >> ALIGNMENT_BITS;
+	}
+
+	void GlobalObject::GlobalObjectSubClassData(uint32_t val)
+	{
+		uint32_t old_data = this->GlobalValueSubClassData();
+		this->GlobalValueSubClassData((old_data & ALIGNMENT_MASK) | (val << ALIGNMENT_BITS));
+		BOOST_ASSERT_MSG(this->GlobalObjectSubClassData() == val, "Representation error");
 	}
 
 	void GlobalObject::Section(std::string_view sec)

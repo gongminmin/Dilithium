@@ -103,7 +103,7 @@ namespace Dilithium
 		}
 
 	private:
-		void AddToExistingUseList(ValueHandleBase** list);
+		void AddToExistingUseList(ValueHandleBase** node);
 		void AddToExistingUseListAfter(ValueHandleBase* node);
 
 		void AddToUseList();
@@ -158,6 +158,38 @@ namespace Dilithium
 		static SimpleType SimplifiedValue(WeakVH const & wvh)
 		{
 			return wvh;
+		}
+	};
+
+	class CallbackVH : public ValueHandleBase
+	{
+	public:
+		CallbackVH()
+			: ValueHandleBase(Callback)
+		{
+		}
+		explicit CallbackVH(Value* p)
+			: ValueHandleBase(Callback, p)
+		{
+		}
+
+		virtual void Deleted()
+		{
+			this->Assign(nullptr);
+		}
+
+		virtual void AllUsesReplacedWith(Value*)
+		{
+		}
+
+	protected:
+		CallbackVH(CallbackVH const & rhs)
+			: ValueHandleBase(Callback, rhs)
+		{
+		}
+
+		virtual ~CallbackVH()
+		{
 		}
 	};
 }
