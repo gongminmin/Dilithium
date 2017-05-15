@@ -41,6 +41,10 @@
 
 #include <limits>
 
+#ifdef _MSC_VER
+	#include <intrin.h>
+#endif
+
 namespace Dilithium
 {
 	namespace Detail
@@ -73,14 +77,100 @@ namespace Dilithium
 				}
 			}
 		};
+
+#if defined(__GNUC__) || defined(_MSC_VER)
+		template <typename T>
+		struct LeadingZerosCounter<T, 4>
+		{
+			static std::size_t Count(T val)
+			{
+				if (val == 0)
+				{
+					return 32;
+				}
+
+#if __has_builtin(__builtin_clz)
+				return __builtin_clz(val);
+#elif defined(_MSC_VER)
+				unsigned long index;
+				_BitScanReverse(&index, val);
+				return index ^ 31;
+#endif
+			}
+		};
+
+#if !defined(_MSC_VER) || defined(_M_X64)
+		template <typename T>
+		struct LeadingZerosCounter<T, 8>
+		{
+			static std::size_t Count(T val)
+			{
+				if (val == 0)
+				{
+					return 64;
+				}
+
+#if __has_builtin(__builtin_clzll)
+				return __builtin_clzll(val);
+#elif defined(_MSC_VER)
+				unsigned long index;
+				_BitScanReverse64(&index, val);
+				return index ^ 63;
+#endif
+			}
+		};
+#endif
+#endif
+
+		template <typename T, std::size_t SizeOfT>
+		struct PopulationCounter
+		{
+			static uint32_t Count(T val)
+			{
+				static_assert(SizeOfT <= 4, "Not implemented!");
+#if defined(__GNUC__)
+				return __builtin_popcount(val);
+#else
+				uint32_t v = val;
+				v = v - ((v >> 1) & 0x55555555);
+				v = (v & 0x33333333) + ((v >> 2) & 0x33333333);
+				return ((v + (v >> 4) & 0xF0F0F0F) * 0x1010101) >> 24;
+#endif
+			}
+		};
+
+		template <typename T>
+		struct PopulationCounter<T, 8>
+		{
+			static uint32_t Count(T val)
+			{
+#if __GNUC__ >= 4
+				return __builtin_popcountll(val);
+#else
+				uint64_t v = val;
+				v = v - ((v >> 1) & 0x5555555555555555ULL);
+				v = (v & 0x3333333333333333ULL) + ((v >> 2) & 0x3333333333333333ULL);
+				v = (v + (v >> 4)) & 0x0F0F0F0F0F0F0F0FULL;
+				return static_cast<uint32_t>((v * 0x0101010101010101ULL) >> 56);
+#endif
+			}
+		};
 	}
 
 	template <typename T>
-	std::size_t CountLeadingZeros(T val)
+	inline std::size_t CountLeadingZeros(T val)
 	{
 		static_assert(std::numeric_limits<T>::is_integer && !std::numeric_limits<T>::is_signed,
 			"Only unsigned integral types are allowed.");
 		return Detail::LeadingZerosCounter<T, sizeof(T)>::Count(val);
+	}
+
+	template <typename T>
+	inline uint32_t CountPopulation(T val)
+	{
+		static_assert(std::numeric_limits<T>::is_integer && !std::numeric_limits<T>::is_signed,
+			"Only unsigned integral types are allowed.");
+		return Detail::PopulationCounter<T, sizeof(T)>::Count(val);
 	}
 
 	template <uint32_t N>

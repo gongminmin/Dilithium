@@ -48,6 +48,7 @@ SET(HEADER_FILES
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Metadata.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Metadata.inc
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/MetadataTracking.hpp
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/MPInt.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Operator.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/PointerUnion.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/SmallString.hpp
@@ -92,6 +93,7 @@ SET(SOURCE_FILES
 	${DILITHIUM_ROOT_DIR}/Src/MemStreamBuf.cpp
 	${DILITHIUM_ROOT_DIR}/Src/Metadata.cpp
 	${DILITHIUM_ROOT_DIR}/Src/MetadataTracking.cpp
+	${DILITHIUM_ROOT_DIR}/Src/MPInt.cpp
 	${DILITHIUM_ROOT_DIR}/Src/Operator.cpp
 	${DILITHIUM_ROOT_DIR}/Src/Type.cpp
 	${DILITHIUM_ROOT_DIR}/Src/Use.cpp

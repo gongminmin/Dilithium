@@ -63,7 +63,6 @@ namespace Dilithium
 	{
 		typedef const typename std::remove_pointer<T>::type *type;
 	};
-
 }
 
 #endif		// _DILITHIUM_TYPE_TRAITS_HPP

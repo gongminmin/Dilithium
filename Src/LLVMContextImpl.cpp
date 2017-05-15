@@ -57,5 +57,14 @@ namespace Dilithium
 
 	LLVMContextImpl::~LLVMContextImpl()
 	{
+		for (auto& v : int_constants)
+		{
+			delete v.second;
+		}
+		int_constants.clear();
+
+		attrs_set.clear();
+		attrs_lists.clear();
+		attrs_set_nodes.clear();
 	}
 }

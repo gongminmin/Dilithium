@@ -39,21 +39,32 @@
 
 #include <Dilithium/ArrayRef.hpp>
 #include <Dilithium/Constant.hpp>
+#include <Dilithium/MPInt.hpp>
 
 namespace Dilithium
 {
 	class IntegerType;
+	class MPInt;
 
 	class ConstantInt : public Constant
 	{
 	public:
 		static Constant* Get(Type* ty, uint64_t v, bool is_signed = false);
 		static ConstantInt* Get(IntegerType* ty, uint64_t v, bool is_signed = false);
+		static ConstantInt* Get(LLVMContext& context, MPInt const & v);
+		static ConstantInt* Get(IntegerType* ty, std::string_view str, uint8_t radix);
+		static Constant* Get(Type* ty, MPInt const & v);
 
 		static bool classof(Value const * val)
 		{
 			return val->GetValueId() == ConstantIntVal;
 		}
+
+	private:
+		ConstantInt(IntegerType* ty, MPInt const & v);
+
+	private:
+		MPInt val_;
 		// DILITHIUM_NOT_IMPLEMENTED
 	};
 

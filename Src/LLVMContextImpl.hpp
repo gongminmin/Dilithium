@@ -38,6 +38,7 @@
 #include <Dilithium/Constants.hpp>
 #include <Dilithium/DerivedType.hpp>
 #include <Dilithium/TrackingMDRef.hpp>
+#include <Dilithium/MPInt.hpp>
 #include "AttributeImpl.hpp"
 
 #include <memory>
@@ -91,6 +92,8 @@ namespace Dilithium
 	{
 		explicit LLVMContextImpl(LLVMContext& context);
 		~LLVMContextImpl();
+
+		std::unordered_map<MPInt, ConstantInt*> int_constants;
 
 		std::unordered_map<uint64_t, std::unique_ptr<AttributeImpl>> attrs_set;
 		std::unordered_map<uint64_t, std::unique_ptr<AttributeSetImpl>> attrs_lists;

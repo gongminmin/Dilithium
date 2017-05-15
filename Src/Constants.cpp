@@ -41,6 +41,13 @@
 
 namespace Dilithium 
 {
+	ConstantInt::ConstantInt(IntegerType* ty, MPInt const & v)
+		: Constant(ty, ConstantIntVal, 0, 0),
+			val_(v)
+	{
+		BOOST_ASSERT_MSG(v.BitWidth() == ty->BitWidth(), "Invalid constant for type");
+	}
+
 	Constant* ConstantInt::Get(Type* ty, uint64_t v, bool is_signed)
 	{
 		Constant* ret = Get(cast<IntegerType>(ty->ScalarType()), v, is_signed);
@@ -57,10 +64,41 @@ namespace Dilithium
 
 	ConstantInt* ConstantInt::Get(IntegerType* ty, uint64_t v, bool is_signed)
 	{
-		DILITHIUM_UNUSED(ty);
-		DILITHIUM_UNUSED(v);
-		DILITHIUM_UNUSED(is_signed);
-		DILITHIUM_NOT_IMPLEMENTED;
+		return ConstantInt::Get(ty->Context(), MPInt(ty->BitWidth(), v, is_signed));
+	}
+
+	ConstantInt* ConstantInt::Get(LLVMContext& context, MPInt const & v)
+	{
+		auto& impl = context.Impl();
+		auto& slot = impl.int_constants[v];
+		if (!slot)
+		{
+			IntegerType* ity = IntegerType::Get(context, v.BitWidth());
+			slot = new ConstantInt(ity, v);
+		}
+		BOOST_ASSERT(slot->GetType() == IntegerType::Get(context, v.BitWidth()));
+		return slot;
+	}
+
+	ConstantInt* ConstantInt::Get(IntegerType* ty, std::string_view str, uint8_t radix)
+	{
+		return ConstantInt::Get(ty->Context(), MPInt(ty->BitWidth(), str, radix));
+	}
+
+	Constant* ConstantInt::Get(Type* ty, MPInt const & v)
+	{
+		ConstantInt* ret = ConstantInt::Get(ty->Context(), v);
+		BOOST_ASSERT_MSG(ret->GetType() == ty->ScalarType(), "ConstantInt type doesn't match the type implied by its value!");
+
+		VectorType* vty = dyn_cast<VectorType>(ty);
+		if (vty)
+		{
+			return ConstantVector::GetSplat(vty->NumElements(), ret);
+		}
+		else
+		{
+			return ret;
+		}
 	}
 
 
