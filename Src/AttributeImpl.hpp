@@ -35,6 +35,8 @@
 #ifndef _DILITHIUM_ATTRIBUTE_IMPL_HPP
 #define _DILITHIUM_ATTRIBUTE_IMPL_HPP
 
+#pragma once
+
 #include <Dilithium/ArrayRef.hpp>
 #include <Dilithium/Attributes.hpp>
 #include <string>

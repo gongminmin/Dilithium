@@ -35,6 +35,8 @@
 #ifndef _DILITHIUM_MP_INT_HPP
 #define _DILITHIUM_MP_INT_HPP
 
+#pragma once
+
 #include <Dilithium/CXX17/string_view.hpp>
 #include <Dilithium/ArrayRef.hpp>
 

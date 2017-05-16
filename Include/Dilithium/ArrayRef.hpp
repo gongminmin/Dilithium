@@ -35,6 +35,8 @@
 #ifndef _DILITHIUM_ARRAY_REF_HPP
 #define _DILITHIUM_ARRAY_REF_HPP
 
+#pragma once
+
 #include <Dilithium/Util.hpp>
 
 #include <vector>

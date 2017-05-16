@@ -35,6 +35,7 @@ SET(HEADER_FILES
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/GlobalObject.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/GlobalValue.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/GVMaterializer.hpp
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Half.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Hashing.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/InstrTypes.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Instruction.hpp
@@ -48,6 +49,7 @@ SET(HEADER_FILES
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Metadata.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Metadata.inc
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/MetadataTracking.hpp
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/MPFloat.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/MPInt.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Operator.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/PointerUnion.hpp
@@ -85,6 +87,7 @@ SET(SOURCE_FILES
 	${DILITHIUM_ROOT_DIR}/Src/Function.cpp
 	${DILITHIUM_ROOT_DIR}/Src/GlobalObject.cpp
 	${DILITHIUM_ROOT_DIR}/Src/GlobalValue.cpp
+	${DILITHIUM_ROOT_DIR}/Src/Half.cpp
 	${DILITHIUM_ROOT_DIR}/Src/Instruction.cpp
 	${DILITHIUM_ROOT_DIR}/Src/Instructions.cpp
 	${DILITHIUM_ROOT_DIR}/Src/LLVMContext.cpp
@@ -93,6 +96,7 @@ SET(SOURCE_FILES
 	${DILITHIUM_ROOT_DIR}/Src/MemStreamBuf.cpp
 	${DILITHIUM_ROOT_DIR}/Src/Metadata.cpp
 	${DILITHIUM_ROOT_DIR}/Src/MetadataTracking.cpp
+	${DILITHIUM_ROOT_DIR}/Src/MPFloat.cpp
 	${DILITHIUM_ROOT_DIR}/Src/MPInt.cpp
 	${DILITHIUM_ROOT_DIR}/Src/Operator.cpp
 	${DILITHIUM_ROOT_DIR}/Src/Type.cpp
