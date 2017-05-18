@@ -1,5 +1,5 @@
 /**
- * @file Argument.hpp
+ * @file Argument.cpp
  * @author Minmin Gong
  *
  * @section DESCRIPTION
@@ -32,55 +32,24 @@
  * THE SOFTWARE.
  */
 
-#ifndef _DILITHIUM_ARGUMENT_HPP
-#define _DILITHIUM_ARGUMENT_HPP
-
-#pragma once
-
+#include <Dilithium/Dilithium.hpp>
+#include <Dilithium/DerivedType.hpp>
+#include <Dilithium/SymbolTableList.hpp>
 #include <Dilithium/Value.hpp>
 
-namespace Dilithium
+namespace Dilithium 
 {
-	class Function;
-
-	class Argument : public Value
+	Argument::Argument(Type* ty, std::string_view name)
+		: Value(ty, Value::ArgumentVal),
+			parent_(nullptr)
 	{
-		typedef Function ParentType;
+		this->Name(name);
 
-		template <typename NodeType>
-		friend void AddToSymbolTableList(NodeType*, typename NodeType::ParentType*);
-		template <typename NodeType>
-		friend void RemoveFromSymbolTableList(NodeType*);
+		AddToSymbolTableList(this, parent_);
+	}
 
-	public:
-		explicit Argument(Type* ty, std::string_view name = "");
-		~Argument();
-
-		Function const * Parent() const
-		{
-			return parent_;
-		}
-		Function* Parent()
-		{
-			return parent_;
-		}
-
-		static bool classof(Value const * v)
-		{
-			return v->GetValueId() == ArgumentVal;
-		}
-
-	private:
-		void Parent(Function* parent)
-		{
-			parent_ = parent;
-		}
-
-	private:
-		Function* parent_;
-
-		// DILITHIUM_NOT_IMPLEMENTED
-	};
+	Argument::~Argument()
+	{
+		RemoveFromSymbolTableList(this);
+	}
 }
-
-#endif		// _DILITHIUM_ARGUMENT_HPP

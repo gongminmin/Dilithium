@@ -150,6 +150,9 @@ namespace Dilithium
 	{
 	public:
 		static UndefValue* Get(Type* ty);
+
+	protected:
+		explicit UndefValue(Type* ty);
 		// DILITHIUM_NOT_IMPLEMENTED
 	};
 }

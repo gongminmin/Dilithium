@@ -62,4 +62,32 @@ namespace Dilithium
 		BOOST_ASSERT_MSG(idx < num_user_operands_, "Operand() out of range!");
 		return this->OperandList()[idx];
 	}
+
+	void User::Operand(uint32_t idx, Value* val)
+	{
+		BOOST_ASSERT_MSG(idx < num_user_operands_, "setOperand() out of range!");
+		BOOST_ASSERT_MSG(!isa<Constant>((const Value*)this) || isa<GlobalValue>((const Value*)this),
+			"Cannot mutate a constant with setOperand!");
+		this->OperandList()[idx].Set(val);
+	}
+
+	Use const & User::OperandUse(uint32_t idx) const
+	{
+		BOOST_ASSERT_MSG(idx < num_user_operands_, "getOperandUse() out of range!");
+		return this->OperandList()[idx];
+	}
+
+	Use& User::getOperandUse(uint32_t idx)
+	{
+		BOOST_ASSERT_MSG(idx < num_user_operands_, "getOperandUse() out of range!");
+		return this->OperandList()[idx];
+	}
+
+	void User::DropAllReferences()
+	{
+		for (auto& u : this->Operands())
+		{
+			u.Set(nullptr);
+		}
+	}
 }

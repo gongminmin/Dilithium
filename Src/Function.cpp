@@ -115,24 +115,40 @@ namespace Dilithium
 		this->SetValueSubclassData((this->GetSubclassDataFromValue() & 7) | (static_cast<uint16_t>(cc) << 3));
 	}
 
+	Function::ArgumentListType const & Function::ArgumentList() const
+	{
+		CheckLazyArguments();
+		return argument_list_;
+	}
+
+	Function::ArgumentListType& Function::ArgumentList()
+	{
+		CheckLazyArguments();
+		return argument_list_;
+	}
+
 	Function::arg_iterator Function::ArgBegin()
 	{
-		DILITHIUM_NOT_IMPLEMENTED;
+		CheckLazyArguments();
+		return argument_list_.begin();
 	}
 
 	Function::const_arg_iterator Function::ArgBegin() const
 	{
-		DILITHIUM_NOT_IMPLEMENTED;
+		CheckLazyArguments();
+		return argument_list_.begin();
 	}
 
 	Function::arg_iterator Function::ArgEnd()
 	{
-		DILITHIUM_NOT_IMPLEMENTED;
+		CheckLazyArguments();
+		return argument_list_.end();
 	}
 
 	Function::const_arg_iterator Function::ArgEnd() const
 	{
-		DILITHIUM_NOT_IMPLEMENTED;
+		CheckLazyArguments();
+		return argument_list_.end();
 	}
 
 	bool Function::HasPrefixData() const
@@ -165,5 +181,27 @@ namespace Dilithium
 	{
 		DILITHIUM_UNUSED(prologue_data);
 		DILITHIUM_NOT_IMPLEMENTED;
+	}
+
+	void Function::CheckLazyArguments() const
+	{
+		if (this->HasLazyArguments())
+		{
+			this->BuildLazyArguments();
+		}
+	}
+
+	void Function::BuildLazyArguments() const
+	{
+		FunctionType* ft = this->GetFunctionType();
+		for (uint32_t i = 0, e = ft->NumParams(); i != e; ++ i)
+		{
+			BOOST_ASSERT_MSG(!ft->ParamType(i)->IsVoidType(), "Cannot have void typed arguments!");
+			argument_list_.push_back(std::make_unique<Argument>(ft->ParamType(i)));
+		}
+
+		uint16_t sdc = this->GetSubclassDataFromValue();
+		sdc &= ~(1 << 0);
+		const_cast<Function*>(this)->SetValueSubclassData(sdc);
 	}
 }

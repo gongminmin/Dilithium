@@ -106,6 +106,18 @@ namespace Dilithium
 			attr_sets_ = attrs;
 		}
 
+		ArgumentListType const & ArgumentList() const;
+		ArgumentListType& ArgumentList();
+
+		BasicBlockListType const & BasicBlockList() const
+		{
+			return basic_blocks_;
+		}
+		BasicBlockListType& BasicBlockList()
+		{
+			return basic_blocks_;
+		}
+
 		ValueSymbolTable const * GetValueSymbolTable() const
 		{
 			return &sym_tab_;
@@ -140,7 +152,16 @@ namespace Dilithium
 			parent_ = parent;
 		}
 
+		bool HasLazyArguments() const
+		{
+			return this->GetSubclassDataFromValue() & (1 << 0);
+		}
+		void CheckLazyArguments() const;
+		void BuildLazyArguments() const;
+
 	private:
+		BasicBlockListType basic_blocks_;
+		mutable ArgumentListType argument_list_;
 		ValueSymbolTable sym_tab_;
 		AttributeSet attr_sets_;
 		FunctionType* ty_;

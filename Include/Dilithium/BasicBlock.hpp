@@ -46,6 +46,7 @@
 namespace Dilithium
 {
 	class Function;
+	class LLVMContext;
 	class ValueSymbolTable;
 
 	class BasicBlock : public Value
@@ -148,6 +149,13 @@ namespace Dilithium
 
 		ValueSymbolTable* GetValueSymbolTable();
 
+		void DropAllReferences();
+
+		bool HasAddressTaken() const
+		{
+			return this->GetSubclassDataFromValue() != 0;
+		}
+
 		void ReplaceSuccessorsPhiUsesWith(BasicBlock* new_bb);
 
 		static bool classof(Value const * v)
@@ -156,6 +164,8 @@ namespace Dilithium
 		}
 
 	private:
+		BasicBlock(LLVMContext& context, std::string_view name, Function* new_parent);
+
 		void Parent(Function* new_parent);
 
 	private:

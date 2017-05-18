@@ -95,6 +95,8 @@ namespace Dilithium
 		};
 
 	public:
+		~Instruction() override;
+
 		BasicBlock const * Parent() const
 		{
 			return parent_;
@@ -114,8 +116,44 @@ namespace Dilithium
 			return v->GetValueId() >= Value::InstructionVal;
 		}
 
+	protected:
+		Instruction(Type* ty, uint32_t type, uint32_t num_ops, uint32_t num_uses, Instruction* insert_before = nullptr);
+		Instruction(Type* ty, uint32_t type, uint32_t num_ops, uint32_t num_uses, BasicBlock* insert_at_end);
+
+		uint32_t SubclassDataFromInstruction() const
+		{
+			return this->GetSubclassDataFromValue() & ~HasMetadataBit;
+		}
+		void InstructionSubclassData(uint16_t d);
+
+	private:
+		enum
+		{
+			HasMetadataBit = 1 << 15
+		};
+
 	private:
 		void Parent(BasicBlock* parent);
+
+		uint16_t GetSubclassDataFromValue() const
+		{
+			return Value::GetSubclassDataFromValue();
+		}
+		void SetValueSubclassData(uint16_t d)
+		{
+			Value::SetValueSubclassData(d);
+		}
+
+		bool HasMetadataHashEntry() const
+		{
+			return (this->GetSubclassDataFromValue() & HasMetadataBit) != 0;
+		}
+		void HasMetadataHashEntry(bool v)
+		{
+			this->SetValueSubclassData((this->GetSubclassDataFromValue() & ~HasMetadataBit) | (v ? HasMetadataBit : 0));
+		}
+
+		void ClearMetadataHashEntries();
 
 	private:
 		BasicBlock* parent_;

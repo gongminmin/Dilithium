@@ -51,6 +51,7 @@ SET(HEADER_FILES
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/MetadataTracking.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/MPFloat.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/MPInt.hpp
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/OperandTraits.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Operator.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/PointerUnion.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/SmallString.hpp
@@ -74,6 +75,7 @@ SET(HLSL_SOURCE_FILES
 )
 
 SET(SOURCE_FILES
+	${DILITHIUM_ROOT_DIR}/Src/Argument.cpp
 	${DILITHIUM_ROOT_DIR}/Src/AttributeImpl.cpp
 	${DILITHIUM_ROOT_DIR}/Src/Attributes.cpp
 	${DILITHIUM_ROOT_DIR}/Src/BasicBlock.cpp

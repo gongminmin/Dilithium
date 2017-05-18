@@ -33,6 +33,8 @@
  */
 
 #include <Dilithium/Dilithium.hpp>
+#include <Dilithium/Casting.hpp>
+#include <Dilithium/DerivedType.hpp>
 #include <Dilithium/Instructions.hpp>
 
 namespace Dilithium 
@@ -61,70 +63,139 @@ namespace Dilithium
 	}
 
 
-	CallInst* CallInst::Create(Value* func, ArrayRef<Value*> args, std::string_view name_str, Instruction* insert_before)
+	CallInst::CallInst(FunctionType* ty, Value* func, ArrayRef<Value*> args, std::string_view name, Instruction* insert_before)
+		: Instruction(ty->ReturnType(), Instruction::Call,
+			static_cast<uint32_t>(args.size() + 1), static_cast<uint32_t>(args.size() + 1), insert_before)
 	{
-		DILITHIUM_UNUSED(func);
-		DILITHIUM_UNUSED(args);
-		DILITHIUM_UNUSED(name_str);
-		DILITHIUM_UNUSED(insert_before);
-		DILITHIUM_NOT_IMPLEMENTED;
+		this->Init(ty, func, args, name);
 	}
 
-	CallInst* CallInst::Create(FunctionType* ty, Value* func, ArrayRef<Value*> args, std::string_view name_str,
+	CallInst::CallInst(Value* func, ArrayRef<Value*> args, std::string_view name, Instruction* insert_before)
+		: CallInst(cast<FunctionType>(cast<PointerType>(func->GetType())->ElementType()), func, args, name, insert_before)
+	{
+	}
+
+	CallInst::CallInst(Value* func, ArrayRef<Value*> args, std::string_view name, BasicBlock* insert_at_end)
+		: Instruction(cast<FunctionType>(cast<PointerType>(func->GetType())->ElementType())->ReturnType(), Instruction::Call,
+			static_cast<uint32_t>(args.size() + 1), static_cast<uint32_t>(args.size() + 1), insert_at_end)
+	{
+		this->Init(func, args, name);
+	}
+
+	CallInst::CallInst(Value* func, std::string_view name, Instruction* insert_before)
+		: Instruction(cast<FunctionType>(cast<PointerType>(func->GetType())->ElementType())->ReturnType(), Instruction::Call,
+			1, 1, insert_before)
+	{
+		this->Init(func, name);
+	}
+
+	CallInst::CallInst(Value* func, std::string_view name, BasicBlock* insert_at_end)
+		: Instruction(cast<FunctionType>(cast<PointerType>(func->GetType())->ElementType())->ReturnType(), Instruction::Call,
+			1, 1, insert_at_end)
+	{
+		this->Init(func, name);
+	}
+
+	CallInst::CallInst(CallInst const & ci)
+		: Instruction(ci.GetType(), Instruction::Call, ci.NumOperands(), ci.NumOperands()),
+			attr_list_(ci.attr_list_), fty_(ci.fty_)
+	{
+		this->SetTailCallKind(ci.GetTailCallKind());
+		this->SetCallingConv(ci.GetCallingConv());
+
+		std::copy(ci.OpBegin(), ci.OpEnd(), this->OpBegin());
+		subclass_optional_data_ = ci.subclass_optional_data_;
+	}
+
+	CallInst::~CallInst()
+	{
+	}
+
+	void CallInst::Init(Value* func, ArrayRef<Value*> args, std::string_view name)
+	{
+		this->Init(cast<FunctionType>(cast<PointerType>(func->GetType())->ElementType()), func, args, name);
+	}
+
+	void CallInst::Init(FunctionType* fty, Value* func, ArrayRef<Value*> args, std::string_view name)
+	{
+		fty_ = fty;
+		BOOST_ASSERT_MSG(this->NumOperands() == args.size() + 1, "NumOperands not set up?");
+		this->Op<-1>().Set(func);
+
+#ifdef DILITHIUM_DEBUG
+		BOOST_ASSERT_MSG((args.size() == fty_->NumParams()) || (fty_->IsVarArg() && (args.size() > fty_->NumParams())),
+			"Calling a function with bad signature!");
+
+		for (uint32_t i = 0; i != static_cast<uint32_t>(args.size()); ++ i)
+		{
+			BOOST_ASSERT_MSG((i >= fty_->NumParams()) || (fty_->ParamType(i) == args[i]->GetType()),
+				"Calling a function with a bad signature!");
+		}
+#endif
+
+		auto dst_iter = this->OpBegin();
+		for (auto v_iter = args.begin(); v_iter != args.end(); ++ v_iter, ++ dst_iter)
+		{
+			dst_iter->Set(*v_iter);
+		}
+		this->Name(name);
+	}
+
+	void CallInst::Init(Value* func, std::string_view name)
+	{
+		fty_ = cast<FunctionType>(cast<PointerType>(func->GetType())->ElementType());
+		BOOST_ASSERT_MSG(this->NumOperands() == 1, "NumOperands not set up?");
+		this->Op<-1>().Set(func);
+
+		BOOST_ASSERT_MSG(fty_->NumParams() == 0, "Calling a function with bad signature");
+
+		this->Name(name);
+	}
+
+	CallInst* CallInst::Create(Value* func, ArrayRef<Value*> args, std::string_view name, Instruction* insert_before)
+	{
+		return Create(cast<FunctionType>(cast<PointerType>(func->GetType())->ElementType()), func, args, name, insert_before);
+	}
+
+	CallInst* CallInst::Create(FunctionType* ty, Value* func, ArrayRef<Value*> args, std::string_view name,
 		Instruction* insert_before)
 	{
-		DILITHIUM_UNUSED(ty);
-		DILITHIUM_UNUSED(func);
-		DILITHIUM_UNUSED(args);
-		DILITHIUM_UNUSED(name_str);
-		DILITHIUM_UNUSED(insert_before);
-		DILITHIUM_NOT_IMPLEMENTED;
+		return new CallInst(ty, func, args, name, insert_before);
 	}
 
-	CallInst* CallInst::Create(Value* func, ArrayRef<Value*> args, std::string_view name_str, BasicBlock* insert_at_end)
+	CallInst* CallInst::Create(Value* func, ArrayRef<Value*> args, std::string_view name, BasicBlock* insert_at_end)
 	{
-		DILITHIUM_UNUSED(func);
-		DILITHIUM_UNUSED(args);
-		DILITHIUM_UNUSED(name_str);
-		DILITHIUM_UNUSED(insert_at_end);
-		DILITHIUM_NOT_IMPLEMENTED;
+		return new CallInst(func, args, name, insert_at_end);
 	}
 
-	CallInst* CallInst::Create(Value* func, std::string_view name_str, Instruction* insert_before)
+	CallInst* CallInst::Create(Value* func, std::string_view name, Instruction* insert_before)
 	{
-		DILITHIUM_UNUSED(func);
-		DILITHIUM_UNUSED(name_str);
-		DILITHIUM_UNUSED(insert_before);
-		DILITHIUM_NOT_IMPLEMENTED;
+		return new CallInst(func, name, insert_before);
 	}
 
-	CallInst* CallInst::Create(Value* func, std::string_view name_str, BasicBlock* insert_at_end)
+	CallInst* CallInst::Create(Value* func, std::string_view name, BasicBlock* insert_at_end)
 	{
-		DILITHIUM_UNUSED(func);
-		DILITHIUM_UNUSED(name_str);
-		DILITHIUM_UNUSED(insert_at_end);
-		DILITHIUM_NOT_IMPLEMENTED;
+		return new CallInst(func, name, insert_at_end);
 	}
 
 	CallInst::TailCallKind CallInst::GetTailCallKind() const
 	{
-		DILITHIUM_NOT_IMPLEMENTED;
+		return static_cast<TailCallKind>(this->SubclassDataFromInstruction() & 3);
 	}
 
 	void CallInst::SetTailCallKind(TailCallKind tck)
 	{
-		DILITHIUM_UNUSED(tck);
-		DILITHIUM_NOT_IMPLEMENTED;
+		this->InstructionSubclassData(static_cast<uint16_t>((this->SubclassDataFromInstruction() & ~3) | static_cast<uint32_t>(tck)));
 	}
 
 	CallingConv::ID CallInst::GetCallingConv() const
 	{
-		DILITHIUM_NOT_IMPLEMENTED;
+		return static_cast<CallingConv::ID>(this->SubclassDataFromInstruction() >> 2);
 	}
 
 	void CallInst::SetCallingConv(CallingConv::ID cc)
 	{
-		DILITHIUM_UNUSED(cc);
-		DILITHIUM_NOT_IMPLEMENTED;
+		this->InstructionSubclassData(
+			static_cast<uint16_t>((this->SubclassDataFromInstruction() & 3) | (static_cast<uint32_t>(cc) << 2)));
 	}
 }

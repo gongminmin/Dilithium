@@ -34,12 +34,85 @@
 
 #include <Dilithium/Dilithium.hpp>
 #include <Dilithium/Instruction.hpp>
+#include <Dilithium/LLVMContext.hpp>
+#include <Dilithium/Type.hpp>
+#include <Dilithium/SymbolTableList.hpp>
+#include <Dilithium/Value.hpp>
+#include "LLVMContextImpl.hpp"
+
+namespace
+{
+	template <typename T>
+	class UniquePtrEqual
+	{
+	public:
+		explicit UniquePtrEqual(T* ptr)
+			: ptr_(ptr)
+		{
+		}
+
+		bool operator()(std::unique_ptr<T> const & rhs)
+		{
+			return ptr_ == rhs.get();
+		}
+
+	private:
+		T* ptr_;
+	};
+}
 
 namespace Dilithium 
 {
+	Instruction::Instruction(Type* ty, uint32_t type, uint32_t num_ops, uint32_t num_uses, Instruction* insert_before)
+		: User(ty, Value::InstructionVal + type, num_ops, num_uses),
+			parent_(nullptr)
+	{
+		if (insert_before)
+		{
+			auto bb = insert_before->Parent();
+			BOOST_ASSERT_MSG(bb, "Instruction to insert before is not in a basic block!");
+			auto iter = std::find_if(bb->InstList().begin(), bb->InstList().end(), UniquePtrEqual<Instruction>(insert_before));
+			-- iter;
+			bb->InstList().insert(iter, std::unique_ptr<Instruction>(this));
+			AddToSymbolTableList(this, bb);
+		}
+	}
+
+	Instruction::Instruction(Type* ty, uint32_t type, uint32_t num_ops, uint32_t num_uses, BasicBlock* insert_at_end)
+		: User(ty, Value::InstructionVal + type, num_ops, num_uses),
+			parent_(nullptr)
+	{
+		BOOST_ASSERT_MSG(insert_at_end, "Basic block to append to may not be NULL!");
+		insert_at_end->InstList().push_back(std::unique_ptr<Instruction>(this));
+		AddToSymbolTableList(this, insert_at_end);
+	}
+
+	Instruction::~Instruction()
+	{
+		RemoveFromSymbolTableList(this);
+
+		BOOST_ASSERT_MSG(!parent_, "Instruction still linked in the program!");
+		if (this->HasMetadataHashEntry())
+		{
+			this->ClearMetadataHashEntries();
+		}
+	}
+
+	void Instruction::InstructionSubclassData(uint16_t d)
+	{
+		BOOST_ASSERT_MSG((d & HasMetadataBit) == 0, "Out of range value put into field");
+		this->SetValueSubclassData((this->GetSubclassDataFromValue() & HasMetadataBit) | d);
+	}
+
 	void Instruction::Parent(BasicBlock* parent)
 	{
-		DILITHIUM_UNUSED(parent);
-		DILITHIUM_NOT_IMPLEMENTED;
+		parent_ = parent;
+	}
+
+	void Instruction::ClearMetadataHashEntries()
+	{
+		BOOST_ASSERT_MSG(this->HasMetadataHashEntry(), "Caller should check");
+		this->Context().Impl().instruction_metadata.erase(this);
+		this->HasMetadataHashEntry(false);
 	}
 }

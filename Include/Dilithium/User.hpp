@@ -38,6 +38,7 @@
 #pragma once
 
 #include <Dilithium/Value.hpp>
+#include <Dilithium/OperandTraits.hpp>
 
 #include <vector>
 
@@ -45,6 +46,9 @@
 
 namespace Dilithium
 {
+	template <typename T>
+	struct OperandTraits;
+
 	class User : public Value
 	{
 	public:
@@ -66,6 +70,15 @@ namespace Dilithium
 		}
 
 		Value* Operand(uint32_t idx) const;
+		void Operand(uint32_t idx, Value* val);
+
+		Use const & OperandUse(uint32_t idx) const;
+		Use& getOperandUse(uint32_t idx);
+
+		uint32_t NumOperands() const
+		{
+			return num_user_operands_;
+		}
 
 		op_iterator OpBegin()
 		{
@@ -93,8 +106,28 @@ namespace Dilithium
 			return op_range(this->OpBegin(), this->OpEnd());
 		}
 
+		void DropAllReferences();
+
 	protected:
 		User(Type* ty, uint32_t vty, uint32_t num_ops, uint32_t num_uses);
+
+		template <int INDEX, typename U>
+		static Use& OpFrom(U const * that)
+		{
+			auto non_const_that = const_cast<U*>(that);
+			auto uses = INDEX < 0 ? OperandTraits<U>::OpEnd(non_const_that) : OperandTraits<U>::OpBegin(non_const_that);
+			return uses[INDEX];
+		}
+		template <int INDEX>
+		Use& Op()
+		{
+			return this->OpFrom<INDEX>(this);
+		}
+		template <int INDEX>
+		Use const & Op() const
+		{
+			return this->OpFrom<INDEX>(this);
+		}
 
 	protected:
 		std::vector<Use> operands_;

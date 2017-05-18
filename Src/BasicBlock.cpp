@@ -34,29 +34,104 @@
 
 #include <Dilithium/Dilithium.hpp>
 #include <Dilithium/BasicBlock.hpp>
+#include <Dilithium/Type.hpp>
+#include <Dilithium/SymbolTableList.hpp>
+#include <Dilithium/ValueSymbolTable.hpp>
 
 namespace Dilithium 
 {
+	BasicBlock::BasicBlock(LLVMContext& context, std::string_view name, Function* new_parent)
+		: Value(Type::LabelType(context), Value::BasicBlockVal), parent_(nullptr)
+	{
+		new_parent->BasicBlockList().push_back(std::unique_ptr<BasicBlock>(this));
+		AddToSymbolTableList(this, new_parent);
+
+		this->Name(name);
+	}
+
 	BasicBlock::~BasicBlock()
 	{
+		RemoveFromSymbolTableList(this);
+
+		// If the address of the block is taken and it is being deleted (e.g. because
+		// it is dead), this means that there is either a dangling constant expr
+		// hanging off the block, or an undefined use of the block (source code
+		// expecting the address of a label to keep the block alive even though there
+		// is no indirect branch).  Handle these cases by zapping the BlockAddress
+		// nodes.  There are no other possible uses at this point.
+		if (this->HasAddressTaken())
+		{
+			DILITHIUM_NOT_IMPLEMENTED;
+		}
+
+		BOOST_ASSERT_MSG(this->Parent() == nullptr, "BasicBlock still linked into the program!");
+		this->DropAllReferences();
+		inst_list_.clear();
 	}
 
 	BasicBlock* BasicBlock::Create(LLVMContext& context, std::string_view name, Function* parent)
 	{
-		DILITHIUM_UNUSED(context);
-		DILITHIUM_UNUSED(name);
-		DILITHIUM_UNUSED(parent);
-		DILITHIUM_NOT_IMPLEMENTED;
+		return new BasicBlock(context, name, parent);
 	}
 
 	ValueSymbolTable* BasicBlock::GetValueSymbolTable()
 	{
-		DILITHIUM_NOT_IMPLEMENTED;
+		Function* func = this->Parent();
+		if (func)
+		{
+			return func->GetValueSymbolTable();
+		}
+		else
+		{
+			return nullptr;
+		}
+	}
+
+	void BasicBlock::DropAllReferences()
+	{
+		for (auto iter = begin(), end_iter = end(); iter != end_iter; ++ iter)
+		{
+			(*iter)->DropAllReferences();
+		}
 	}
 
 	void BasicBlock::ReplaceSuccessorsPhiUsesWith(BasicBlock* new_bb)
 	{
 		DILITHIUM_UNUSED(new_bb);
 		DILITHIUM_NOT_IMPLEMENTED;
+	}
+
+	void BasicBlock::Parent(Function* new_parent)
+	{
+		ValueSymbolTable* old_st = parent_ ? parent_->GetValueSymbolTable() : nullptr;
+
+		parent_ = new_parent;
+
+		ValueSymbolTable* new_st = new_parent ? new_parent->GetValueSymbolTable() : nullptr;
+
+		if ((old_st != new_st) && !inst_list_.empty())
+		{
+			if (old_st)
+			{
+				for (auto iter = inst_list_.begin(); iter != inst_list_.end(); ++ iter)
+				{
+					if ((*iter)->HasName())
+					{
+						old_st->RemoveValueName((*iter)->NameHash());
+					}
+				}
+			}
+
+			if (new_st)
+			{
+				for (auto iter = inst_list_.begin(); iter != inst_list_.end(); ++ iter)
+				{
+					if ((*iter)->HasName())
+					{
+						new_st->ReinsertValue(iter->get());
+					}
+				}
+			}
+		}
 	}
 }

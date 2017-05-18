@@ -108,6 +108,8 @@ namespace Dilithium
 
 		std::unordered_set<MDNode*> distinct_md_nodes;
 
+		std::unordered_map<Type*, UndefValue*> uv_constants;
+
 		ConstantInt* the_true_val;
 		ConstantInt* the_false_val;
 
@@ -130,6 +132,9 @@ namespace Dilithium
 
 		// Metadata string to ID mapping
 		std::unordered_map<std::string, uint32_t> custom_md_kind_names;
+
+		// Collection of per-instruction metadata used in this context.
+		std::unordered_map<Instruction const *, MDAttachmentMap> instruction_metadata;
 
 		//DILITHIUM_NOT_IMPLEMENTED;
 	};

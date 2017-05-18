@@ -158,9 +158,18 @@ namespace Dilithium
 	}
 
 
+	UndefValue::UndefValue(Type* ty)
+		: Constant(ty, UndefValueVal, 0, 0)
+	{
+	}
+
 	UndefValue* UndefValue::Get(Type* ty)
 	{
-		DILITHIUM_UNUSED(ty);
-		DILITHIUM_NOT_IMPLEMENTED;
+		auto& entry = ty->Context().Impl().uv_constants[ty];
+		if (!entry)
+		{
+			entry = new UndefValue(ty);
+		}
+		return entry;
 	}
 }

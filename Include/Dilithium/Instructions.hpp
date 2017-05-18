@@ -50,6 +50,13 @@ namespace Dilithium
 	class LLVMContext;
 	class Value;
 
+	class CallInst;
+
+	template <>
+	struct OperandTraits<CallInst> : public VariadicOperandTraits<CallInst>
+	{
+	};
+
 	class ReturnInst : public TerminatorInst
 	{
 	public:
@@ -70,12 +77,14 @@ namespace Dilithium
 		};
 
 	public:
-		static CallInst* Create(Value* func, ArrayRef<Value*> args, std::string_view name_str = "", Instruction* insert_before = nullptr);
-		static CallInst* Create(FunctionType* ty, Value* func, ArrayRef<Value*> args, std::string_view name_str = "",
+		~CallInst() override;
+
+		static CallInst* Create(Value* func, ArrayRef<Value*> args, std::string_view name = "", Instruction* insert_before = nullptr);
+		static CallInst* Create(FunctionType* ty, Value* func, ArrayRef<Value*> args, std::string_view name = "",
 			Instruction* insert_before = nullptr);
-		static CallInst* Create(Value* func, ArrayRef<Value*> args, std::string_view name_str, BasicBlock* insert_at_end);
-		static CallInst* Create(Value* func, std::string_view name_str = "", Instruction* insert_before = nullptr);
-		static CallInst* Create(Value* func, std::string_view name_str, BasicBlock* insert_at_end);
+		static CallInst* Create(Value* func, ArrayRef<Value*> args, std::string_view name, BasicBlock* insert_at_end);
+		static CallInst* Create(Value* func, std::string_view name = "", Instruction* insert_before = nullptr);
+		static CallInst* Create(Value* func, std::string_view name, BasicBlock* insert_at_end);
 
 		TailCallKind GetTailCallKind() const;
 		void SetTailCallKind(TailCallKind tck);
@@ -92,8 +101,23 @@ namespace Dilithium
 			attr_list_ = attrs;
 		}
 
+		DEFINE_TRANSPARENT_OPERAND_ACCESSORS(CallInst, Value)
+
+	private:
+		CallInst(FunctionType* ty, Value* func, ArrayRef<Value*> args, std::string_view name, Instruction* insert_before);
+		CallInst(Value* func, ArrayRef<Value*> args, std::string_view name, Instruction* insert_before);
+		CallInst(Value* func, ArrayRef<Value*> args, std::string_view name, BasicBlock* insert_at_end);
+		CallInst(Value* func, std::string_view name, Instruction* insert_before);
+		CallInst(Value* func, std::string_view name, BasicBlock* insert_at_end);
+		CallInst(CallInst const & ci);
+
+		void Init(Value* func, ArrayRef<Value*> args, std::string_view name);
+		void Init(FunctionType* fty, Value* func, ArrayRef<Value*> args, std::string_view name);
+		void Init(Value* func, std::string_view name);
+
 	private:
 		AttributeSet attr_list_;
+		FunctionType* fty_;
 	};
 }
 
