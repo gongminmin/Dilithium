@@ -40,6 +40,7 @@
 #include <Dilithium/CXX17/string_view.hpp>
 #include <Dilithium/DataLayout.hpp>
 #include <Dilithium/Function.hpp>
+#include <Dilithium/Metadata.hpp>
 #include <Dilithium/ValueSymbolTable.hpp>
 
 #include <list>
@@ -59,6 +60,7 @@ namespace Dilithium
 	{
 	public:
 		typedef std::list<std::unique_ptr<Function>> FunctionListType;
+		typedef std::list<std::unique_ptr<NamedMDNode>> NamedMDListType;
 
 		typedef FunctionListType::iterator                           iterator;
 		typedef FunctionListType::const_iterator               const_iterator;
@@ -78,7 +80,7 @@ namespace Dilithium
 			target_triple_ = sv.to_string();
 		}
 
-		uint32_t MDKindID(std::string_view name) const;
+		uint32_t MdKindId(std::string_view name) const;
 
 		NamedMDNode* GetOrInsertNamedMetadata(std::string_view name);
 
@@ -156,10 +158,12 @@ namespace Dilithium
 	private:
 		std::shared_ptr<LLVMContext> context_;
 		FunctionListType function_list_;
+		NamedMDListType named_md_list_;
 		ValueSymbolTable val_sym_tab_;
 		std::string name_;
 		std::shared_ptr<GVMaterializer> materializer_;
 		std::string target_triple_;
+		std::unordered_map<std::string, NamedMDNode*> named_md_sym_tab_;
 		DataLayout data_layout_;
 	};
 }

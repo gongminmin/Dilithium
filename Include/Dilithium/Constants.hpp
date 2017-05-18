@@ -37,14 +37,17 @@
 
 #pragma once
 
+#include <Dilithium/CXX17/string_view.hpp>
 #include <Dilithium/ArrayRef.hpp>
 #include <Dilithium/Constant.hpp>
 #include <Dilithium/MPInt.hpp>
+#include <Dilithium/MPFloat.hpp>
 
 namespace Dilithium
 {
 	class IntegerType;
 	class MPInt;
+	class PointerType;
 
 	class ConstantInt : public Constant
 	{
@@ -68,6 +71,37 @@ namespace Dilithium
 		// DILITHIUM_NOT_IMPLEMENTED
 	};
 
+	class ConstantFP : public Constant
+	{
+	public:
+		static Constant* Get(Type* ty, double v);
+		static Constant* Get(Type* ty, std::string_view str);
+		static ConstantFP* Get(LLVMContext& context, MPFloat const & v);
+
+		static bool classof(Value const * val)
+		{
+			return val->GetValueId() == ConstantFPVal;
+		}
+
+	private:
+		ConstantFP(Type* ty, MPFloat const & v);
+
+	private:
+		MPFloat val_;
+		// DILITHIUM_NOT_IMPLEMENTED
+	};
+
+	class ConstantAggregateZero : public Constant
+	{
+	public:
+		static ConstantAggregateZero* Get(Type* ty);
+
+		static bool classof(Value const * val)
+		{
+			return val->GetValueId() == ConstantAggregateZeroVal;
+		}
+	};
+
 	class ConstantVector : public Constant
 	{
 	public:
@@ -81,6 +115,19 @@ namespace Dilithium
 
 	private:
 		static Constant* GetImpl(ArrayRef<Constant*> v);
+		// DILITHIUM_NOT_IMPLEMENTED
+	};
+
+	class ConstantPointerNull : public Constant
+	{
+	public:
+		static ConstantPointerNull* Get(PointerType* t);
+
+		static bool classof(Value const * val)
+		{
+			return val->GetValueId() == ConstantPointerNullVal;
+		}
+
 		// DILITHIUM_NOT_IMPLEMENTED
 	};
 

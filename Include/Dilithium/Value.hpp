@@ -57,6 +57,7 @@ namespace Dilithium
 
 	class Value : boost::noncopyable
 	{
+		friend class ValueAsMetadata;
 		friend class ValueHandleBase;
 
 	public:

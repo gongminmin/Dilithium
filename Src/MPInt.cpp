@@ -592,11 +592,11 @@ namespace Dilithium
 	{
 		union
 		{
-			uint32_t I;
-			float F;
+			uint32_t i;
+			float f;
 		} t;
-		t.I = unsigned(val_);
-		return t.F;
+		t.i = static_cast<uint32_t>(val_);
+		return t.f;
 	}
 
 	void MPInt::ClearUnusedBits()

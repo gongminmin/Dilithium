@@ -37,8 +37,9 @@
 
 #include <Dilithium/Constants.hpp>
 #include <Dilithium/DerivedType.hpp>
-#include <Dilithium/TrackingMDRef.hpp>
+#include <Dilithium/Metadata.hpp>
 #include <Dilithium/MPInt.hpp>
+#include <Dilithium/TrackingMDRef.hpp>
 #include "AttributeImpl.hpp"
 
 #include <memory>
@@ -46,7 +47,6 @@
 #include <unordered_set>
 
 #include <boost/container/small_vector.hpp>
-
 
 namespace Dilithium
 {
@@ -98,6 +98,15 @@ namespace Dilithium
 		std::unordered_map<uint64_t, std::unique_ptr<AttributeImpl>> attrs_set;
 		std::unordered_map<uint64_t, std::unique_ptr<AttributeSetImpl>> attrs_lists;
 		std::unordered_map<uint64_t, std::unique_ptr<AttributeSetNode>> attrs_set_nodes;
+
+		std::unordered_map<uint64_t, std::unique_ptr<MDString>> md_string_cache;
+		std::unordered_map<Value*, ValueAsMetadata*> values_as_metadata;
+		std::unordered_map<Metadata*, MetadataAsValue*> metadata_as_values;
+
+#define HANDLE_MDNODE_LEAF(CLASS) std::unordered_map<uint64_t, CLASS*> CLASS##s;
+#include "Dilithium/Metadata.inc"
+
+		std::unordered_set<MDNode*> distinct_md_nodes;
 
 		ConstantInt* the_true_val;
 		ConstantInt* the_false_val;

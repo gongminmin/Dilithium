@@ -102,6 +102,35 @@ namespace Dilithium
 	}
 
 
+	Constant* ConstantFP::Get(Type* ty, double v)
+	{
+		DILITHIUM_UNUSED(ty);
+		DILITHIUM_UNUSED(v);
+		DILITHIUM_NOT_IMPLEMENTED;
+	}
+
+	Constant* ConstantFP::Get(Type* ty, std::string_view str)
+	{
+		DILITHIUM_UNUSED(ty);
+		DILITHIUM_UNUSED(str);
+		DILITHIUM_NOT_IMPLEMENTED;
+	}
+
+	ConstantFP* ConstantFP::Get(LLVMContext& context, MPFloat const & v)
+	{
+		DILITHIUM_UNUSED(context);
+		DILITHIUM_UNUSED(v);
+		DILITHIUM_NOT_IMPLEMENTED;
+	}
+
+
+	ConstantAggregateZero* ConstantAggregateZero::Get(Type* ty)
+	{
+		DILITHIUM_UNUSED(ty);
+		DILITHIUM_NOT_IMPLEMENTED;
+	}
+
+
 	Constant* ConstantVector::Get(ArrayRef<Constant*> elems)
 	{
 		DILITHIUM_UNUSED(elems);
@@ -112,6 +141,19 @@ namespace Dilithium
 	{
 		DILITHIUM_UNUSED(num_elem);
 		DILITHIUM_UNUSED(elem);
+		DILITHIUM_NOT_IMPLEMENTED;
+	}
+
+	Constant* ConstantVector::GetImpl(ArrayRef<Constant*> v)
+	{
+		DILITHIUM_UNUSED(v);
+		DILITHIUM_NOT_IMPLEMENTED;
+	}
+
+
+	ConstantPointerNull* ConstantPointerNull::Get(PointerType* t)
+	{
+		DILITHIUM_UNUSED(t);
 		DILITHIUM_NOT_IMPLEMENTED;
 	}
 

@@ -60,16 +60,22 @@ namespace Dilithium
 		data_layout_ = dl;
 	}
 
-	uint32_t LLVMModule::MDKindID(std::string_view name) const
+	uint32_t LLVMModule::MdKindId(std::string_view name) const
 	{
-		DILITHIUM_UNUSED(name);
-		DILITHIUM_NOT_IMPLEMENTED;
+		return context_->MdKindId(name);
 	}
 
 	NamedMDNode* LLVMModule::GetOrInsertNamedMetadata(std::string_view name)
 	{
-		DILITHIUM_UNUSED(name);
-		DILITHIUM_NOT_IMPLEMENTED;
+		auto& nmd_ptr = named_md_sym_tab_[name.to_string()];
+		if (!nmd_ptr)
+		{
+			auto nmd = std::make_unique<NamedMDNode>(name);
+			nmd->Parent(this);
+			nmd_ptr = nmd.get();
+			named_md_list_.push_back(std::move(nmd));
+		}
+		return nmd_ptr;
 	}
 
 	void LLVMModule::Materializer(std::shared_ptr<GVMaterializer> const & gvm)

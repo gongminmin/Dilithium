@@ -33,8 +33,9 @@
  */
 
 #include <Dilithium/Dilithium.hpp>
-#include <Dilithium/Constant.hpp>
+#include <Dilithium/Constants.hpp>
 #include <Dilithium/DerivedType.hpp>
+#include <Dilithium/MPFloat.hpp>
 
 namespace Dilithium 
 {
@@ -53,7 +54,26 @@ namespace Dilithium
 
 	Constant* Constant::NullValue(Type* ty)
 	{
-		DILITHIUM_UNUSED(ty);
-		DILITHIUM_NOT_IMPLEMENTED;
+		switch (ty->GetTypeId())
+		{
+		case Type::TID_Integer:
+			return ConstantInt::Get(ty, 0);
+		case Type::TID_Half:
+			return ConstantFP::Get(ty->Context(), MPFloat::Zero(MPFloat::IEEEHalf));
+		case Type::TID_Float:
+			return ConstantFP::Get(ty->Context(), MPFloat::Zero(MPFloat::IEEESingle));
+		case Type::TID_Double:
+			return ConstantFP::Get(ty->Context(), MPFloat::Zero(MPFloat::IEEEDouble));
+		case Type::TID_Pointer:
+			return ConstantPointerNull::Get(cast<PointerType>(ty));
+		case Type::TID_Struct:
+		case Type::TID_Array:
+		case Type::TID_Vector:
+			return ConstantAggregateZero::Get(ty);
+
+		default:
+			// Function, Label, or Opaque type?
+			DILITHIUM_UNREACHABLE("Cannot create a null constant of that type!");
+		}
 	}
 }

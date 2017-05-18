@@ -33,32 +33,47 @@
  */
 
 #include <Dilithium/Dilithium.hpp>
+#include <Dilithium/Casting.hpp>
+#include <Dilithium/Metadata.hpp>
 #include <Dilithium/MetadataTracking.hpp>
 
-namespace Dilithium 
+namespace Dilithium
 {
-
 	bool MetadataTracking::Track(void* ref, Metadata& md, OwnerTy owner)
 	{
-		DILITHIUM_UNUSED(ref);
-		DILITHIUM_UNUSED(md);
-		DILITHIUM_UNUSED(owner);
-		DILITHIUM_NOT_IMPLEMENTED;
+		BOOST_ASSERT_MSG(ref, "Expected live reference");
+		BOOST_ASSERT_MSG(owner || (*static_cast<Metadata **>(ref) == &md), "Reference without owner must be direct");
+		auto r = ReplaceableMetadataImpl::Get(md);
+		if (r)
+		{
+			r->AddRef(ref, owner);
+			return true;
+		}
+		return false;
 	}
 
 	void MetadataTracking::Untrack(void* ref, Metadata& md)
 	{
-		DILITHIUM_UNUSED(ref);
-		DILITHIUM_UNUSED(md);
-		DILITHIUM_NOT_IMPLEMENTED;
+		BOOST_ASSERT_MSG(ref, "Expected live reference");
+		auto r = ReplaceableMetadataImpl::Get(md);
+		if (r)
+		{
+			r->DropRef(ref);
+		}
 	}
 
 	bool MetadataTracking::Retrack(void* ref, Metadata& md, void* new_md)
 	{
-		DILITHIUM_UNUSED(ref);
-		DILITHIUM_UNUSED(md);
-		DILITHIUM_UNUSED(new_md);
-		DILITHIUM_NOT_IMPLEMENTED;
+		BOOST_ASSERT_MSG(ref, "Expected live reference");
+		BOOST_ASSERT_MSG(new_md, "Expected live reference");
+		BOOST_ASSERT_MSG(ref != new_md, "Expected change");
+		auto r = ReplaceableMetadataImpl::Get(md);
+		if (r)
+		{
+			r->MoveRef(ref, new_md, md);
+			return true;
+		}
+		return false;
 	}
 
 	bool MetadataTracking::IsReplaceable(Metadata const & md)

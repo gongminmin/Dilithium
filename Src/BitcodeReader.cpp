@@ -2536,7 +2536,7 @@ namespace
 
 						uint32_t kind = static_cast<uint32_t>(record[0]);
 						SmallString<8> name(record.begin() + 1, record.end());
-						uint32_t new_kind = the_module_->MDKindID(name.str());
+						uint32_t new_kind = the_module_->MdKindId(name.str());
 						if (!md_kind_map_.insert(std::make_pair(kind, new_kind)).second)
 						{
 							this->Error("Conflicting MetadataCode::Kind records");
