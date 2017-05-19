@@ -62,7 +62,7 @@ namespace Dilithium
 	{
 		static uint32_t NumOperands(User const * u)
 		{
-			return U->NumOperands();
+			return u->NumOperands();
 		}
 	};
 

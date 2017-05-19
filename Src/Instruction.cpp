@@ -98,6 +98,165 @@ namespace Dilithium
 		}
 	}
 
+	char const  *Instruction::OpcodeName() const
+	{
+		switch (this->Opcode())
+		{
+			// Terminators
+		case Ret:
+			return "ret";
+		case Br:
+			return "br";
+		case Switch:
+			return "switch";
+		case IndirectBr:
+			return "indirectbr";
+		case Invoke:
+			return "invoke";
+		case Resume:
+			return "resume";
+		case Unreachable:
+			return "unreachable";
+
+			// Standard binary operators...
+		case Add:
+			return "add";
+		case FAdd:
+			return "fadd";
+		case Sub:
+			return "sub";
+		case FSub:
+			return "fsub";
+		case Mul:
+			return "mul";
+		case FMul:
+			return "fmul";
+		case UDiv:
+			return "udiv";
+		case SDiv:
+			return "sdiv";
+		case FDiv:
+			return "fdiv";
+		case URem:
+			return "urem";
+		case SRem:
+			return "srem";
+		case FRem:
+			return "frem";
+
+			// Logical operators...
+		case And:
+			return "and";
+		case Or:
+			return "or";
+		case Xor:
+			return "xor";
+
+			// Memory instructions...
+		case Alloca:
+			return "alloca";
+		case Load:
+			return "load";
+		case Store:
+			return "store";
+		case AtomicCmpXchg:
+			return "cmpxchg";
+		case AtomicRMW:
+			return "atomicrmw";
+		case Fence:
+			return "fence";
+		case GetElementPtr:
+			return "getelementptr";
+
+			// Convert instructions...
+		case Trunc:
+			return "trunc";
+		case ZExt:
+			return "zext";
+		case SExt:
+			return "sext";
+		case FPTrunc:
+			return "fptrunc";
+		case FPExt:
+			return "fpext";
+		case FPToUI:
+			return "fptoui";
+		case FPToSI:
+			return "fptosi";
+		case UIToFP:
+			return "uitofp";
+		case SIToFP:
+			return "sitofp";
+		case IntToPtr:
+			return "inttoptr";
+		case PtrToInt:
+			return "ptrtoint";
+		case BitCast:
+			return "bitcast";
+		case AddrSpaceCast:
+			return "addrspacecast";
+
+			// Other instructions...
+		case ICmp:
+			return "icmp";
+		case FCmp:
+			return "fcmp";
+		case PHI:
+			return "phi";
+		case Select:
+			return "select";
+		case Call:
+			return "call";
+		case Shl:
+			return "shl";
+		case LShr:
+			return "lshr";
+		case AShr:
+			return "ashr";
+		case VAArg:
+			return "va_arg";
+		case ExtractElement:
+			return "extractelement";
+		case InsertElement:
+			return "insertelement";
+		case ShuffleVector:
+			return "shufflevector";
+		case ExtractValue:
+			return "extractvalue";
+		case InsertValue:
+			return "insertvalue";
+		case LandingPad:
+			return "landingpad";
+
+		default:
+			return "<Invalid operator> ";
+		}
+	}
+
+	bool Instruction::IsTerminator() const
+	{
+		uint32_t opcode = this->Opcode();
+		return (opcode >= TermOpsBegin) && (opcode < TermOpsEnd);
+	}
+
+	bool Instruction::IsBinaryOp() const
+	{
+		uint32_t opcode = this->Opcode();
+		return (opcode >= BinaryOpsBegin) && (opcode < BinaryOpsEnd);
+	}
+
+	bool Instruction::IsShift() const
+	{
+		uint32_t opcode = this->Opcode();
+		return (opcode >= Shl) && (opcode < AShr);
+	}
+
+	bool Instruction::IsCast() const
+	{
+		uint32_t opcode = this->Opcode();
+		return (opcode >= CastOpsBegin) && (opcode < CastOpsEnd);
+	}
+
 	void Instruction::InstructionSubclassData(uint16_t d)
 	{
 		BOOST_ASSERT_MSG((d & HasMetadataBit) == 0, "Out of range value put into field");

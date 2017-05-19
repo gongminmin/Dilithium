@@ -2291,10 +2291,12 @@ namespace
 			this->ResolveGlobalAndAliasInits();
 
 			// TODO: LLVM looks for intrinsic functions which need to be upgraded at some point. But it doesn't seems we need it for DXIL.
+#ifdef DILITHIUM_DEBUG
 			for (auto& func : *the_module_)
 			{
 				BOOST_ASSERT((func->Name().size() <= 8) || !func->Name().starts_with("llvm."));
 			}
+#endif
 
 			// TODO: LLVM looks for global variables which need to be renamed. But it doesn't seems we need it for DXIL.
 		}

@@ -68,6 +68,9 @@ namespace Dilithium
 		typedef FunctionListType::reverse_iterator             reverse_iterator;
 		typedef FunctionListType::const_reverse_iterator const_reverse_iterator;
 
+		typedef NamedMDListType::iterator             named_metadata_iterator;
+		typedef NamedMDListType::const_iterator const_named_metadata_iterator;
+
 	public:
 		LLVMModule(std::string const & name, std::shared_ptr<LLVMContext> const & context);
 		~LLVMModule();
@@ -148,12 +151,50 @@ namespace Dilithium
 
 		boost::iterator_range<iterator> Functions()
 		{
-			return boost::iterator_range<iterator>(begin(), end());
+			return boost::iterator_range<iterator>(this->begin(), this->end());
 		}
 		boost::iterator_range<const_iterator> Functions() const
 		{
-			return boost::iterator_range<const_iterator>(begin(), end());
+			return boost::iterator_range<const_iterator>(this->begin(), this->end());
 		}
+
+		named_metadata_iterator NamedMetadataBegin()
+		{
+			return named_md_list_.begin();
+		}
+		const_named_metadata_iterator NamedMetadataBegin() const
+		{
+			return named_md_list_.begin();
+		}
+
+		named_metadata_iterator NamedMetadataEnd()
+		{
+			return named_md_list_.end();
+		}
+		const_named_metadata_iterator NamedMetadataEnd() const
+		{
+			return named_md_list_.end();
+		}
+
+		size_t NamedMetadataSize() const
+		{
+			return named_md_list_.size();
+		}
+		bool NamedMetadataEmpty() const
+		{
+			return named_md_list_.empty();
+		}
+
+		boost::iterator_range<named_metadata_iterator> NamedMetadata()
+		{
+			return boost::iterator_range<named_metadata_iterator>(this->NamedMetadataBegin(), this->NamedMetadataEnd());
+		}
+		boost::iterator_range<const_named_metadata_iterator> NamedMetadata() const
+		{
+			return boost::iterator_range<const_named_metadata_iterator>(this->NamedMetadataBegin(), this->NamedMetadataEnd());
+		}
+
+		void DropAllReferences();
 
 	private:
 		std::shared_ptr<LLVMContext> context_;

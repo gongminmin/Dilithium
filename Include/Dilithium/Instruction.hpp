@@ -111,6 +111,20 @@ namespace Dilithium
 			return this->GetValueId() - Value::InstructionVal;
 		}
 
+		char const * OpcodeName() const;
+		bool IsTerminator() const;
+		bool IsBinaryOp() const;
+		bool IsShift() const;
+		bool IsCast() const;
+		bool IsLogicalShift() const
+		{
+			return Opcode() == Shl || Opcode() == LShr;
+		}
+		bool IsArithmeticShift() const
+		{
+			return Opcode() == AShr;
+		}
+
 		static bool classof(Value const * v)
 		{
 			return v->GetValueId() >= Value::InstructionVal;

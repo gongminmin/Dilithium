@@ -42,8 +42,11 @@
 #include <Dilithium/Attributes.hpp>
 #include <Dilithium/BasicBlock.hpp>
 #include <Dilithium/CallingConv.hpp>
+#include <Dilithium/Casting.hpp>
 #include <Dilithium/GlobalObject.hpp>
+#include <Dilithium/OperandTraits.hpp>
 #include <Dilithium/ValueSymbolTable.hpp>
+#include <Dilithium/Value.hpp>
 
 #include <list>
 #include <memory>
@@ -52,6 +55,13 @@ namespace Dilithium
 {
 	class FunctionType;
 	class LLVMModule;
+
+	class Function;
+
+	template <>
+	struct OperandTraits<Function> : public OptionalOperandTraits<Function>
+	{
+	};
 
 	class Function : public GlobalObject
 	{
@@ -65,7 +75,8 @@ namespace Dilithium
 		enum
 		{
 			IsMaterializableBit = 1 << 0,
-			HasMetadataHashEntryBit = 1 << 1
+			HasMetadataBit = 1 << 1,
+			HasPrologueDataBit = 1 << 2
 		};
 
 	public:
@@ -78,6 +89,8 @@ namespace Dilithium
 		typedef BasicBlockListType::const_iterator const_iterator;
 
 	public:
+		~Function() override;
+
 		static Function* Create(FunctionType* ty, LinkageTypes linkage, std::string_view name = "", LLVMModule* mod = nullptr);
 
 		bool HasPersonalityFn() const;
@@ -126,6 +139,49 @@ namespace Dilithium
 		{
 			return &sym_tab_;
 		}
+
+		iterator begin()
+		{
+			return basic_blocks_.begin();
+		}
+		const_iterator begin() const
+		{
+			return basic_blocks_.begin();
+		}
+		iterator end()
+		{
+			return basic_blocks_.end();
+		}
+		const_iterator end() const
+		{
+			return basic_blocks_.end();
+		}
+
+		size_t size() const
+		{
+			return basic_blocks_.size();
+		}
+		bool empty() const
+		{
+			return basic_blocks_.empty();
+		}
+		BasicBlock const & front() const
+		{
+			return *basic_blocks_.front();
+		}
+		BasicBlock& front()
+		{
+			return *basic_blocks_.front();
+		}
+		BasicBlock const & back() const
+		{
+			return *basic_blocks_.back();
+		}
+		BasicBlock& back()
+		{
+			return *basic_blocks_.back();
+		}
+
 		arg_iterator ArgBegin();
 		const_arg_iterator ArgBegin() const;
 		arg_iterator ArgEnd();
@@ -139,10 +195,21 @@ namespace Dilithium
 		Constant* PrologueData() const;
 		void PrologueData(Constant* prologue_data);
 
+		using GlobalObject::Parent;
+
+		void DropAllReferences();
+
+		bool HasMetadata() const
+		{
+			return this->HasMetadataHashEntry();
+		}
+
 		static bool classof(Value const * v)
 		{
 			return v->GetValueId() == Value::FunctionVal;
 		}
+
+		DEFINE_TRANSPARENT_OPERAND_ACCESSORS(Function, Value);
 
 	private:
 		Function(FunctionType* ty, LinkageTypes linkage, std::string_view name = "", LLVMModule* mod = nullptr);
@@ -158,6 +225,27 @@ namespace Dilithium
 		}
 		void CheckLazyArguments() const;
 		void BuildLazyArguments() const;
+
+		void SetValueSubclassData(uint16_t d)
+		{
+			Value::SetValueSubclassData(d);
+		}
+
+		void GlobalObjectBit(uint32_t mask, bool value)
+		{
+			this->GlobalObjectSubClassData((~mask & this->GlobalObjectSubClassData()) | (value ? mask : 0U));
+		}
+
+		bool HasMetadataHashEntry() const
+		{
+			return this->GlobalObjectSubClassData() & HasMetadataBit;
+		}
+		void HasMetadataHashEntry(bool has_entry)
+		{
+			this->GlobalObjectBit(HasMetadataBit, has_entry);
+		}
+
+		void ClearMetadata();
 
 	private:
 		BasicBlockListType basic_blocks_;

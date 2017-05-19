@@ -33,9 +33,11 @@
  */
 
 #include <Dilithium/Dilithium.hpp>
-#include <Dilithium/DerivedType.hpp>
 #include <Dilithium/Function.hpp>
+#include <Dilithium/DerivedType.hpp>
+#include <Dilithium/LLVMContext.hpp>
 #include <Dilithium/SymbolTableList.hpp>
+#include "LLVMContextImpl.hpp"
 
 namespace Dilithium 
 {
@@ -46,10 +48,9 @@ namespace Dilithium
 		BOOST_ASSERT_MSG(FunctionType::IsValidReturnType(this->ReturnType()), "invalid return type");
 		this->GlobalObjectSubClassData(0);
 
-		// If the function has arguments, mark them as lazily built.
 		if (ty->NumParams())
 		{
-			this->SetValueSubclassData(1);   // Set the "has lazy arguments" bit.
+			this->SetValueSubclassData(1);
 		}
 
 		if (mod)
@@ -59,6 +60,17 @@ namespace Dilithium
 		}
 	}
 
+	Function::~Function()
+	{
+		RemoveFromSymbolTableList(this);
+
+		this->DropAllReferences();
+		argument_list_.clear();
+
+		// FIXME: needed by operator delete
+		this->GlobalVariableOrFunctionNumOperands(1);
+	}
+
 	Function* Function::Create(FunctionType* ty, LinkageTypes linkage, std::string_view name, LLVMModule* mod)
 	{
 		return new Function(ty, linkage, name, mod);
@@ -66,18 +78,33 @@ namespace Dilithium
 
 	bool Function::HasPersonalityFn() const
 	{
-		DILITHIUM_NOT_IMPLEMENTED;
+		return this->NumOperands() != 0;
 	}
 
 	Constant* Function::PersonalityFn() const
 	{
-		DILITHIUM_NOT_IMPLEMENTED;
+		BOOST_ASSERT(this->HasPersonalityFn());
+		return cast<Constant>(this->Op<0>());
 	}
 
 	void Function::PersonalityFn(Constant* c)
 	{
-		DILITHIUM_UNUSED(c);
-		DILITHIUM_NOT_IMPLEMENTED;
+		if (!c)
+		{
+			if (this->HasPersonalityFn())
+			{
+				this->Op<0>().Set(nullptr);
+				this->GlobalVariableOrFunctionNumOperands(0);
+			}
+		}
+		else
+		{
+			if (!this->HasPersonalityFn())
+			{
+				this->GlobalVariableOrFunctionNumOperands(1);
+			}
+			this->Op<0>().Set(c);
+		}
 	}
 
 	Type* Function::ReturnType() const
@@ -88,6 +115,11 @@ namespace Dilithium
 	FunctionType* Function::GetFunctionType() const
 	{
 		return ty_;
+	}
+
+	LLVMContext& Function::Context() const
+	{
+		return this->GetType()->Context();
 	}
 
 	bool Function::IsVarArg() const
@@ -153,34 +185,110 @@ namespace Dilithium
 
 	bool Function::HasPrefixData() const
 	{
-		DILITHIUM_NOT_IMPLEMENTED;
+		return GetSubclassDataFromValue() & HasMetadataBit;
 	}
 
 	Constant* Function::PrefixData() const
 	{
-		DILITHIUM_NOT_IMPLEMENTED;
+		BOOST_ASSERT(this->HasPrefixData());
+		auto const & pd_map = this->Context().Impl().prefix_data_map;
+		BOOST_ASSERT(pd_map.find(this) != pd_map.end());
+		return cast<Constant>(pd_map.find(this)->second->ReturnValue());
 	}
 
 	void Function::PrefixData(Constant* prefix_data)
 	{
-		DILITHIUM_UNUSED(prefix_data);
-		DILITHIUM_NOT_IMPLEMENTED;
+		if (!prefix_data && !this->HasPrefixData())
+		{
+			return;
+		}
+
+		uint16_t sc_data = this->GetSubclassDataFromValue();
+		auto& pd_map = this->Context().Impl().prefix_data_map;
+		auto& pd_holder = pd_map[this];
+		if (prefix_data)
+		{
+			if (pd_holder)
+			{
+				pd_holder->Operand(0, prefix_data);
+			}
+			else
+			{
+				pd_holder = ReturnInst::Create(this->Context(), prefix_data);
+			}
+			sc_data |= HasMetadataBit;
+		}
+		else
+		{
+			delete pd_holder;
+			pd_map.erase(this);
+			sc_data &= ~HasMetadataBit;
+		}
+		this->SetValueSubclassData(sc_data);
 	}
 
 	bool Function::HasPrologueData() const
 	{
-		DILITHIUM_NOT_IMPLEMENTED;
+		return GetSubclassDataFromValue() & HasPrologueDataBit;
 	}
 
 	Constant* Function::PrologueData() const
 	{
-		DILITHIUM_NOT_IMPLEMENTED;
+		BOOST_ASSERT(this->HasPrologueData());
+
+		auto const & pd_map = this->Context().Impl().prologue_data_map;
+		BOOST_ASSERT(pd_map.find(this) != pd_map.end());
+		return cast<Constant>(pd_map.find(this)->second->ReturnValue());
 	}
 
 	void Function::PrologueData(Constant* prologue_data)
 	{
-		DILITHIUM_UNUSED(prologue_data);
-		DILITHIUM_NOT_IMPLEMENTED;
+		if (!prologue_data && !this->HasPrologueData())
+		{
+			return;
+		}
+
+		uint16_t pd_data = this->GetSubclassDataFromValue();
+		auto& pd_map = this->Context().Impl().prologue_data_map;
+		auto& pd_holder = pd_map[this];
+		if (prologue_data)
+		{
+			if (pd_holder)
+			{
+				pd_holder->Operand(0, prologue_data);
+			}
+			else
+			{
+				pd_holder = ReturnInst::Create(this->Context(), prologue_data);
+			}
+			pd_data |= HasPrologueDataBit;
+		}
+		else
+		{
+			delete pd_holder;
+			pd_map.erase(this);
+			pd_data &= ~HasPrologueDataBit;
+		}
+		this->SetValueSubclassData(pd_data);
+	}
+
+	void Function::DropAllReferences()
+	{
+		this->IsMaterializable(false);
+
+		for (auto iter = this->begin(), end_iter = this->end(); iter != end_iter; ++ iter)
+		{
+			iter->get()->DropAllReferences();
+		}
+
+		basic_blocks_.clear();
+
+		this->PrefixData(nullptr);
+		this->PrologueData(nullptr);
+
+		this->ClearMetadata();
+
+		this->PersonalityFn(nullptr);
 	}
 
 	void Function::CheckLazyArguments() const
@@ -203,5 +311,14 @@ namespace Dilithium
 		uint16_t sdc = this->GetSubclassDataFromValue();
 		sdc &= ~(1 << 0);
 		const_cast<Function*>(this)->SetValueSubclassData(sdc);
+	}
+
+	void Function::ClearMetadata()
+	{
+		if (this->HasMetadata())
+		{
+			this->Context().Impl().function_metadata.erase(this);
+			this->HasMetadataHashEntry(false);
+		}
 	}
 }

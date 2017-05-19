@@ -460,6 +460,7 @@ namespace Dilithium
 		BOOST_ASSERT_MSG(((slen - 1) * 3 <= num_bits) || (radix != 8), "Insufficient bit width");
 		BOOST_ASSERT_MSG(((slen - 1) * 4 <= num_bits) || (radix != 16), "Insufficient bit width");
 		BOOST_ASSERT_MSG((((slen - 1) * 64) / 22 <= num_bits) || (radix != 10), "Insufficient bit width");
+		DILITHIUM_UNUSED(num_bits);
 
 		uint32_t shift = (radix == 16) ? 4 : ((radix == 8) ? 3 : ((radix == 2) ? 1 : 0));
 

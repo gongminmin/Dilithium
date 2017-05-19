@@ -37,6 +37,7 @@
 
 #include <Dilithium/Constants.hpp>
 #include <Dilithium/DerivedType.hpp>
+#include <Dilithium/Instructions.hpp>
 #include <Dilithium/Metadata.hpp>
 #include <Dilithium/MPInt.hpp>
 #include <Dilithium/TrackingMDRef.hpp>
@@ -135,6 +136,17 @@ namespace Dilithium
 
 		// Collection of per-instruction metadata used in this context.
 		std::unordered_map<Instruction const *, MDAttachmentMap> instruction_metadata;
+
+		// Collection of per-function metadata used in this context.
+		std::unordered_map<Function const *, MDAttachmentMap> function_metadata;
+
+		// Mapping from a function to its prefix data, which is stored as the
+		// operand of an unparented ReturnInst so that the prefix data has a Use.
+		std::unordered_map<Function const *, ReturnInst*> prefix_data_map;
+
+		// Mapping from a function to its prologue data, which is stored as
+		// the operand of an unparented ReturnInst so that the prologue data has a Use.
+		std::unordered_map<Function const *, ReturnInst*> prologue_data_map;
 
 		//DILITHIUM_NOT_IMPLEMENTED;
 	};

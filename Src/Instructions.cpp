@@ -39,27 +39,57 @@
 
 namespace Dilithium 
 {
+
+	ReturnInst::ReturnInst(LLVMContext& context, Value* ret_val, Instruction* insert_before)
+		: TerminatorInst(Type::VoidType(context), Instruction::Ret, !!ret_val, !!ret_val, insert_before)
+	{
+		if (ret_val)
+		{
+			this->Op<0>().Set(ret_val);
+		}
+	}
+
+	ReturnInst::ReturnInst(LLVMContext& context, Value* ret_val, BasicBlock* insert_at_end)
+		: TerminatorInst(Type::VoidType(context), Instruction::Ret, !!ret_val, !!ret_val, insert_at_end)
+	{
+		if (ret_val)
+		{
+			this->Op<0>().Set(ret_val);
+		}
+	}
+
+	ReturnInst::ReturnInst(LLVMContext& context, BasicBlock* insert_at_end)
+		: TerminatorInst(Type::VoidType(context), Instruction::Ret, 0, 0, insert_at_end)
+	{
+	}
+
+	ReturnInst::ReturnInst(ReturnInst const & rhs)
+		: TerminatorInst(Type::VoidType(rhs.Context()), Instruction::Ret, rhs.NumOperands(), rhs.NumOperands())
+	{
+		if (rhs.NumOperands())
+		{
+			this->Op<0>() = rhs.Op<0>();
+		}
+		subclass_optional_data_ = rhs.subclass_optional_data_;
+	}
+
+	ReturnInst::~ReturnInst()
+	{
+	}
+
 	ReturnInst* ReturnInst::Create(LLVMContext& context, Value* ret_val, Instruction* insert_before)
 	{
-		DILITHIUM_UNUSED(context);
-		DILITHIUM_UNUSED(ret_val);
-		DILITHIUM_UNUSED(insert_before);
-		DILITHIUM_NOT_IMPLEMENTED;
+		return new ReturnInst(context, ret_val, insert_before);
 	}
 
 	ReturnInst* ReturnInst::Create(LLVMContext& context, Value* ret_val, BasicBlock* insert_at_end)
 	{
-		DILITHIUM_UNUSED(context);
-		DILITHIUM_UNUSED(ret_val);
-		DILITHIUM_UNUSED(insert_at_end);
-		DILITHIUM_NOT_IMPLEMENTED;
+		return new ReturnInst(context, ret_val, insert_at_end);
 	}
 
 	ReturnInst* ReturnInst::Create(LLVMContext& context, BasicBlock* insert_at_end)
 	{
-		DILITHIUM_UNUSED(context);
-		DILITHIUM_UNUSED(insert_at_end);
-		DILITHIUM_NOT_IMPLEMENTED;
+		return new ReturnInst(context, insert_at_end);
 	}
 
 
@@ -96,15 +126,15 @@ namespace Dilithium
 		this->Init(func, name);
 	}
 
-	CallInst::CallInst(CallInst const & ci)
-		: Instruction(ci.GetType(), Instruction::Call, ci.NumOperands(), ci.NumOperands()),
-			attr_list_(ci.attr_list_), fty_(ci.fty_)
+	CallInst::CallInst(CallInst const & rhs)
+		: Instruction(rhs.GetType(), Instruction::Call, rhs.NumOperands(), rhs.NumOperands()),
+			attr_list_(rhs.attr_list_), fty_(rhs.fty_)
 	{
-		this->SetTailCallKind(ci.GetTailCallKind());
-		this->SetCallingConv(ci.GetCallingConv());
+		this->SetTailCallKind(rhs.GetTailCallKind());
+		this->SetCallingConv(rhs.GetCallingConv());
 
-		std::copy(ci.OpBegin(), ci.OpEnd(), this->OpBegin());
-		subclass_optional_data_ = ci.subclass_optional_data_;
+		std::copy(rhs.OpBegin(), rhs.OpEnd(), this->OpBegin());
+		subclass_optional_data_ = rhs.subclass_optional_data_;
 	}
 
 	CallInst::~CallInst()

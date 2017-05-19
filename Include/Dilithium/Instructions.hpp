@@ -50,7 +50,13 @@ namespace Dilithium
 	class LLVMContext;
 	class Value;
 
+	class ReturnInst;
 	class CallInst;
+
+	template <>
+	struct OperandTraits<ReturnInst> : public VariadicOperandTraits<ReturnInst>
+	{
+	};
 
 	template <>
 	struct OperandTraits<CallInst> : public VariadicOperandTraits<CallInst>
@@ -60,9 +66,25 @@ namespace Dilithium
 	class ReturnInst : public TerminatorInst
 	{
 	public:
+		~ReturnInst() override;
+
 		static ReturnInst* Create(LLVMContext& context, Value* ret_val = nullptr, Instruction* insert_before = nullptr);
 		static ReturnInst* Create(LLVMContext& context, Value* ret_val, BasicBlock* insert_at_end);
 		static ReturnInst* Create(LLVMContext& context, BasicBlock* insert_at_end);
+
+		Value* ReturnValue() const
+		{
+			return this->NumOperands() != 0 ? this->Operand(0) : nullptr;
+		}
+
+	private:
+		explicit ReturnInst(LLVMContext& context, Value* ret_val = nullptr, Instruction* insert_before = nullptr);
+		ReturnInst(LLVMContext& context, Value* ret_val, BasicBlock* insert_at_end);
+		explicit ReturnInst(LLVMContext& context, BasicBlock* insert_at_end);
+		ReturnInst(ReturnInst const & rhs);
+
+		DEFINE_TRANSPARENT_OPERAND_ACCESSORS(ReturnInst, Value)
+
 		// DILITHIUM_NOT_IMPLEMENTED
 	};
 
@@ -109,7 +131,7 @@ namespace Dilithium
 		CallInst(Value* func, ArrayRef<Value*> args, std::string_view name, BasicBlock* insert_at_end);
 		CallInst(Value* func, std::string_view name, Instruction* insert_before);
 		CallInst(Value* func, std::string_view name, BasicBlock* insert_at_end);
-		CallInst(CallInst const & ci);
+		CallInst(CallInst const & rhs);
 
 		void Init(Value* func, ArrayRef<Value*> args, std::string_view name);
 		void Init(FunctionType* fty, Value* func, ArrayRef<Value*> args, std::string_view name);
@@ -118,6 +140,8 @@ namespace Dilithium
 	private:
 		AttributeSet attr_list_;
 		FunctionType* fty_;
+
+		// DILITHIUM_NOT_IMPLEMENTED
 	};
 }
 

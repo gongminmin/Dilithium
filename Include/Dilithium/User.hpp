@@ -80,6 +80,12 @@ namespace Dilithium
 			return num_user_operands_;
 		}
 
+		void GlobalVariableOrFunctionNumOperands(uint32_t num_ops)
+		{
+			BOOST_ASSERT_MSG(num_ops <= 1, "GlobalVariable or Function can only have 0 or 1 operands");
+			num_user_operands_ = num_ops;
+		}
+
 		op_iterator OpBegin()
 		{
 			return this->OperandList();

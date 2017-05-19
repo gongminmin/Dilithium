@@ -166,6 +166,11 @@ namespace Dilithium
 			return parent_;
 		}
 
+		static bool classof(Value const * val)
+		{
+			return (val->GetValueId() == Value::FunctionVal) || (val->GetValueId() == Value::GlobalVariableVal);
+		}
+
 	protected:
 		GlobalValue(PointerType* ty, ValueTy vty, uint32_t num_ops, uint32_t num_uses, LinkageTypes linkage, std::string_view name);
 		uint32_t GlobalValueSubClassData() const

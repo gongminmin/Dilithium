@@ -47,10 +47,28 @@ namespace Dilithium
 	class TerminatorInst : public Instruction
 	{
 	public:
+		static inline bool classof(Instruction const * inst)
+		{
+			return inst->IsTerminator();
+		}
 		static bool classof(Value const * v)
 		{
 			return isa<Instruction>(v) && classof(cast<Instruction>(v));
 		}
+
+	protected:
+		TerminatorInst(Type* ty, Instruction::TermOps type, uint32_t num_ops, uint32_t num_uses, Instruction* insert_before = nullptr)
+			: Instruction(ty, type, num_ops, num_uses, insert_before)
+		{
+		}
+		TerminatorInst(Type* ty, Instruction::TermOps type, uint32_t num_ops, uint32_t num_uses, BasicBlock* insert_at_end)
+			: Instruction(ty, type, num_ops, num_uses, insert_at_end)
+		{
+		}
+		~TerminatorInst() override
+		{
+		}
+
 		// DILITHIUM_NOT_IMPLEMENTED
 	};
 }

@@ -47,6 +47,11 @@ namespace Dilithium
 
 	LLVMModule::~LLVMModule()
 	{
+		//this->ResetDxilModule();
+		this->DropAllReferences();
+		function_list_.clear();
+		named_md_list_.clear();
+
 		//DILITHIUM_NOT_IMPLEMENTED;
 	}
 
@@ -89,6 +94,14 @@ namespace Dilithium
 		{
 			materializer_->MaterializeModule(this);
 			materializer_.reset();
+		}
+	}
+
+	void LLVMModule::DropAllReferences()
+	{
+		for (auto& func : *this)
+		{
+			func->DropAllReferences();
 		}
 	}
 }
