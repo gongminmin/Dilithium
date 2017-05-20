@@ -58,6 +58,11 @@ namespace Dilithium
 		static ConstantInt* Get(IntegerType* ty, std::string_view str, uint8_t radix);
 		static Constant* Get(Type* ty, MPInt const & v);
 
+		uint64_t ZExtValue() const
+		{
+			return val_.ZExtValue();
+		}
+
 		static bool classof(Value const * val)
 		{
 			return val->GetValueId() == ConstantIntVal;

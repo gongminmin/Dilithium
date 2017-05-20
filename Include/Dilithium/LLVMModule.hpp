@@ -56,6 +56,8 @@ namespace Dilithium
 	class LLVMContext;
 	class NamedMDNode;
 
+	class DxilModule;
+
 	class LLVMModule : boost::noncopyable
 	{
 	public:
@@ -75,6 +77,11 @@ namespace Dilithium
 		LLVMModule(std::string const & name, std::shared_ptr<LLVMContext> const & context);
 		~LLVMModule();
 
+		LLVMContext& Context() const
+		{
+			return *context_;
+		}
+
 		void SetDataLayout(std::string_view desc);
 		void SetDataLayout(DataLayout const & dl);
 
@@ -85,6 +92,7 @@ namespace Dilithium
 
 		uint32_t MdKindId(std::string_view name) const;
 
+		NamedMDNode* GetNamedMetadata(std::string_view name) const;
 		NamedMDNode* GetOrInsertNamedMetadata(std::string_view name);
 
 		void Materializer(std::shared_ptr<GVMaterializer> const & gvm);
@@ -196,6 +204,12 @@ namespace Dilithium
 
 		void DropAllReferences();
 
+		bool HasDxilModule() const;
+		void SetDxilModule(std::unique_ptr<DxilModule> value);
+		DxilModule& GetDxilModule();
+		DxilModule& GetOrCreateDxilModule(bool skip_init = false);
+		void ResetDxilModule();
+
 	private:
 		std::shared_ptr<LLVMContext> context_;
 		FunctionListType function_list_;
@@ -206,6 +220,8 @@ namespace Dilithium
 		std::string target_triple_;
 		std::unordered_map<std::string, NamedMDNode*> named_md_sym_tab_;
 		DataLayout data_layout_;
+
+		std::unique_ptr<DxilModule> dxil_module_;
 	};
 }
 

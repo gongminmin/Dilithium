@@ -503,6 +503,11 @@ std::string Disassemble(std::vector<uint8_t> const & program)
 	try
 	{
 		auto module = Dilithium::LoadLLVMModule(il, il_length, "");
+		if (module->GetNamedMetadata("dx.version"))
+		{
+			auto& dxil_module = module->GetOrCreateDxilModule();
+			DILITHIUM_UNUSED(dxil_module);
+		}
 
 		//DILITHIUM_NOT_IMPLEMENTED;
 

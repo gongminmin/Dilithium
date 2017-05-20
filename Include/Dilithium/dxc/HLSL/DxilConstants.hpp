@@ -123,6 +123,90 @@ namespace Dilithium
 		TriangleStrip = 5
 	};
 
-};
+	enum class SignatureKind
+	{
+		Invalid = 0,
+		Input,
+		Output,
+		PatchConstant
+	};
+
+	enum class SigPointKind : uint32_t
+	{
+		VSIn,
+		VSOut,
+		PCIn,
+		HSIn,
+		HSCPIn,
+		HSCPOut,
+		PCOut,
+		DSIn,
+		DSCPIn,
+		DSOut,
+		GSVIn,
+		GSIn,
+		GSOut,
+		PSIn,
+		PSOut,
+		CSIn,
+		Invalid
+	};
+
+	enum class PackingKind : uint32_t
+	{
+		None,
+		InputAssembler,
+		Vertex,
+		PatchConstant,
+		Target,
+		Invalid
+	};
+
+	enum class SemanticInterpretationKind : uint32_t
+	{
+		NA,
+		SV,
+		SGV,
+		Arb,
+		NotInSig,
+		NotPacked,
+		Target,
+		TessFactor,
+		Shadow,
+		Invalid
+	};
+
+	enum class SemanticKind : uint32_t
+	{
+		Arbitrary,
+		VertexID,
+		InstanceID,
+		Position,
+		RenderTargetArrayIndex,
+		ViewPortArrayIndex,
+		ClipDistance,
+		CullDistance,
+		OutputControlPointID,
+		DomainLocation,
+		PrimitiveID,
+		GSInstanceID,
+		SampleIndex,
+		IsFrontFace,
+		Coverage,
+		InnerCoverage,
+		Target,
+		Depth,
+		DepthLessEqual,
+		DepthGreaterEqual,
+		StencilRef,
+		DispatchThreadID,
+		GroupID,
+		GroupIndex,
+		GroupThreadID,
+		TessFactor,
+		InsideTessFactor,
+		Invalid
+	};
+}
 
 #endif		// _DILITHIUM_DXIL_CONSTANTS_HPP

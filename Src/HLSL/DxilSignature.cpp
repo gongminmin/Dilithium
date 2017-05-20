@@ -1,5 +1,5 @@
 /**
- * @file ErrorHandling.hpp
+ * @file DxilSignature.cpp
  * @author Minmin Gong
  *
  * @section DESCRIPTION
@@ -32,57 +32,49 @@
  * THE SOFTWARE.
  */
 
-#ifndef _DILITHIUM_ERROR_HANDLING_HPP
-#define _DILITHIUM_ERROR_HANDLING_HPP
-
-#pragma once
-
-#include <Dilithium/Compiler.hpp>
-#include <Dilithium/CXX17/string_view.hpp>
-#include <system_error>
-#include <exception>
+#include <Dilithium/Dilithium.hpp>
+#include <Dilithium/dxc/HLSL/DxilSignature.hpp>
+#include <Dilithium/dxc/HLSL/DxilSigPoint.hpp>
 
 namespace Dilithium
 {
-	DILITHIUM_ATTRIBUTE_NORETURN void ReportFatalError(char const * reason);
-	DILITHIUM_ATTRIBUTE_NORETURN void ReportFatalError(std::string const & reason);
-	DILITHIUM_ATTRIBUTE_NORETURN void ReportFatalError(std::string_view reason);
-
-#if defined(DILITHIUM_DEBUG) || !defined(DILITHIUM_BUILTIN_UNREACHABLE)
-	DILITHIUM_ATTRIBUTE_NORETURN void UnreachableInternal(char const * msg = nullptr, char const * file = nullptr, uint32_t line = 0);
-
-	#define DILITHIUM_UNREACHABLE(msg) ::Dilithium::UnreachableInternal(msg, __FILE__, __LINE__)
-#else
-	#define DILITHIUM_UNREACHABLE(msg) DILITHIUM_BUILTIN_UNREACHABLE
-#endif
-
-	#define DILITHIUM_NOT_IMPLEMENTED DILITHIUM_UNREACHABLE("Not implemented")
-
-	inline void TERROR(char const * msg = nullptr)
+	DxilSignature::DxilSignature(ShaderKind shader_kind, SignatureKind sig_kind)
+		: sig_point_kind_(DxilSigPoint::GetKind(shader_kind, sig_kind, false, false))
 	{
-		throw std::runtime_error(msg);
 	}
 
-	inline void TEC(std::error_code ec, char const * msg = nullptr)
+	DxilSignature::DxilSignature(SigPointKind sig_point_kind)
+		: sig_point_kind_(sig_point_kind)
 	{
-		throw std::system_error(ec, msg);
 	}
 
-	inline void TIFEC(std::error_code ec, char const * msg = nullptr)
+	DxilSignature::~DxilSignature()
 	{
-		if (ec)
+	}
+
+	bool DxilSignature::IsInput() const
+	{
+		return DxilSigPoint::GetSigPoint(sig_point_kind_)->IsInput();
+	}
+
+	bool DxilSignature::IsOutput() const
+	{
+		return DxilSigPoint::GetSigPoint(sig_point_kind_)->IsOutput();
+	}
+
+	std::unique_ptr<DxilSignatureElement> DxilSignature::CreateElement()
+	{
+		return std::make_unique<DxilSignatureElement>(sig_point_kind_);
+	}
+
+	uint32_t DxilSignature::AppendElement(std::unique_ptr<DxilSignatureElement> se, bool set_id)
+	{
+		uint32_t id = static_cast<uint32_t>(elements_.size());
+		if (set_id)
 		{
-			TEC(ec, msg);
+			se->SetId(id);
 		}
-	}
-
-	inline void TIFBOOL(bool x, char const * msg = nullptr)
-	{
-		if (!x)
-		{
-			TERROR(msg);
-		}
+		elements_.emplace_back(std::move(se));
+		return id;
 	}
 }
-
-#endif		// _DILITHIUM_ERROR_HANDLING_HPP

@@ -38,6 +38,8 @@
 #include <Dilithium/GVMaterializer.hpp>
 #include <Dilithium/LLVMContext.hpp>
 
+#include <Dilithium/dxc/HLSL/DxilModule.hpp>
+
 namespace Dilithium
 {
 	LLVMModule::LLVMModule(std::string const & name, std::shared_ptr<LLVMContext> const & context)
@@ -68,6 +70,19 @@ namespace Dilithium
 	uint32_t LLVMModule::MdKindId(std::string_view name) const
 	{
 		return context_->MdKindId(name);
+	}
+
+	NamedMDNode* LLVMModule::GetNamedMetadata(std::string_view name) const
+	{
+		auto iter = named_md_sym_tab_.find(name.to_string());
+		if (iter != named_md_sym_tab_.end())
+		{
+			return iter->second;
+		}
+		else
+		{
+			return nullptr;
+		}
 	}
 
 	NamedMDNode* LLVMModule::GetOrInsertNamedMetadata(std::string_view name)
@@ -102,6 +117,43 @@ namespace Dilithium
 		for (auto& func : *this)
 		{
 			func->DropAllReferences();
+		}
+	}
+
+	bool LLVMModule::HasDxilModule() const
+	{
+		return dxil_module_.get() != nullptr;
+	}
+
+	void LLVMModule::SetDxilModule(std::unique_ptr<DxilModule> value)
+	{
+		dxil_module_ = std::move(value);
+	}
+
+	DxilModule& LLVMModule::GetDxilModule()
+	{
+		return *dxil_module_;
+	}
+
+	DxilModule& LLVMModule::GetOrCreateDxilModule(bool skip_init)
+	{
+		if (!this->HasDxilModule())
+		{
+			auto mod = std::make_unique<DxilModule>(this);
+			if (!skip_init)
+			{
+				mod->LoadDxilMetadata();
+			}
+			this->SetDxilModule(std::move(mod));
+		}
+		return this->GetDxilModule();
+	}
+
+	void LLVMModule::ResetDxilModule()
+	{
+		if (this->HasDxilModule())
+		{
+			dxil_module_.reset();
 		}
 	}
 }

@@ -1,5 +1,5 @@
 /**
- * @file ErrorHandling.hpp
+ * @file DxilModule.hpp
  * @author Minmin Gong
  *
  * @section DESCRIPTION
@@ -32,57 +32,44 @@
  * THE SOFTWARE.
  */
 
-#ifndef _DILITHIUM_ERROR_HANDLING_HPP
-#define _DILITHIUM_ERROR_HANDLING_HPP
+#ifndef _DILITHIUM_DXIL_MODULE_HPP
+#define _DILITHIUM_DXIL_MODULE_HPP
 
 #pragma once
 
-#include <Dilithium/Compiler.hpp>
-#include <Dilithium/CXX17/string_view.hpp>
-#include <system_error>
-#include <exception>
+#include <Dilithium/dxc/HLSL/DxilMdHelper.hpp>
+#include <Dilithium/dxc/HLSL/DxilSignature.hpp>
+#include <Dilithium/dxc/HLSL/DxilRootSignature.hpp>
 
 namespace Dilithium
 {
-	DILITHIUM_ATTRIBUTE_NORETURN void ReportFatalError(char const * reason);
-	DILITHIUM_ATTRIBUTE_NORETURN void ReportFatalError(std::string const & reason);
-	DILITHIUM_ATTRIBUTE_NORETURN void ReportFatalError(std::string_view reason);
+	class LLVMModule;
+	class Function;
 
-#if defined(DILITHIUM_DEBUG) || !defined(DILITHIUM_BUILTIN_UNREACHABLE)
-	DILITHIUM_ATTRIBUTE_NORETURN void UnreachableInternal(char const * msg = nullptr, char const * file = nullptr, uint32_t line = 0);
-
-	#define DILITHIUM_UNREACHABLE(msg) ::Dilithium::UnreachableInternal(msg, __FILE__, __LINE__)
-#else
-	#define DILITHIUM_UNREACHABLE(msg) DILITHIUM_BUILTIN_UNREACHABLE
-#endif
-
-	#define DILITHIUM_NOT_IMPLEMENTED DILITHIUM_UNREACHABLE("Not implemented")
-
-	inline void TERROR(char const * msg = nullptr)
+	class DxilModule
 	{
-		throw std::runtime_error(msg);
-	}
+	public:
+		explicit DxilModule(LLVMModule* mod);
+		~DxilModule();
 
-	inline void TEC(std::error_code ec, char const * msg = nullptr)
-	{
-		throw std::system_error(ec, msg);
-	}
+		void LoadDxilMetadata();
 
-	inline void TIFEC(std::error_code ec, char const * msg = nullptr)
-	{
-		if (ec)
-		{
-			TEC(ec, msg);
-		}
-	}
+	private:
+		LLVMContext& context_;
+		LLVMModule* module_;
+		Function* entry_func_;
+		Function* patch_constant_func_;
+		std::string entry_name_;
+		std::unique_ptr<DxilMDHelper> md_helper_;
+		DxilShaderModel const * sm_;
+		uint32_t dxil_major_;
+		uint32_t dxil_minor_;
 
-	inline void TIFBOOL(bool x, char const * msg = nullptr)
-	{
-		if (!x)
-		{
-			TERROR(msg);
-		}
-	}
+		std::unique_ptr<DxilSignature> input_signature_;
+		std::unique_ptr<DxilSignature> output_signature_;
+		std::unique_ptr<DxilSignature> patch_constant_signature_;
+		std::unique_ptr<DxilRootSignatureHandle> root_signature_;
+	};
 }
 
-#endif		// _DILITHIUM_ERROR_HANDLING_HPP
+#endif		// _DILITHIUM_DXIL_MODULE_HPP

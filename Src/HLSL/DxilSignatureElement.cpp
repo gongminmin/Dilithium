@@ -1,5 +1,5 @@
 /**
- * @file ErrorHandling.hpp
+ * @file DxilSignatureElement.cpp
  * @author Minmin Gong
  *
  * @section DESCRIPTION
@@ -32,57 +32,30 @@
  * THE SOFTWARE.
  */
 
-#ifndef _DILITHIUM_ERROR_HANDLING_HPP
-#define _DILITHIUM_ERROR_HANDLING_HPP
+#include <Dilithium/Dilithium.hpp>
+#include <Dilithium/dxc/HLSL/DxilSignatureElement.hpp>
 
-#pragma once
-
-#include <Dilithium/Compiler.hpp>
-#include <Dilithium/CXX17/string_view.hpp>
-#include <system_error>
-#include <exception>
+#include <climits>
 
 namespace Dilithium
 {
-	DILITHIUM_ATTRIBUTE_NORETURN void ReportFatalError(char const * reason);
-	DILITHIUM_ATTRIBUTE_NORETURN void ReportFatalError(std::string const & reason);
-	DILITHIUM_ATTRIBUTE_NORETURN void ReportFatalError(std::string_view reason);
-
-#if defined(DILITHIUM_DEBUG) || !defined(DILITHIUM_BUILTIN_UNREACHABLE)
-	DILITHIUM_ATTRIBUTE_NORETURN void UnreachableInternal(char const * msg = nullptr, char const * file = nullptr, uint32_t line = 0);
-
-	#define DILITHIUM_UNREACHABLE(msg) ::Dilithium::UnreachableInternal(msg, __FILE__, __LINE__)
-#else
-	#define DILITHIUM_UNREACHABLE(msg) DILITHIUM_BUILTIN_UNREACHABLE
-#endif
-
-	#define DILITHIUM_NOT_IMPLEMENTED DILITHIUM_UNREACHABLE("Not implemented")
-
-	inline void TERROR(char const * msg = nullptr)
+	DxilSignatureElement::DxilSignatureElement(SigPointKind kind)
+		: sig_point_kind_(kind),
+			id_(std::numeric_limits<uint32_t>::max())
 	{
-		throw std::runtime_error(msg);
 	}
 
-	inline void TEC(std::error_code ec, char const * msg = nullptr)
+	DxilSignatureElement::~DxilSignatureElement()
 	{
-		throw std::system_error(ec, msg);
 	}
 
-	inline void TIFEC(std::error_code ec, char const * msg = nullptr)
+	uint32_t DxilSignatureElement::GetId() const
 	{
-		if (ec)
-		{
-			TEC(ec, msg);
-		}
+		return id_;
 	}
 
-	inline void TIFBOOL(bool x, char const * msg = nullptr)
+	void DxilSignatureElement::SetId(uint32_t id)
 	{
-		if (!x)
-		{
-			TERROR(msg);
-		}
+		id_ = id;
 	}
 }
-
-#endif		// _DILITHIUM_ERROR_HANDLING_HPP
