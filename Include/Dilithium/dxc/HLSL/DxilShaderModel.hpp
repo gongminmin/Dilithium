@@ -46,7 +46,9 @@ namespace Dilithium
 {
 	class DxilShaderModel
 	{
-		DxilShaderModel() = delete;
+	public:
+		static uint32_t constexpr HIGHEST_MAJOR = 6;
+		static uint32_t constexpr HIGHEST_MINOR = 0;
 
 	public:
 		DxilShaderModel(ShaderKind kind, uint32_t major, uint32_t minor, std::string_view name,
@@ -137,6 +139,7 @@ namespace Dilithium
 		static DxilShaderModel const * GetByName(std::string_view name);
 
 	private:
+		DxilShaderModel() = delete;
 		static DxilShaderModel const * GetInvalid();
 
 	private:

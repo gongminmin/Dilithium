@@ -1,5 +1,5 @@
 /**
- * @file DxilSignatureElement.hpp
+ * @file DxilSemantic.hpp
  * @author Minmin Gong
  *
  * @section DESCRIPTION
@@ -32,53 +32,53 @@
  * THE SOFTWARE.
  */
 
-#ifndef _DILITHIUM_DXIL_SIGNATURE_ELEMENT_HPP
-#define _DILITHIUM_DXIL_SIGNATURE_ELEMENT_HPP
+#ifndef _DILITHIUM_DXIL_SEMANTIC_HPP
+#define _DILITHIUM_DXIL_SEMANTIC_HPP
 
 #pragma once
 
-#include <Dilithium/dxc/HLSL/DxilCompType.hpp>
+#include <Dilithium/CXX17/string_view.hpp>
+
 #include <Dilithium/dxc/HLSL/DxilConstants.hpp>
-#include <Dilithium/dxc/HLSL/DxilSemantic.hpp>
+#include <Dilithium/dxc/HLSL/DxilShaderModel.hpp>
 
 namespace Dilithium
 {
-	class DxilSignatureElement
+	class DxilSemantic
 	{
-	public:
-		static uint32_t constexpr UNDEFINED_ID = UINT_MAX;
+		friend class DxilShaderModel;
+		friend class DxilSignatureElement;
 
 	public:
-		explicit DxilSignatureElement(SigPointKind kind);
-		virtual ~DxilSignatureElement();
+		static int constexpr UNDEFINED_ROW = -1;
+		static int constexpr UNDEFINED_COL = -1;
 
-		void Initialize(std::string_view name, DxilCompType const & elem_type, InterpolationMode interp_mode,
-			uint32_t rows, uint32_t cols,
-			int start_row = DxilSemantic::UNDEFINED_ROW, int start_col = DxilSemantic::UNDEFINED_COL,
-			uint32_t id = UNDEFINED_ID, std::vector<uint32_t> const & index_vec = std::vector<uint32_t>());
+	public:
+		DxilSemantic(SemanticKind kind, char const * name);
 
-		uint32_t GetId() const;
-		void SetId(uint32_t id);
+		static DxilSemantic const * GetByName(std::string_view name);
+		static DxilSemantic const * GetByName(std::string_view name, SigPointKind sig_point_kind,
+			uint32_t major_version = DxilShaderModel::HIGHEST_MAJOR, uint32_t minor_version = DxilShaderModel::HIGHEST_MINOR);
+		static DxilSemantic const * Get(SemanticKind kind);
+		static DxilSemantic const * Get(SemanticKind kind, SigPointKind sig_point_kind,
+			uint32_t major_version = DxilShaderModel::HIGHEST_MAJOR, uint32_t minor_version = DxilShaderModel::HIGHEST_MINOR);
+		static DxilSemantic const * GetInvalid();
+		static DxilSemantic const * GetArbitrary();
+		static bool HasSVPrefix(std::string_view name);
+		static void DecomposeNameAndIndex(std::string_view full_name, std::string_view* name, uint32_t* index);
 
-		void SetKind(SemanticKind kind);
 		SemanticKind GetKind() const;
+		char const * GetName() const;
+		bool IsArbitrary() const;
+		bool IsInvalid() const;
 
 	private:
-		SigPointKind sig_point_kind_;
-		DxilSemantic const * semantic_;
-		uint32_t id_;
-		std::string name_;
-		std::string_view semantic_name_;
-		uint32_t semantic_start_index_;
-		DxilCompType comp_type_;
-		InterpolationMode interp_mode_;
-		std::vector<uint32_t> semantic_index_;
-		uint32_t rows_;
-		uint32_t cols_;
-		int start_row_;
-		int start_col_;
-		uint32_t output_stream_;
+		DxilSemantic() = delete;
+
+	private:
+		SemanticKind kind_;
+		char const * name_;
 	};
 }
 
-#endif		// _DILITHIUM_DXIL_SIGNATURE_ELEMENT_HPP
+#endif		// _DILITHIUM_DXIL_SEMANTIC_HPP

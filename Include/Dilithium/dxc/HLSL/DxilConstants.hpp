@@ -41,6 +41,36 @@
 
 namespace Dilithium
 {
+	enum class ComponentType : uint8_t
+	{
+		Invalid = 0,
+		I1, I16, U16, I32, U32, I64, U64,
+		F16, F32, F64,
+		SNormF16, UNormF16, SNormF32, UNormF32, SNormF64, UNormF64,
+		LastEntry
+	};
+
+	enum class InterpolationMode : uint8_t
+	{
+		Undefined = 0,
+		Constant,
+		Linear,
+		LinearCentroid,
+		LinearNoperspective,
+		LinearNoperspectiveCentroid,
+		LinearSample,
+		LinearNoperspectiveSample,
+		Invalid
+	};
+
+	enum class SignatureKind
+	{
+		Invalid = 0,
+		Input,
+		Output,
+		PatchConstant
+	};
+
 	enum class ShaderKind
 	{
 		Pixel = 0,
@@ -121,14 +151,6 @@ namespace Dilithium
 		LineStrip = 3,
 		TriangleList = 4,
 		TriangleStrip = 5
-	};
-
-	enum class SignatureKind
-	{
-		Invalid = 0,
-		Input,
-		Output,
-		PatchConstant
 	};
 
 	enum class SigPointKind : uint32_t

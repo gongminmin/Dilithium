@@ -91,7 +91,11 @@ namespace Dilithium
 		void LoadSignatureElement(MDOperand const & mdn, DxilSignatureElement& se);
 		void LoadRootSignature(MDOperand const & mdn, DxilRootSignatureHandle& root_sig);
 
+		static int32_t ConstMDToInt32(MDOperand const & operand);
 		static uint32_t ConstMDToUInt32(MDOperand const & operand);
+		static int8_t ConstMDToInt8(MDOperand const & operand);
+		static uint8_t ConstMDToUInt8(MDOperand const & operand);
+		void ConstMDTupleToUInt32Vector(MDTuple* tuple_md, std::vector<uint32_t>& vec);
 
 	private:
 		LLVMContext& context_;

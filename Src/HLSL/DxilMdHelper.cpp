@@ -36,6 +36,7 @@
 #include <Dilithium/Constants.hpp>
 #include <Dilithium/LLVMModule.hpp>
 #include <Dilithium/Type.hpp>
+#include <Dilithium/dxc/HLSL/DxilCompType.hpp>
 #include <Dilithium/dxc/HLSL/DxilMdHelper.hpp>
 #include <Dilithium/dxc/HLSL/DxilShaderModel.hpp>
 #include <Dilithium/dxc/HLSL/DxilSignature.hpp>
@@ -205,16 +206,71 @@ namespace Dilithium
 
 	void DxilMDHelper::LoadSignatureElement(MDOperand const & mdn, DxilSignatureElement& se)
 	{
-		DILITHIUM_UNUSED(mdn);
-		DILITHIUM_UNUSED(se);
-		DILITHIUM_NOT_IMPLEMENTED;
+		enum DxilSignatureElement
+		{
+			DSE_ID = 0,
+			DSE_Name,
+			DSE_Type,
+			DSE_SystemValue,
+			DSE_IndexVector,
+			DSE_InterpMode,
+			DSE_Rows,
+			DSE_Cols,
+			DSE_StartRow,
+			DSE_StartCol,
+			DSE_NameValueList,
+
+			DSE_NumFields
+		};
+
+		TIFBOOL(mdn.Get() != nullptr);
+		auto tuple_md = dyn_cast<MDTuple>(mdn.Get());
+		TIFBOOL(tuple_md != nullptr);
+		TIFBOOL(tuple_md->NumOperands() == DSE_NumFields);
+
+		uint32_t id = ConstMDToUInt32(tuple_md->Operand(DSE_ID));
+		auto name = dyn_cast<MDString>(tuple_md->Operand(DSE_Name));
+		DxilCompType ct = DxilCompType(ConstMDToUInt8(tuple_md->Operand(DSE_Type)));
+		SemanticKind sem_kind = static_cast<SemanticKind>(ConstMDToUInt8(tuple_md->Operand(DSE_SystemValue)));
+		auto semantic_index_vector_md = dyn_cast<MDTuple>(tuple_md->Operand(DSE_IndexVector));
+		InterpolationMode im = static_cast<InterpolationMode>(ConstMDToUInt8(tuple_md->Operand(DSE_InterpMode)));
+		uint32_t num_rows = ConstMDToUInt32(tuple_md->Operand(DSE_Rows));
+		uint8_t num_cols = ConstMDToUInt8(tuple_md->Operand(DSE_Cols));
+		int32_t start_row = ConstMDToInt32(tuple_md->Operand(DSE_StartRow));
+		int8_t start_col = ConstMDToInt8(tuple_md->Operand(DSE_StartCol));
+
+		TIFBOOL(name != nullptr);
+		TIFBOOL(semantic_index_vector_md != nullptr);
+
+		std::vector<unsigned> semantic_index_vector;
+		ConstMDTupleToUInt32Vector(semantic_index_vector_md, semantic_index_vector);
+
+		se.Initialize(name->String(), ct, im, num_rows, num_cols, start_row, start_col, id, semantic_index_vector);
+		se.SetKind(sem_kind);
+
+		extra_property_helper_->LoadSignatureElementProperties(tuple_md->Operand(DSE_NameValueList), se);
 	}
 
 	void DxilMDHelper::LoadRootSignature(MDOperand const & mdn, DxilRootSignatureHandle& root_sig)
 	{
-		DILITHIUM_UNUSED(mdn);
-		DILITHIUM_UNUSED(root_sig);
-		DILITHIUM_NOT_IMPLEMENTED;
+		if (mdn.Get() != nullptr)
+		{
+			auto metadata = dyn_cast<ConstantAsMetadata>(mdn.Get());
+			TIFBOOL(metadata != nullptr);
+			auto data = dyn_cast<ConstantDataArray>(metadata->GetValue());
+			TIFBOOL(data != nullptr);
+			TIFBOOL(data->ElementType() == Type::Int8Type(context_));
+
+			root_sig.Clear();
+			root_sig.LoadSerialized(data->RawDataValues().data(), data->RawDataValues().size());
+		}
+	}
+
+	int32_t DxilMDHelper::ConstMDToInt32(MDOperand const & operand)
+	{
+		ConstantInt* ci = cast<ConstantInt>(cast<ConstantAsMetadata>(operand)->GetValue());
+		TIFBOOL(ci != nullptr);
+		return static_cast<int32_t>(ci->ZExtValue());
 	}
 
 	uint32_t DxilMDHelper::ConstMDToUInt32(MDOperand const & operand)
@@ -222,6 +278,31 @@ namespace Dilithium
 		ConstantInt* ci = cast<ConstantInt>(cast<ConstantAsMetadata>(operand)->GetValue());
 		TIFBOOL(ci != nullptr);
 		return static_cast<uint32_t>(ci->ZExtValue());
+	}
+
+	int8_t DxilMDHelper::ConstMDToInt8(MDOperand const & operand)
+	{
+		ConstantInt* ci = cast<ConstantInt>(cast<ConstantAsMetadata>(operand)->GetValue());
+		TIFBOOL(ci != nullptr);
+		return static_cast<int8_t>(ci->ZExtValue());
+	}
+
+	uint8_t DxilMDHelper::ConstMDToUInt8(MDOperand const & operand)
+	{
+		ConstantInt* ci = cast<ConstantInt>(cast<ConstantAsMetadata>(operand)->GetValue());
+		TIFBOOL(ci != nullptr);
+		return static_cast<uint8_t>(ci->ZExtValue());
+	}
+
+	void DxilMDHelper::ConstMDTupleToUInt32Vector(MDTuple* tuple_md, std::vector<uint32_t>& vec)
+	{
+		TIFBOOL(tuple_md != nullptr);
+
+		vec.resize(tuple_md->NumOperands());
+		for (uint32_t i = 0; i < tuple_md->NumOperands(); ++ i)
+		{
+			vec[i] = ConstMDToUInt32(tuple_md->Operand(i));
+		}
 	}
 
 

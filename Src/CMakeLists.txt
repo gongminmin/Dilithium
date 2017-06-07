@@ -9,12 +9,14 @@ SET(DETAIL_HEADER_FILES
 )
 
 SET(DXC_HLSL_HEADER_FILES
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/dxc/HLSL/DxilCompType.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/dxc/HLSL/DxilConstants.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/dxc/HLSL/DxilContainer.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/dxc/HLSL/DxilMdHelper.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/dxc/HLSL/DxilModule.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/dxc/HLSL/DxilPipelineStateValidation.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/dxc/HLSL/DxilRootSignature.hpp
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/dxc/HLSL/DxilSemantic.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/dxc/HLSL/DxilShaderModel.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/dxc/HLSL/DxilSignature.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/dxc/HLSL/DxilSignatureElement.hpp
@@ -78,9 +80,11 @@ SET(HEADER_FILES
 )
 
 SET(HLSL_SOURCE_FILES
+	${DILITHIUM_ROOT_DIR}/Src/HLSL/DxilCompType.cpp
 	${DILITHIUM_ROOT_DIR}/Src/HLSL/DxilContainer.cpp
 	${DILITHIUM_ROOT_DIR}/Src/HLSL/DxilMdHelper.cpp
 	${DILITHIUM_ROOT_DIR}/Src/HLSL/DxilModule.cpp
+	${DILITHIUM_ROOT_DIR}/Src/HLSL/DxilSemantic.cpp
 	${DILITHIUM_ROOT_DIR}/Src/HLSL/DxilShaderModel.cpp
 	${DILITHIUM_ROOT_DIR}/Src/HLSL/DxilSignature.cpp
 	${DILITHIUM_ROOT_DIR}/Src/HLSL/DxilSignatureElement.cpp

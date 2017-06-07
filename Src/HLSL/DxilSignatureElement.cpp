@@ -34,6 +34,7 @@
 
 #include <Dilithium/Dilithium.hpp>
 #include <Dilithium/dxc/HLSL/DxilSignatureElement.hpp>
+#include <Dilithium/dxc/HLSL/DxilSigPoint.hpp>
 
 #include <climits>
 
@@ -49,6 +50,32 @@ namespace Dilithium
 	{
 	}
 
+	void DxilSignatureElement::Initialize(std::string_view name, DxilCompType const & elem_type, InterpolationMode interp_mode,
+		uint32_t rows, uint32_t cols,
+		int start_row, int start_col,
+		uint32_t id, std::vector<uint32_t> const & index_vec)
+	{
+		BOOST_ASSERT_MSG(semantic_ == nullptr, "An instance should be initiazed only once");
+
+		id_ = id;
+		name_ = name.to_string();
+		DxilSemantic::DecomposeNameAndIndex(name, &semantic_name_, &semantic_start_index_);
+		if (!index_vec.empty())
+		{
+			semantic_start_index_ = index_vec[0];
+		}
+		// Find semantic in the table.
+		semantic_ = DxilSemantic::GetByName(semantic_name_, sig_point_kind_);
+		comp_type_ = elem_type;
+		interp_mode_ = interp_mode;
+		semantic_index_ = index_vec;
+		rows_ = rows;
+		cols_ = cols;
+		start_row_ = start_row;
+		start_col_ = start_col;
+		output_stream_ = 0;
+	}
+
 	uint32_t DxilSignatureElement::GetId() const
 	{
 		return id_;
@@ -58,4 +85,17 @@ namespace Dilithium
 	{
 		id_ = id;
 	}
+
+	void DxilSignatureElement::SetKind(SemanticKind kind)
+	{
+		// recover the original SigPointKind if necessary (for Shadow element).
+		sig_point_kind_ = DxilSigPoint::RecoverKind(kind, sig_point_kind_);
+		semantic_ = DxilSemantic::Get(kind, sig_point_kind_);
+	}
+
+	SemanticKind DxilSignatureElement::GetKind() const
+	{
+		return semantic_->GetKind();
+	}
+
 }
