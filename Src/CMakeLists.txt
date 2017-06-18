@@ -84,6 +84,7 @@ SET(HLSL_SOURCE_FILES
 	${DILITHIUM_ROOT_DIR}/Src/HLSL/DxilContainer.cpp
 	${DILITHIUM_ROOT_DIR}/Src/HLSL/DxilMdHelper.cpp
 	${DILITHIUM_ROOT_DIR}/Src/HLSL/DxilModule.cpp
+	${DILITHIUM_ROOT_DIR}/Src/HLSL/DxilRootSignature.cpp
 	${DILITHIUM_ROOT_DIR}/Src/HLSL/DxilSemantic.cpp
 	${DILITHIUM_ROOT_DIR}/Src/HLSL/DxilShaderModel.cpp
 	${DILITHIUM_ROOT_DIR}/Src/HLSL/DxilSignature.cpp

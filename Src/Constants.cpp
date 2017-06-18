@@ -158,6 +158,40 @@ namespace Dilithium
 	}
 
 
+	SequentialType* ConstantDataSequential::GetType() const
+	{
+		return cast<SequentialType>(Value::GetType());
+	}
+
+	Type* ConstantDataSequential::GetElementType() const
+	{
+		return this->GetType()->ElementType();
+	}
+
+	uint32_t ConstantDataSequential::NumElements() const
+	{
+		ArrayType* arr = dyn_cast<ArrayType>(this->GetType());
+		if (arr)
+		{
+			return static_cast<uint32_t>(arr->NumElements());
+		}
+		else
+		{
+			return this->GetType()->VectorNumElements();
+		}
+	}
+
+	uint32_t ConstantDataSequential::GetElementByteSize() const
+	{
+		return this->GetElementType()->PrimitiveSizeInBits() / 8;
+	}
+
+	std::string_view ConstantDataSequential::GetRawDataValues() const
+	{
+		return std::string_view(data_elements_, this->NumElements() * this->GetElementByteSize());
+	}
+
+
 	UndefValue::UndefValue(Type* ty)
 		: Constant(ty, UndefValueVal, 0, 0)
 	{

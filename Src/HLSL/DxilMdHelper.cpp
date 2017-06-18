@@ -36,6 +36,7 @@
 #include <Dilithium/Constants.hpp>
 #include <Dilithium/LLVMModule.hpp>
 #include <Dilithium/Type.hpp>
+#include <Dilithium/DerivedType.hpp>
 #include <Dilithium/dxc/HLSL/DxilCompType.hpp>
 #include <Dilithium/dxc/HLSL/DxilMdHelper.hpp>
 #include <Dilithium/dxc/HLSL/DxilShaderModel.hpp>
@@ -259,10 +260,11 @@ namespace Dilithium
 			TIFBOOL(metadata != nullptr);
 			auto data = dyn_cast<ConstantDataArray>(metadata->GetValue());
 			TIFBOOL(data != nullptr);
-			TIFBOOL(data->ElementType() == Type::Int8Type(context_));
+			TIFBOOL(data->GetElementType() == Type::Int8Type(context_));
 
 			root_sig.Clear();
-			root_sig.LoadSerialized(data->RawDataValues().data(), data->RawDataValues().size());
+			root_sig.LoadSerialized(reinterpret_cast<uint8_t const *>(data->GetRawDataValues().data()),
+				static_cast<uint32_t>(data->GetRawDataValues().size()));
 		}
 	}
 

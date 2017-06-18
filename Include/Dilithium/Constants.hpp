@@ -48,6 +48,7 @@ namespace Dilithium
 	class IntegerType;
 	class MPInt;
 	class PointerType;
+	class SequentialType;
 
 	class ConstantInt : public Constant
 	{
@@ -131,6 +132,41 @@ namespace Dilithium
 		static bool classof(Value const * val)
 		{
 			return val->GetValueId() == ConstantPointerNullVal;
+		}
+
+		// DILITHIUM_NOT_IMPLEMENTED
+	};
+
+	class ConstantDataSequential : public Constant
+	{
+	public:
+		SequentialType* GetType() const;
+		Type* GetElementType() const;
+
+		uint32_t NumElements() const;
+		uint32_t GetElementByteSize() const;
+
+		std::string_view GetRawDataValues() const;
+
+		static bool classof(Value const * val)
+		{
+			return (val->GetValueId() == ConstantDataArrayVal) || (val->GetValueId() == ConstantDataVectorVal);
+		}
+
+	private:
+		char const * data_elements_;
+
+		ConstantDataSequential* next_;
+
+		// DILITHIUM_NOT_IMPLEMENTED
+	};
+
+	class ConstantDataArray : public ConstantDataSequential
+	{
+	public:
+		static bool classof(Value const * val)
+		{
+			return val->GetValueId() == ConstantDataArrayVal;
 		}
 
 		// DILITHIUM_NOT_IMPLEMENTED

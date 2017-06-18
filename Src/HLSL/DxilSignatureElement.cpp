@@ -97,5 +97,4 @@ namespace Dilithium
 	{
 		return semantic_->GetKind();
 	}
-
 }
