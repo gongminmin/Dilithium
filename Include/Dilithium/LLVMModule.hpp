@@ -87,7 +87,7 @@ namespace Dilithium
 
 		void SetTargetTriple(std::string_view sv)
 		{
-			target_triple_ = sv.to_string();
+			target_triple_ = std::string(sv);
 		}
 
 		uint32_t MdKindId(std::string_view name) const;

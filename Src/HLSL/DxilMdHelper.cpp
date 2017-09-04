@@ -105,7 +105,7 @@ namespace Dilithium
 		TIFBOOL(shader_type_md != nullptr);
 		uint32_t major = ConstMDToUInt32(shader_model_md->Operand(DXIL_SHADER_MODEL_MAJOR_IDX));
 		uint32_t minor = ConstMDToUInt32(shader_model_md->Operand(DXIL_SHADER_MODEL_MINOR_IDX));
-		std::string shader_model_name = shader_type_md->String().to_string();
+		std::string shader_model_name = std::string(shader_type_md->String());
 		shader_model_name += "_" + std::to_string(major) + "_" + std::to_string(minor);
 		sm = DxilShaderModel::GetByName(shader_model_name);
 		if (!sm->IsValid())
@@ -158,7 +158,7 @@ namespace Dilithium
 		TIFBOOL(mdn_name.Get() != nullptr);
 		auto md_name = dyn_cast<MDString>(mdn_name);
 		TIFBOOL(md_name != nullptr);
-		name = md_name->String().to_string();
+		name = std::string(md_name->String());
 
 		signatures = &tuple_md->Operand(DEP_Signatures);
 		resources = &tuple_md->Operand(DEP_Resources);

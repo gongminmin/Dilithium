@@ -616,7 +616,7 @@ namespace Dilithium
 
 	MPFloat::OpStatus MPFloat::ConvertFromString(std::string_view str)
 	{
-		std::string s = str.to_string();
+		std::string s = std::string(str);
 		if (semantics_ == &IEEEHalf)
 		{
 			storage_.float_half = half(std::stof(s));

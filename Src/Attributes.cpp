@@ -473,7 +473,7 @@ namespace Dilithium
 
 	bool AttrBuilder::Contains(std::string_view attr) const
 	{
-		return target_dep_attrs_.find(attr.to_string()) != target_dep_attrs_.end();
+		return target_dep_attrs_.find(std::string(attr)) != target_dep_attrs_.end();
 	}
 
 	bool AttrBuilder::HasAttributes() const
@@ -508,7 +508,7 @@ namespace Dilithium
 			else
 			{
 				BOOST_ASSERT_MSG(attr.IsStringAttribute(), "Invalid attribute kind!");
-				return target_dep_attrs_.find(attr.KindAsString().to_string()) != target_dep_attrs_.end();
+				return target_dep_attrs_.find(std::string(attr.KindAsString())) != target_dep_attrs_.end();
 			}
 		}
 

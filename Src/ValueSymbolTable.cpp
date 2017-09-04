@@ -102,7 +102,7 @@ namespace Dilithium
 		if (iter == vmap_.end())
 		{
 			vmap_.emplace(hash_val, val);
-			return name.to_string();
+			return std::string(name);
 		}
 		else
 		{
@@ -119,7 +119,7 @@ namespace Dilithium
 				if (iter == vmap_.end())
 				{
 					vmap_.emplace(hash_val, val);
-					return unique_name.str().to_string();
+					return std::string(unique_name.str());
 				}
 			}
 		}

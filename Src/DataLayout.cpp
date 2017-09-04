@@ -84,7 +84,7 @@ namespace
 
 	uint32_t ToInt(std::string_view sv)
 	{
-		return std::stoi(sv.to_string());
+		return std::stoi(std::string(sv));
 	}
 
 	uint32_t InBytes(uint32_t bits)
@@ -515,7 +515,7 @@ namespace Dilithium
 
 	void DataLayout::ParseSpecifier(std::string_view desc)
 	{
-		string_representation_ = desc.to_string();
+		string_representation_ = std::string(desc);
 		while (!desc.empty())
 		{
 			std::pair<std::string_view, std::string_view> ss = Split(desc, '-');

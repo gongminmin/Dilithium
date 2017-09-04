@@ -35,6 +35,8 @@
 #include <Dilithium/dxc/HLSL/DxilSemantic.hpp>
 #include <Dilithium/dxc/HLSL/DxilSigPoint.hpp>
 
+#include <algorithm>
+
 namespace
 {
 	using namespace Dilithium;

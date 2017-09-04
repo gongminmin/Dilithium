@@ -292,7 +292,7 @@ namespace Dilithium
 			{
 				this->DestroyValueName();
 
-				name_ = new_name.to_string();
+				name_ = std::string(new_name);
 				name_hash_ = boost::hash_value(new_name);
 			}
 		}

@@ -59,7 +59,7 @@ namespace Dilithium
 
 	void LLVMModule::SetDataLayout(std::string_view desc)
 	{
-		data_layout_.Reset(desc.to_string());
+		data_layout_.Reset(std::string(desc));
 	}
 
 	void LLVMModule::SetDataLayout(DataLayout const & dl)
@@ -74,7 +74,7 @@ namespace Dilithium
 
 	NamedMDNode* LLVMModule::GetNamedMetadata(std::string_view name) const
 	{
-		auto iter = named_md_sym_tab_.find(name.to_string());
+		auto iter = named_md_sym_tab_.find(std::string(name));
 		if (iter != named_md_sym_tab_.end())
 		{
 			return iter->second;
@@ -87,7 +87,7 @@ namespace Dilithium
 
 	NamedMDNode* LLVMModule::GetOrInsertNamedMetadata(std::string_view name)
 	{
-		auto& nmd_ptr = named_md_sym_tab_[name.to_string()];
+		auto& nmd_ptr = named_md_sym_tab_[std::string(name)];
 		if (!nmd_ptr)
 		{
 			auto nmd = std::make_unique<NamedMDNode>(name);

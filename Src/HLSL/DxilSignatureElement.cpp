@@ -58,7 +58,7 @@ namespace Dilithium
 		BOOST_ASSERT_MSG(semantic_ == nullptr, "An instance should be initiazed only once");
 
 		id_ = id;
-		name_ = name.to_string();
+		name_ = std::string(name);
 		DxilSemantic::DecomposeNameAndIndex(name, &semantic_name_, &semantic_start_index_);
 		if (!index_vec.empty())
 		{

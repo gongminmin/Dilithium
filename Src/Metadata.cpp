@@ -516,7 +516,7 @@ namespace Dilithium
 		if (iter == store.end())
 		{
 			auto mds = std::make_unique<MDString>();
-			mds->string_ = str.to_string();
+			mds->string_ = std::string(str);
 			mds->string_hash_ = hash_val;
 
 			bool was_inserted;
@@ -950,7 +950,7 @@ namespace Dilithium
 
 
 	NamedMDNode::NamedMDNode(std::string_view name)
-		: name_(name.to_string()), parent_(nullptr)
+		: name_(std::string(name)), parent_(nullptr)
 	{
 	}
 

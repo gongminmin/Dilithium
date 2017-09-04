@@ -2294,7 +2294,7 @@ namespace
 #ifdef DILITHIUM_DEBUG
 			for (auto& func : *the_module_)
 			{
-				BOOST_ASSERT((func->Name().size() <= 8) || !func->Name().starts_with("llvm."));
+				BOOST_ASSERT((func->Name().size() <= 8) || (func->Name().find("llvm.") != 0));
 			}
 #endif
 

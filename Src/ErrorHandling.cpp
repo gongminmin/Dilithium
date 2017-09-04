@@ -51,7 +51,7 @@ namespace Dilithium
 
 	void ReportFatalError(std::string_view reason)
 	{
-		ReportFatalError(reason.to_string());
+		ReportFatalError(std::string(reason));
 	}
 
 #if defined(DILITHIUM_DEBUG) || !defined(DILITHIUM_BUILTIN_UNREACHABLE)

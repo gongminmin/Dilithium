@@ -101,7 +101,7 @@ namespace Dilithium
 
 	std::string DxilShaderModel::GetKindName() const
 	{
-		return name_.substr(0, 2).to_string();
+		return std::string(name_.substr(0, 2));
 	}
 
 	uint32_t DxilShaderModel::GetNumTempRegs() const
