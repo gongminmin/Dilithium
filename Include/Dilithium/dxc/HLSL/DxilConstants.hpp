@@ -41,6 +41,19 @@
 
 namespace Dilithium
 {
+	enum ShaderFlag : uint32_t
+	{
+		SF_DisableOptimizations = 0x00000001,			// D3D11_1_SB_GLOBAL_FLAG_SKIP_OPTIMIZATION
+		SF_DisableMathRefactoring = 0x00000002,			// ~D3D10_SB_GLOBAL_FLAG_REFACTORING_ALLOWED
+		SF_EnableDoublePrecision = 0x00000004,			// D3D11_SB_GLOBAL_FLAG_ENABLE_DOUBLE_PRECISION_FLOAT_OPS
+		SF_ForceEarlyDepthStencil = 0x00000008,			// D3D11_SB_GLOBAL_FLAG_FORCE_EARLY_DEPTH_STENCIL
+		SF_EnableRawAndStructuredBuffers = 0x00000010,	// D3D11_SB_GLOBAL_FLAG_ENABLE_RAW_AND_STRUCTURED_BUFFERS
+		SF_EnableMinPrecision = 0x00000020,				// D3D11_1_SB_GLOBAL_FLAG_ENABLE_MINIMUM_PRECISION
+		SF_EnableDoubleExtensions = 0x00000040,			// D3D11_1_SB_GLOBAL_FLAG_ENABLE_DOUBLE_EXTENSIONS
+		SF_EnableMSAD = 0x00000080,						// D3D11_1_SB_GLOBAL_FLAG_ENABLE_SHADER_EXTENSIONS
+		SF_AllResourcesBound = 0x00000100				// D3D12_SB_GLOBAL_FLAG_ALL_RESOURCES_BOUND
+	};
+
 	enum class ComponentType : uint8_t
 	{
 		Invalid = 0,
@@ -97,6 +110,17 @@ namespace Dilithium
 		Line = 2,
 		TriangleCW = 3,
 		TriangleCCW = 4
+	};
+
+	enum class TessellatorPartitioning : uint32_t
+	{
+		Undefined = 0,
+		Integer,
+		Pow2,
+		FractionalOdd,
+		FractionalEven,
+
+		LastEntry
 	};
 
 	enum class InputPrimitive : uint32_t
@@ -228,6 +252,44 @@ namespace Dilithium
 		TessFactor,
 		InsideTessFactor,
 		Invalid
+	};
+
+	enum class SamplerKind : uint32_t
+	{
+		Default = 0,
+		Comparison,
+		Mono,
+		Invalid,
+	};
+
+	enum class ResourceClass
+	{
+		SRV = 0,
+		UAV,
+		CBuffer,
+		Sampler,
+		Invalid
+	};
+
+	enum class ResourceKind : uint32_t
+	{
+		Invalid = 0,
+		Texture1D,
+		Texture2D,
+		Texture2DMS,
+		Texture3D,
+		TextureCube,
+		Texture1DArray,
+		Texture2DArray,
+		Texture2DMSArray,
+		TextureCubeArray,
+		TypedBuffer,
+		RawBuffer,
+		StructuredBuffer,
+		CBuffer,
+		Sampler,
+		TBuffer,
+		NumEntries,
 	};
 }
 

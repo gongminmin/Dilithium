@@ -57,11 +57,74 @@ namespace Dilithium
 			int start_row = DxilSemantic::UNDEFINED_ROW, int start_col = DxilSemantic::UNDEFINED_COL,
 			uint32_t id = UNDEFINED_ID, std::vector<uint32_t> const & index_vec = std::vector<uint32_t>());
 
-		uint32_t GetId() const;
-		void SetId(uint32_t id);
+		uint32_t GetId() const
+		{
+			return id_;
+		}
+		void SetId(uint32_t id)
+		{
+			id_ = id;
+		}
 
+		uint32_t GetRows() const
+		{
+			return rows_;
+		}
+		void SetRows(uint32_t rows)
+		{
+			rows_ = rows;
+		}
+		uint32_t GetCols() const
+		{
+			return cols_;
+		}
+		void SetCols(uint32_t cols)
+		{
+			cols_ = cols;
+		}
+		InterpolationMode const * GetInterpolationMode() const
+		{
+			return &interp_mode_;
+		}
+		DxilCompType GetCompType() const
+		{
+			return comp_type_;
+		}
+		uint32_t GetOutputStream() const
+		{
+			return output_stream_;
+		}
+		void SetOutputStream(uint32_t stream)
+		{
+			output_stream_ = stream;
+		}
+
+		DxilSemantic const * GetSemantic() const
+		{
+			return semantic_;
+		}
 		void SetKind(SemanticKind kind);
-		SemanticKind GetKind() const;
+		SemanticKind GetKind() const
+		{
+			return semantic_->GetKind();
+		}
+
+		int GetStartRow() const
+		{
+			return start_row_;
+		}
+		void SetStartRow(int start_row)
+		{
+			start_row_ = start_row;
+		}
+		int GetStartCol() const
+		{
+			return start_col_;
+		}
+		void SetStartCol(int start_col)
+		{
+			start_col_ = start_col;
+		}
 
 	private:
 		SigPointKind sig_point_kind_;

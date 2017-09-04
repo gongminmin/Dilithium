@@ -37,7 +37,7 @@
 
 #pragma once
 
-#include <Dilithium/dxc/HLSL/DxilMdHelper.hpp>
+#include <Dilithium/dxc/HLSL/DxilConstants.hpp>
 
 namespace Dilithium
 {
@@ -45,14 +45,88 @@ namespace Dilithium
 
 	class DxilCBuffer;
 	class DxilResource;
+	class DxilResourceBase;
+	class DxilRootSignatureHandle;
 	class DxilSampler;
 	class DxilShaderModel;
 	class DxilSignature;
 	class DxilSignatureElement;
-	class DxilRootSignatureHandle;
+	class DxilTypeSystem;
 
 	class DxilMDHelper
 	{
+	public:
+		enum ExtendedShaderProperties
+		{
+			DxilShaderFlagsTag = 0,
+			DxilGSStateTag,
+			DxilDSStateTag,
+			DxilHSStateTag,
+			DxilNumThreadsTag,
+			DxilRootSignatureTag
+		};
+
+		enum Resources
+		{
+			DxilResourceSRVs = 0,
+			DxilResourceUAVs,
+			DxilResourceCBuffers,
+			DxilResourceSamplers,
+			DxilNumResourceFields
+		};
+
+		enum ResourceBase
+		{
+			DxilResourceBaseID = 0,		// Unique (per type) resource ID
+			DxilResourceBaseVariable,	// Resource global variable
+			DxilResourceBaseName,		// Original (HLSL) name of the resource
+			DxilResourceBaseSpaceID,	// Resource range space ID
+			DxilResourceBaseLowerBound,	// Resource range lower bound
+			DxilResourceBaseRangeSize,	// Resource range size
+			DxilResourceBaseNumFields
+		};
+
+		enum SRV
+		{
+			DxilSRVShape = 6,			// SRV shape
+			DxilSRVSampleCount = 7,		// SRV sample count
+			DxilSRVNameValueList = 8,	// Name-value list for extended properties
+			DxilSRVNumFields = 9
+		};
+
+		enum UAV
+		{
+			DxilUAVShape = 6,					// UAV shape
+			DxilUAVGloballyCoherent = 7,		// Globally-coherent UAV
+			DxilUAVCounter = 8,					// UAV with a counter
+			DxilUAVRasterizerOrderedView = 9,	// UAV that is a ROV
+			DxilUAVNameValueList = 10,			// Name-value list for extended properties
+			DxilUAVNumFields = 11
+		};
+
+		enum CBuffer
+		{
+			DxilCBufferSizeInBytes = 6,		// CBuffer size in bytes.
+			DxilCBufferNameValueList = 7,	// Name-value list for extended properties.
+			DxilCBufferNumFields = 8,
+
+			// CBuffer extended properties
+			HLCBufferIsTBufferTag = 0,		// CBuffer is actually TBuffer, not yet converted to SRV.
+		};
+
+		enum Sampler
+		{
+			DxilSamplerType = 6,			// Sampler type.
+			DxilSamplerNameValueList = 7,	// Name-value list for extended properties.
+			DxilSamplerNumFields = 8
+		};
+
+		enum SignatureElementExtendedProperties
+		{
+			DxilSignatureElementOutputStreamTag = 0,
+			DxilSignatureElementGlobalSymbolTag
+		};
+
 	public:
 		// Use this class to manipulate metadata of DXIL or high-level DX IR specific fields in the record.
 		class ExtraPropertyHelper
@@ -90,11 +164,33 @@ namespace Dilithium
 		void LoadSignatureMetadata(MDOperand const & mdn, DxilSignature& sig);
 		void LoadSignatureElement(MDOperand const & mdn, DxilSignatureElement& se);
 		void LoadRootSignature(MDOperand const & mdn, DxilRootSignatureHandle& root_sig);
+		
+		void GetDxilResources(MDOperand const & mdn, MDTuple const *& srvs, MDTuple const *& uavs,
+			MDTuple const *& cbuffers, MDTuple const *& samplers);
+		void LoadDxilResourceBase(MDOperand const & mdn, DxilResourceBase& res);
+		void LoadDxilSRV(MDOperand const & mdn, DxilResource& srv);
+		void LoadDxilUAV(MDOperand const & mdn, DxilResource& uav);
+		void LoadDxilCBuffer(MDOperand const & mdn, DxilCBuffer& cbuffer);
+		void LoadDxilSampler(MDOperand const & mdn, DxilSampler& sampler);
+
+		void LoadDxilTypeSystem(DxilTypeSystem& type_system);
+
+		void LoadDxilGSState(MDOperand const & mdn, InputPrimitive& primitive, uint32_t& max_vertex_count,
+			uint32_t& active_stream_mask, PrimitiveTopology& stream_primitive_topology,
+			uint32_t& gs_instance_count);
+		void LoadDxilDSState(MDOperand const & mdn, TessellatorDomain& domain, uint32_t& input_control_point_count);
+		void LoadDxilHSState(MDOperand const & mdn, Function*& patch_constant_function, uint32_t& input_control_point_count,
+			uint32_t& output_control_point_count, TessellatorDomain& tess_domain, TessellatorPartitioning& tess_partitioning,
+			TessellatorOutputPrimitive& tess_output_primitive, float& max_tess_factor);
 
 		static int32_t ConstMDToInt32(MDOperand const & operand);
 		static uint32_t ConstMDToUInt32(MDOperand const & operand);
+		static uint64_t ConstMDToUInt64(MDOperand const & operand);
 		static int8_t ConstMDToInt8(MDOperand const & operand);
 		static uint8_t ConstMDToUInt8(MDOperand const & operand);
+		static bool ConstMDToBool(MDOperand const & operand);
+		static std::string StringMDToString(MDOperand const & operand);
+		static Value* ValueMDToValue(MDOperand const & operand);
 		void ConstMDTupleToUInt32Vector(MDTuple* tuple_md, std::vector<uint32_t>& vec);
 
 	private:

@@ -37,14 +37,30 @@
 #include <Dilithium/LLVMModule.hpp>
 #include <Dilithium/Type.hpp>
 #include <Dilithium/DerivedType.hpp>
+#include <Dilithium/dxc/HLSL/DxilCBuffer.hpp>
 #include <Dilithium/dxc/HLSL/DxilCompType.hpp>
 #include <Dilithium/dxc/HLSL/DxilMdHelper.hpp>
+#include <Dilithium/dxc/HLSL/DxilResource.hpp>
+#include <Dilithium/dxc/HLSL/DxilResourceBase.hpp>
+#include <Dilithium/dxc/HLSL/DxilRootSignature.hpp>
+#include <Dilithium/dxc/HLSL/DxilSampler.hpp>
 #include <Dilithium/dxc/HLSL/DxilShaderModel.hpp>
 #include <Dilithium/dxc/HLSL/DxilSignature.hpp>
-#include <Dilithium/dxc/HLSL/DxilRootSignature.hpp>
 
 namespace Dilithium
 {
+	MDTuple const * CastToTupleOrNull(MDOperand const & mdn)
+	{
+		if (mdn.Get() == nullptr)
+		{
+			return nullptr;
+		}
+
+		MDTuple const * tuple_md = dyn_cast<MDTuple>(mdn.Get());
+		TIFBOOL(tuple_md != nullptr);
+		return tuple_md;
+	}
+
 	DxilMDHelper::ExtraPropertyHelper::ExtraPropertyHelper(LLVMModule* mod)
 		: context_(mod->Context()), module_(mod)
 	{
@@ -183,9 +199,9 @@ namespace Dilithium
 			TIFBOOL(tuple_md != nullptr);
 			TIFBOOL(tuple_md->NumOperands() == DS_NumFields);
 
-			LoadSignatureMetadata(tuple_md->Operand(DS_Input), input_sig);
-			LoadSignatureMetadata(tuple_md->Operand(DS_Output), output_sig);
-			LoadSignatureMetadata(tuple_md->Operand(DS_PatchConstant), pc_sig);
+			this->LoadSignatureMetadata(tuple_md->Operand(DS_Input), input_sig);
+			this->LoadSignatureMetadata(tuple_md->Operand(DS_Output), output_sig);
+			this->LoadSignatureMetadata(tuple_md->Operand(DS_PatchConstant), pc_sig);
 		}
 	}
 
@@ -268,6 +284,153 @@ namespace Dilithium
 		}
 	}
 
+	void DxilMDHelper::GetDxilResources(MDOperand const & mdn, MDTuple const *& srvs, MDTuple const *& uavs,
+		MDTuple const *& cbuffers, MDTuple const *& samplers)
+	{
+		TIFBOOL(mdn.Get() != nullptr);
+		MDTuple const * tuple_md = dyn_cast<MDTuple>(mdn.Get());
+		TIFBOOL(tuple_md != nullptr);
+		TIFBOOL(tuple_md->NumOperands() == DxilNumResourceFields);
+
+		srvs = CastToTupleOrNull(tuple_md->Operand(DxilResourceSRVs));
+		uavs = CastToTupleOrNull(tuple_md->Operand(DxilResourceUAVs));
+		cbuffers = CastToTupleOrNull(tuple_md->Operand(DxilResourceCBuffers));
+		samplers = CastToTupleOrNull(tuple_md->Operand(DxilResourceSamplers));
+	}
+
+	void DxilMDHelper::LoadDxilResourceBase(MDOperand const & mdn, DxilResourceBase& res)
+	{
+		TIFBOOL(mdn.Get() != nullptr);
+		MDTuple const * tuple_md = dyn_cast<MDTuple>(mdn.Get());
+		TIFBOOL(tuple_md != nullptr);
+		TIFBOOL(tuple_md->NumOperands() >= DxilResourceBaseNumFields);
+
+		res.SetID(ConstMDToUInt32(tuple_md->Operand(DxilResourceBaseID)));
+		res.SetGlobalSymbol(dyn_cast<Constant>(ValueMDToValue(tuple_md->Operand(DxilResourceBaseVariable))));
+		res.SetGlobalName(StringMDToString(tuple_md->Operand(DxilResourceBaseName)));
+		res.SetSpaceID(ConstMDToUInt32(tuple_md->Operand(DxilResourceBaseSpaceID)));
+		res.SetLowerBound(ConstMDToUInt32(tuple_md->Operand(DxilResourceBaseLowerBound)));
+		res.SetRangeSize(ConstMDToUInt32(tuple_md->Operand(DxilResourceBaseRangeSize)));
+	}
+
+	void DxilMDHelper::LoadDxilSRV(MDOperand const & mdn, DxilResource& srv)
+	{
+		TIFBOOL(mdn.Get() != nullptr);
+		MDTuple const * tuple_md = dyn_cast<MDTuple>(mdn.Get());
+		TIFBOOL(tuple_md != nullptr);
+		TIFBOOL(tuple_md->NumOperands() == DxilSRVNumFields);
+
+		srv.SetReadWrite(false);
+
+		this->LoadDxilResourceBase(mdn, srv);
+
+		// SRV-specific fields.
+		srv.SetKind(static_cast<ResourceKind>(ConstMDToUInt32(tuple_md->Operand(DxilSRVShape))));
+		srv.SetSampleCount(ConstMDToUInt32(tuple_md->Operand(DxilSRVSampleCount)));
+
+		// Name-value list of extended properties.
+		extra_property_helper_->LoadSRVProperties(tuple_md->Operand(DxilSRVNameValueList), srv);
+	}
+
+	void DxilMDHelper::LoadDxilUAV(MDOperand const & mdn, DxilResource& uav)
+	{
+		TIFBOOL(mdn.Get() != nullptr);
+		MDTuple const * tuple_md = dyn_cast<MDTuple>(mdn.Get());
+		TIFBOOL(tuple_md != nullptr);
+		TIFBOOL(tuple_md->NumOperands() == DxilUAVNumFields);
+
+		uav.SetReadWrite(true);
+
+		this->LoadDxilResourceBase(mdn, uav);
+
+		// UAV-specific fields.
+		uav.SetKind(static_cast<ResourceKind>(ConstMDToUInt32(tuple_md->Operand(DxilUAVShape))));
+		uav.SetGloballyCoherent(ConstMDToBool(tuple_md->Operand(DxilUAVGloballyCoherent)));
+		uav.SetHasCounter(ConstMDToBool(tuple_md->Operand(DxilUAVCounter)));
+		uav.SetRasterizerOrderedView(ConstMDToBool(tuple_md->Operand(DxilUAVRasterizerOrderedView)));
+
+		// Name-value list of extended properties.
+		extra_property_helper_->LoadUAVProperties(tuple_md->Operand(DxilUAVNameValueList), uav);
+	}
+
+	void DxilMDHelper::LoadDxilCBuffer(MDOperand const & mdn, DxilCBuffer& cbuffer)
+	{
+		TIFBOOL(mdn.Get() != nullptr);
+		MDTuple const * tuple_md = dyn_cast<MDTuple>(mdn.Get());
+		TIFBOOL(tuple_md != nullptr);
+		TIFBOOL(tuple_md->NumOperands() == DxilCBufferNumFields);
+
+		this->LoadDxilResourceBase(mdn, cbuffer);
+
+		// CBuffer-specific fields.
+		cbuffer.SetSize(ConstMDToUInt32(tuple_md->Operand(DxilCBufferSizeInBytes)));
+
+		// Name-value list of extended properties.
+		extra_property_helper_->LoadCBufferProperties(tuple_md->Operand(DxilCBufferNameValueList), cbuffer);
+	}
+
+	void DxilMDHelper::LoadDxilSampler(MDOperand const & mdn, DxilSampler& sampler)
+	{
+		TIFBOOL(mdn.Get() != nullptr);
+		MDTuple const * tuple_md = dyn_cast<MDTuple>(mdn.Get());
+		TIFBOOL(tuple_md != nullptr);
+		TIFBOOL(tuple_md->NumOperands() == DxilSamplerNumFields);
+
+		this->LoadDxilResourceBase(mdn, sampler);
+
+		// Sampler-specific fields.
+		sampler.SetSamplerKind(static_cast<SamplerKind>(ConstMDToUInt32(tuple_md->Operand(DxilSamplerType))));
+
+		// Name-value list of extended properties.
+		extra_property_helper_->LoadSamplerProperties(tuple_md->Operand(DxilSamplerNameValueList), sampler);
+	}
+
+	void DxilMDHelper::LoadDxilTypeSystem(DxilTypeSystem& type_system)
+	{
+		DILITHIUM_UNUSED(type_system);
+
+		DILITHIUM_NOT_IMPLEMENTED;
+	}
+
+	void DxilMDHelper::LoadDxilGSState(MDOperand const & mdn, InputPrimitive& primitive, uint32_t& max_vertex_count,
+		uint32_t& active_stream_mask, PrimitiveTopology& stream_primitive_topology,
+		uint32_t& gs_instance_count)
+	{
+		DILITHIUM_UNUSED(mdn);
+		DILITHIUM_UNUSED(primitive);
+		DILITHIUM_UNUSED(max_vertex_count);
+		DILITHIUM_UNUSED(active_stream_mask);
+		DILITHIUM_UNUSED(stream_primitive_topology);
+		DILITHIUM_UNUSED(gs_instance_count);
+
+		DILITHIUM_NOT_IMPLEMENTED;
+	}
+
+	void DxilMDHelper::LoadDxilDSState(MDOperand const & mdn, TessellatorDomain& domain, uint32_t& input_control_point_count)
+	{
+		DILITHIUM_UNUSED(mdn);
+		DILITHIUM_UNUSED(domain);
+		DILITHIUM_UNUSED(input_control_point_count);
+
+		DILITHIUM_NOT_IMPLEMENTED;
+	}
+
+	void DxilMDHelper::LoadDxilHSState(MDOperand const & mdn, Function*& patch_constant_function, uint32_t& input_control_point_count,
+		uint32_t& output_control_point_count, TessellatorDomain& tess_domain, TessellatorPartitioning& tess_partitioning,
+		TessellatorOutputPrimitive& tess_output_primitive, float& max_tess_factor)
+	{
+		DILITHIUM_UNUSED(mdn);
+		DILITHIUM_UNUSED(patch_constant_function);
+		DILITHIUM_UNUSED(input_control_point_count);
+		DILITHIUM_UNUSED(output_control_point_count);
+		DILITHIUM_UNUSED(tess_domain);
+		DILITHIUM_UNUSED(tess_partitioning);
+		DILITHIUM_UNUSED(tess_output_primitive);
+		DILITHIUM_UNUSED(max_tess_factor);
+
+		DILITHIUM_NOT_IMPLEMENTED;
+	}
+
 	int32_t DxilMDHelper::ConstMDToInt32(MDOperand const & operand)
 	{
 		ConstantInt* ci = cast<ConstantInt>(cast<ConstantAsMetadata>(operand)->GetValue());
@@ -282,6 +445,13 @@ namespace Dilithium
 		return static_cast<uint32_t>(ci->ZExtValue());
 	}
 
+	uint64_t DxilMDHelper::ConstMDToUInt64(MDOperand const & operand)
+	{
+		ConstantInt* ci = cast<ConstantInt>(cast<ConstantAsMetadata>(operand)->GetValue());
+		TIFBOOL(ci != nullptr);
+		return ci->ZExtValue();
+	}
+
 	int8_t DxilMDHelper::ConstMDToInt8(MDOperand const & operand)
 	{
 		ConstantInt* ci = cast<ConstantInt>(cast<ConstantAsMetadata>(operand)->GetValue());
@@ -294,6 +464,30 @@ namespace Dilithium
 		ConstantInt* ci = cast<ConstantInt>(cast<ConstantAsMetadata>(operand)->GetValue());
 		TIFBOOL(ci != nullptr);
 		return static_cast<uint8_t>(ci->ZExtValue());
+	}
+
+	bool DxilMDHelper::ConstMDToBool(MDOperand const & operand)
+	{
+		ConstantInt* ci = cast<ConstantInt>(cast<ConstantAsMetadata>(operand)->GetValue());
+		TIFBOOL(ci != nullptr);
+		return ci->ZExtValue() != 0;
+	}
+
+	std::string DxilMDHelper::StringMDToString(MDOperand const & operand)
+	{
+		MDString* md_string = dyn_cast<MDString>(operand.Get());
+		TIFBOOL(md_string != nullptr);
+		return std::string(md_string->String());
+	}
+
+	Value* DxilMDHelper::ValueMDToValue(MDOperand const & operand)
+	{
+		TIFBOOL(operand.Get() != nullptr);
+		ValueAsMetadata* val_as_md = dyn_cast<ValueAsMetadata>(operand.Get());
+		TIFBOOL(val_as_md != nullptr);
+		Value* value = val_as_md->GetValue();
+		TIFBOOL(value != nullptr);
+		return value;
 	}
 
 	void DxilMDHelper::ConstMDTupleToUInt32Vector(MDTuple* tuple_md, std::vector<uint32_t>& vec)
@@ -343,8 +537,30 @@ namespace Dilithium
 
 	void DxilExtraPropertyHelper::LoadSignatureElementProperties(MDOperand const & operand, DxilSignatureElement& se)
 	{
-		DILITHIUM_UNUSED(operand);
-		DILITHIUM_UNUSED(se);
-		DILITHIUM_NOT_IMPLEMENTED;
+		if (operand.Get() == nullptr)
+		{
+			return;
+		}
+
+		MDTuple const * tuple_md = dyn_cast<MDTuple>(operand.Get());
+		TIFBOOL(tuple_md != nullptr);
+		TIFBOOL((tuple_md->NumOperands() & 0x1) == 0);
+
+		for (uint32_t i = 0; i < tuple_md->NumOperands(); i += 2)
+		{
+			uint32_t tag = DxilMDHelper::ConstMDToUInt32(tuple_md->Operand(i));
+			MDOperand const & mdn = tuple_md->Operand(i + 1);
+			switch (tag)
+			{
+			case DxilMDHelper::DxilSignatureElementOutputStreamTag:
+				se.SetOutputStream(DxilMDHelper::ConstMDToUInt32(mdn));
+				break;
+			case DxilMDHelper::DxilSignatureElementGlobalSymbolTag:
+				break;
+
+			default:
+				DILITHIUM_UNREACHABLE("Unknown signature element tag");
+			}
+		}
 	}
 }

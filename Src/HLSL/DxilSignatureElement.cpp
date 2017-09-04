@@ -42,7 +42,12 @@ namespace Dilithium
 {
 	DxilSignatureElement::DxilSignatureElement(SigPointKind kind)
 		: sig_point_kind_(kind),
-			id_(std::numeric_limits<uint32_t>::max())
+			semantic_(nullptr),
+			id_(std::numeric_limits<uint32_t>::max()),
+			interp_mode_(InterpolationMode::Invalid),
+			comp_type_(ComponentType::Invalid),
+			rows_(0), cols_(0),
+			start_row_(DxilSemantic::UNDEFINED_ROW), start_col_(DxilSemantic::UNDEFINED_COL)
 	{
 	}
 
@@ -76,25 +81,10 @@ namespace Dilithium
 		output_stream_ = 0;
 	}
 
-	uint32_t DxilSignatureElement::GetId() const
-	{
-		return id_;
-	}
-
-	void DxilSignatureElement::SetId(uint32_t id)
-	{
-		id_ = id;
-	}
-
 	void DxilSignatureElement::SetKind(SemanticKind kind)
 	{
 		// recover the original SigPointKind if necessary (for Shadow element).
 		sig_point_kind_ = DxilSigPoint::RecoverKind(kind, sig_point_kind_);
 		semantic_ = DxilSemantic::Get(kind, sig_point_kind_);
-	}
-
-	SemanticKind DxilSignatureElement::GetKind() const
-	{
-		return semantic_->GetKind();
 	}
 }

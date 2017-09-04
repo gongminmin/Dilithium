@@ -84,7 +84,7 @@ namespace
 		}
 		os << comment << std::endl;
 		os << comment << " Note: shader requires additional functionality:" << std::endl;
-		for (uint32_t i = 0; i < ShaderFeatureInfoCount; ++ i)
+		for (uint32_t i = 0; i < DSFI_Count; ++ i)
 		{
 			if (feature_flags & (1ULL << i))
 			{

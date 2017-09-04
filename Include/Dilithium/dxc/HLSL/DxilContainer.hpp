@@ -93,7 +93,27 @@ namespace Dilithium
 		DFCC_PipelineStateValidation = MakeFourCC<'P', 'S', 'V', '0'>::value
 	};
 
-	uint32_t constexpr ShaderFeatureInfoCount = 16;
+	enum DxilShaderFeatureInfoFlags : uint64_t
+	{
+		DSFI_Doubles = 0x0001,
+		DSFI_ComputeShadersPlusRawAndStructuredBuffersViaShader4X = 0x0002,
+		DSFI_UAVsAtEveryStage = 0x0004,
+		DSFI_64UAVs = 0x0008,
+		DSFI_MininumPrecision = 0x0010,
+		DSFI_11_1_DoubleExtensions = 0x0020,
+		DSFI_11_1_ShaderExtensions = 0x0040,
+		DSFI_Level9ComparisonFiltering = 0x0080,
+		DSFI_TiledResources = 0x0100,
+		DSFI_StencilRef = 0x0200,
+		DSFI_InnerCoverage = 0x0400,
+		DSFI_TypedUAVLoadAdditionalFormats = 0x0800,
+		DSFI_ROVs = 0x1000,
+		DSFI_ViewportAndRTArrayIndexFromAnyShaderFeedingRasterizer = 0x2000,
+		DSFI_WaveOps = 0x4000,
+		DSFI_Int64Ops = 0x8000,
+
+		DSFI_Count = 16
+	};
 
 	struct DxilShaderFeatureInfo
 	{
