@@ -75,8 +75,22 @@ namespace Dilithium
 		};
 
 	private:
+		template <typename Category,
+			typename T,
+			typename Distance = std::ptrdiff_t,
+			typename Pointer = T*,
+			typename Reference = T&>
+		struct iterator_helper
+		{
+			typedef Category iterator_category;
+			typedef T value_type;
+			typedef Distance difference_type;
+			typedef Pointer pointer;
+			typedef Reference reference;
+		};
+
 		template <typename UseT> // UseT == 'Use' or 'const Use'
-		class use_iterator_impl : public std::iterator<std::forward_iterator_tag, UseT*>
+		class use_iterator_impl : public iterator_helper<std::forward_iterator_tag, UseT*>
 		{
 			friend class Value;
 
@@ -132,7 +146,7 @@ namespace Dilithium
 		};
 
 		template <typename UserT> // UserT == 'User' or 'User const'
-		class user_iterator_impl : public std::iterator<std::forward_iterator_tag, UserT*>
+		class user_iterator_impl : public iterator_helper<std::forward_iterator_tag, UserT*>
 		{
 			friend class Value;
 

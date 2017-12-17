@@ -34,6 +34,7 @@
 
 #include <Dilithium/Dilithium.hpp>
 #include <Dilithium/Constants.hpp>
+#include <Dilithium/GlobalVariable.hpp>
 #include <Dilithium/LLVMModule.hpp>
 #include <Dilithium/Type.hpp>
 #include <Dilithium/DerivedType.hpp>
@@ -46,9 +47,12 @@
 #include <Dilithium/dxc/HLSL/DxilSampler.hpp>
 #include <Dilithium/dxc/HLSL/DxilShaderModel.hpp>
 #include <Dilithium/dxc/HLSL/DxilSignature.hpp>
+#include <Dilithium/dxc/HLSL/DxilTypeSystem.hpp>
 
 namespace Dilithium
 {
+	char const DxilMDHelper::DxilTypeSystemMDName[] = "dx.typeAnnotations";
+
 	MDTuple const * CastToTupleOrNull(MDOperand const & mdn)
 	{
 		if (mdn.Get() == nullptr)
@@ -250,7 +254,7 @@ namespace Dilithium
 		DxilCompType ct = DxilCompType(ConstMDToUInt8(tuple_md->Operand(DSE_Type)));
 		SemanticKind sem_kind = static_cast<SemanticKind>(ConstMDToUInt8(tuple_md->Operand(DSE_SystemValue)));
 		auto semantic_index_vector_md = dyn_cast<MDTuple>(tuple_md->Operand(DSE_IndexVector));
-		InterpolationMode im = static_cast<InterpolationMode>(ConstMDToUInt8(tuple_md->Operand(DSE_InterpMode)));
+		auto im = DxilInterpolationMode(static_cast<DxilInterpolationMode>(ConstMDToUInt8(tuple_md->Operand(DSE_InterpMode))));
 		uint32_t num_rows = ConstMDToUInt32(tuple_md->Operand(DSE_Rows));
 		uint8_t num_cols = ConstMDToUInt8(tuple_md->Operand(DSE_Cols));
 		int32_t start_row = ConstMDToInt32(tuple_md->Operand(DSE_StartRow));
@@ -387,9 +391,172 @@ namespace Dilithium
 
 	void DxilMDHelper::LoadDxilTypeSystem(DxilTypeSystem& type_system)
 	{
-		DILITHIUM_UNUSED(type_system);
+		auto dxil_type_annotations_md = module_->GetNamedMetadata(DxilTypeSystemMDName);
+		if (dxil_type_annotations_md != nullptr)
+		{
+			TIFBOOL(dxil_type_annotations_md->NumOperands() <= 2);
+			for (uint32_t i = 0; i < dxil_type_annotations_md->NumOperands(); ++ i)
+			{
+				auto const * tuple_md = dyn_cast<MDTuple>(dxil_type_annotations_md->Operand(i));
+				TIFBOOL(tuple_md != nullptr);
+				this->LoadDxilTypeSystemNode(*tuple_md, type_system);
+			}
+		}
+	}
 
-		DILITHIUM_NOT_IMPLEMENTED;
+	void DxilMDHelper::LoadDxilTypeSystemNode(MDTuple const & mdt, DxilTypeSystem& type_system)
+	{
+		uint32_t tag = ConstMDToUInt32(mdt.Operand(0));
+		if (tag == DxilTypeSystemStructTag)
+		{
+			TIFBOOL((mdt.NumOperands() & 0x1) == 1);
+
+			for (uint32_t i = 1; i < mdt.NumOperands(); i += 2)
+			{
+				auto gv = dyn_cast<GlobalVariable>(ValueMDToValue(mdt.Operand(i)));
+				TIFBOOL(gv != nullptr);
+				auto gv_type = dyn_cast<StructType>(gv->GetType()->PointerElementType());
+				TIFBOOL(gv_type != nullptr);
+
+				auto sa = type_system.AddStructAnnotation(gv_type);
+				this->LoadDxilStructAnnotation(mdt.Operand(i + 1), *sa);
+			}
+		}
+		else
+		{
+			TIFBOOL(tag == DxilTypeSystemFunctionTag);
+			TIFBOOL((mdt.NumOperands() & 0x1) == 1);
+
+			for (uint32_t i = 1; i < mdt.NumOperands(); i += 2)
+			{
+				auto func = dyn_cast<Function>(ValueMDToValue(mdt.Operand(i)));
+				auto fa = type_system.AddFunctionAnnotation(func);
+				this->LoadDxilFunctionAnnotation(mdt.Operand(i + 1), *fa);
+			}
+		}
+	}
+
+	void DxilMDHelper::LoadDxilStructAnnotation(MDOperand const & mdo, DxilStructAnnotation& sa)
+	{
+		TIFBOOL(mdo.Get() != nullptr);
+		auto const * tuple_md = dyn_cast<MDTuple>(mdo.Get());
+		TIFBOOL(tuple_md != nullptr);
+		if (tuple_md->NumOperands() == 1)
+		{
+			auto const * st = sa.GetStructType();
+			if (st->NumElements() == 1)
+			{
+				auto elem_type = st->ElementType(0);
+				if (elem_type == Type::Int8Type(st->Context()))
+				{
+					sa.MarkEmptyStruct();
+				}
+			}
+		}
+		TIFBOOL(tuple_md->NumOperands() == sa.NumFields() + 1);
+
+		sa.CBufferSize(ConstMDToUInt32(tuple_md->Operand(0)));
+		for (uint32_t i = 0; i < sa.NumFields(); ++ i)
+		{
+			auto const & tmdo = tuple_md->Operand(i + 1);
+			auto& fa = sa.FieldAnnotation(i);
+			this->LoadDxilFieldAnnotation(tmdo, fa);
+		}
+	}
+
+	void DxilMDHelper::LoadDxilFieldAnnotation(MDOperand const & mdo, DxilFieldAnnotation& fa)
+	{
+		TIFBOOL(mdo.Get() != nullptr);
+		auto const * tuple_md = dyn_cast<MDTuple>(mdo.Get());
+		TIFBOOL(tuple_md != nullptr);
+		TIFBOOL((tuple_md->NumOperands() & 0x1) == 0);
+
+		for (unsigned i = 0; i < tuple_md->NumOperands(); i += 2)
+		{
+			uint32_t tag = ConstMDToUInt32(tuple_md->Operand(i));
+			auto const & tmdo = tuple_md->Operand(i + 1);
+			TIFBOOL(tmdo.Get() != nullptr);
+
+			switch (tag)
+			{
+			case DxilFieldAnnotationPreciseTag:
+				fa.SetPrecise(ConstMDToBool(tmdo));
+				break;
+
+			case DxilFieldAnnotationMatrixTag:
+				{
+					DxilMatrixAnnotation ma;
+					auto const * ma_tuple_md = dyn_cast<MDTuple>(tmdo.Get());
+					TIFBOOL(ma_tuple_md != nullptr);
+					TIFBOOL(ma_tuple_md->NumOperands() == 3);
+					ma.rows = ConstMDToUInt32(ma_tuple_md->Operand(0));
+					ma.cols = ConstMDToUInt32(ma_tuple_md->Operand(1));
+					ma.orientation = static_cast<MatrixOrientation>(ConstMDToUInt32(ma_tuple_md->Operand(2)));
+					fa.SetMatrixAnnotation(ma);
+				}
+				break;
+
+			case DxilFieldAnnotationCBufferOffsetTag:
+				fa.SetCBufferOffset(ConstMDToUInt32(tmdo));
+				break;
+
+			case DxilFieldAnnotationSemanticStringTag:
+				fa.SetSemanticString(StringMDToString(tmdo));
+				break;
+
+			case DxilFieldAnnotationInterpolationModeTag:
+				fa.SetInterpolationMode(DxilInterpolationMode(static_cast<InterpolationMode>(ConstMDToUInt32(tmdo))));
+				break;
+
+			case DxilFieldAnnotationFieldNameTag:
+				fa.SetFieldName(StringMDToString(tmdo));
+				break;
+
+			case DxilFieldAnnotationCompTypeTag:
+				fa.SetCompType(static_cast<ComponentType>(ConstMDToUInt32(tmdo)));
+				break;
+
+			default:
+				// TODO:  I don't think we should be failing unrecognized extended tags.
+				//        Perhaps we can flag this case in the module and fail validation
+				//        if flagged.
+				//        That way, an existing loader will not fail on an additional tag
+				//        and the blob would not be signed if the extra tag was not legal.
+				TIFBOOL(false);
+			}
+		}
+	}
+
+	void DxilMDHelper::LoadDxilFunctionAnnotation(MDOperand const & mdo, DxilFunctionAnnotation& fa)
+	{
+		TIFBOOL(mdo.Get() != nullptr);
+		auto const * tuple_md = dyn_cast<MDTuple>(mdo.Get());
+		TIFBOOL(tuple_md != nullptr);
+		TIFBOOL(tuple_md->NumOperands() == fa.NumParameters() + 1);
+
+		auto& ret_type_annotation = fa.RetTypeAnnotation();
+		this->LoadDxilParamAnnotation(tuple_md->Operand(0), ret_type_annotation);
+		for (uint32_t i = 0; i < fa.NumParameters(); ++ i)
+		{
+			auto const & tmdo = tuple_md->Operand(i + 1);
+			auto& pa = fa.ParameterAnnotation(i);
+			this->LoadDxilParamAnnotation(tmdo, pa);
+		}
+	}
+
+	void DxilMDHelper::LoadDxilParamAnnotation(MDOperand const & mdo, DxilParameterAnnotation& pa)
+	{
+		TIFBOOL(mdo.Get() != nullptr);
+		auto const * tuple_md = dyn_cast<MDTuple>(mdo.Get());
+		TIFBOOL(tuple_md != nullptr);
+		TIFBOOL(tuple_md->NumOperands() == 3);
+
+		pa.SetParamInputQual(static_cast<DxilParamInputQual>(ConstMDToUInt32(tuple_md->Operand(0))));
+		this->LoadDxilFieldAnnotation(tuple_md->Operand(1), pa);
+		MDTuple *pSemanticIndexVectorMD = dyn_cast<MDTuple>(tuple_md->Operand(2));
+		std::vector<unsigned> SemanticIndexVector;
+		ConstMDTupleToUInt32Vector(pSemanticIndexVectorMD, SemanticIndexVector);
+		pa.SetSemanticIndexVec(SemanticIndexVector);
 	}
 
 	void DxilMDHelper::LoadDxilGSState(MDOperand const & mdn, InputPrimitive& primitive, uint32_t& max_vertex_count,

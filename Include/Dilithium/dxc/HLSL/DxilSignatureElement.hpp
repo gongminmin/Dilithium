@@ -39,7 +39,10 @@
 
 #include <Dilithium/dxc/HLSL/DxilCompType.hpp>
 #include <Dilithium/dxc/HLSL/DxilConstants.hpp>
+#include <Dilithium/dxc/HLSL/DxilInterpolationMode.hpp>
 #include <Dilithium/dxc/HLSL/DxilSemantic.hpp>
+#include <Dilithium/dxc/HLSL/DxilSigPoint.hpp>
+#include <Dilithium/dxc/HLSL/DxilShaderModel.hpp>
 
 namespace Dilithium
 {
@@ -52,7 +55,7 @@ namespace Dilithium
 		explicit DxilSignatureElement(SigPointKind kind);
 		virtual ~DxilSignatureElement();
 
-		void Initialize(std::string_view name, DxilCompType const & elem_type, InterpolationMode interp_mode,
+		void Initialize(std::string_view name, DxilCompType const & elem_type, DxilInterpolationMode interp_mode,
 			uint32_t rows, uint32_t cols,
 			int start_row = DxilSemantic::UNDEFINED_ROW, int start_col = DxilSemantic::UNDEFINED_COL,
 			uint32_t id = UNDEFINED_ID, std::vector<uint32_t> const & index_vec = std::vector<uint32_t>());
@@ -65,6 +68,22 @@ namespace Dilithium
 		{
 			id_ = id;
 		}
+
+		ShaderKind GetShaderKind() const;
+
+		SigPointKind GetSigPointKind() const
+		{
+			return sig_point_kind_;
+		}
+		void SetSigPointKind(SigPointKind sig)
+		{
+			sig_point_kind_ = sig;
+		}
+
+		bool IsInput() const;
+		bool IsOutput() const;
+		bool IsPatchConstant() const;
+		char const * GetName() const;
 
 		uint32_t GetRows() const
 		{
@@ -82,7 +101,7 @@ namespace Dilithium
 		{
 			cols_ = cols;
 		}
-		InterpolationMode const * GetInterpolationMode() const
+		DxilInterpolationMode const * GetInterpolationMode() const
 		{
 			return &interp_mode_;
 		}
@@ -108,6 +127,31 @@ namespace Dilithium
 		{
 			return semantic_->GetKind();
 		}
+		bool IsArbitrary() const
+		{
+			return semantic_->IsArbitrary();
+		}
+		bool IsDepth() const
+		{
+			return semantic_->GetKind() == SemanticKind::Depth;
+		}
+		bool IsDepthLE() const
+		{
+			return semantic_->GetKind() == SemanticKind::DepthLessEqual;
+		}
+		bool IsDepthGE() const
+		{
+			return semantic_->GetKind() == SemanticKind::DepthGreaterEqual;
+		}
+		bool IsAnyDepth() const
+		{
+			return this->IsDepth() || this->IsDepthLE() || this->IsDepthGE();
+		}
+		SemanticInterpretationKind GetInterpretation() const
+		{
+			return DxilSigPoint::GetInterpretation(semantic_->GetKind(), sig_point_kind_,
+				DxilShaderModel::HIGHEST_MAJOR, DxilShaderModel::HIGHEST_MINOR);
+		}
 
 		int GetStartRow() const
 		{
@@ -125,6 +169,18 @@ namespace Dilithium
 		{
 			start_col_ = start_col;
 		}
+		std::vector<uint32_t> const & GetSemanticIndexVec() const
+		{
+			return semantic_index_;
+		}
+		void SetSemanticIndexVec(std::vector<uint32_t> const & vec)
+		{
+			semantic_index_ = vec;
+		}
+		void AppendSemanticIndex(uint32_t sem_idx)
+		{
+			semantic_index_.push_back(sem_idx);
+		}
 
 	private:
 		SigPointKind sig_point_kind_;
@@ -134,7 +190,7 @@ namespace Dilithium
 		std::string_view semantic_name_;
 		uint32_t semantic_start_index_;
 		DxilCompType comp_type_;
-		InterpolationMode interp_mode_;
+		DxilInterpolationMode interp_mode_;
 		std::vector<uint32_t> semantic_index_;
 		uint32_t rows_;
 		uint32_t cols_;

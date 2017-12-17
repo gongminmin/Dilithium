@@ -47,4 +47,55 @@ namespace Dilithium
 		BOOST_ASSERT_MSG((resource_kind > ResourceKind::Invalid) && (resource_kind < ResourceKind::NumEntries), "Invalid resource type");
 		kind_ = resource_kind;
 	}
+
+	char const * DxilResourceBase::GetResClassName() const
+	{
+		static const char *s_ResourceClassNames[] =
+		{
+			"texture", "UAV", "cbuffer", "sampler"
+		};
+		static_assert(std::size(s_ResourceClassNames) == static_cast<uint32_t>(ResourceClass::Invalid),
+			"Wrong size of s_ResourceClassNames");
+
+		return s_ResourceClassNames[static_cast<uint32_t>(class_)];
+	}
+
+	char const * DxilResourceBase::GetResDimName() const
+	{
+		static const char *s_ResourceDimNames[] =
+		{
+			"invalid", "1d",        "2d",      "2dMS",      "3d",
+			"cube",    "1darray",   "2darray", "2darrayMS", "cubearray",
+			"buf",     "rawbuf",    "structbuf", "cbuffer", "sampler",
+			"tbuffer",
+		};
+		static_assert(std::size(s_ResourceDimNames) == static_cast<uint32_t>(ResourceKind::NumEntries),
+			"Wrong size of s_ResourceDimNames");
+
+		return s_ResourceDimNames[static_cast<uint32_t>(kind_)];
+	}
+
+	char const * DxilResourceBase::GetResIDPrefix() const
+	{
+		static const char *s_ResourceIDPrefixs[] =
+		{
+			"T", "U", "CB", "S"
+		};
+		static_assert(std::size(s_ResourceIDPrefixs) == static_cast<uint32_t>(ResourceClass::Invalid),
+			"Wrong size of s_ResourceIDPrefixs");
+
+		return s_ResourceIDPrefixs[static_cast<uint32_t>(class_)];
+	}
+
+	char const * DxilResourceBase::GetResBindPrefix() const
+	{
+		static const char *s_ResourceBindPrefixs[] =
+		{
+			"t", "u", "cb", "s"
+		};
+		static_assert(std::size(s_ResourceBindPrefixs) == static_cast<uint32_t>(ResourceClass::Invalid),
+			"Wrong size of s_ResourceBindPrefixs");
+
+		return s_ResourceBindPrefixs[static_cast<uint32_t>(class_)];
+	}
 }

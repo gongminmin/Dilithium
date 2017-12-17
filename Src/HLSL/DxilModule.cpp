@@ -168,6 +168,7 @@ namespace Dilithium
 	DxilModule::DxilModule(LLVMModule* mod)
 		: context_(mod->Context()), module_(mod),
 			md_helper_(std::make_unique<DxilMDHelper>(mod, std::make_unique<DxilExtraPropertyHelper>(mod))),
+			type_system_(std::make_unique<DxilTypeSystem>(mod)),
 			sm_(nullptr)
 	{
 		BOOST_ASSERT(mod != nullptr);
@@ -349,5 +350,40 @@ namespace Dilithium
 	uint32_t DxilModule::AddUAV(std::unique_ptr<DxilResource> uav)
 	{
 		return this->AddResource<DxilResource>(uavs_, std::move(uav));
+	}
+
+	DxilSignature& DxilModule::GetInputSignature()
+	{
+		return *input_signature_;
+	}
+
+	DxilSignature const & DxilModule::GetInputSignature() const
+	{
+		return *input_signature_;
+	}
+
+	DxilSignature& DxilModule::GetOutputSignature()
+	{
+		return *output_signature_;
+	}
+
+	DxilSignature const & DxilModule::GetOutputSignature() const
+	{
+		return *output_signature_;
+	}
+
+	DxilSignature& DxilModule::GetPatchConstantSignature()
+	{
+		return *patch_constant_signature_;
+	}
+
+	DxilSignature const & DxilModule::GetPatchConstantSignature() const
+	{
+		return *patch_constant_signature_;
+	}
+
+	DxilRootSignatureHandle const & DxilModule::GetRootSignature() const
+	{
+		return *root_signature_;
 	}
 }

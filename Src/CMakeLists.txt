@@ -13,6 +13,7 @@ SET(DXC_HLSL_HEADER_FILES
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/dxc/HLSL/DxilCompType.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/dxc/HLSL/DxilConstants.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/dxc/HLSL/DxilContainer.hpp
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/dxc/HLSL/DxilInterpolationMode.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/dxc/HLSL/DxilMdHelper.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/dxc/HLSL/DxilModule.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/dxc/HLSL/DxilPipelineStateValidation.hpp
@@ -26,6 +27,7 @@ SET(DXC_HLSL_HEADER_FILES
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/dxc/HLSL/DxilSignatureElement.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/dxc/HLSL/DxilSigPoint.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/dxc/HLSL/DxilTypeSystem.hpp
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/dxc/HLSL/HLMatrixLowerHelper.hpp
 )
 
 SET(HEADER_FILES
@@ -48,6 +50,7 @@ SET(HEADER_FILES
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Function.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/GlobalObject.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/GlobalValue.hpp
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/GlobalVariable.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/GVMaterializer.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Half.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Hashing.hpp
@@ -88,6 +91,7 @@ SET(HLSL_SOURCE_FILES
 	${DILITHIUM_ROOT_DIR}/Src/HLSL/DxilCBuffer.cpp
 	${DILITHIUM_ROOT_DIR}/Src/HLSL/DxilCompType.cpp
 	${DILITHIUM_ROOT_DIR}/Src/HLSL/DxilContainer.cpp
+	${DILITHIUM_ROOT_DIR}/Src/HLSL/DxilInterpolationMode.cpp
 	${DILITHIUM_ROOT_DIR}/Src/HLSL/DxilMdHelper.cpp
 	${DILITHIUM_ROOT_DIR}/Src/HLSL/DxilModule.cpp
 	${DILITHIUM_ROOT_DIR}/Src/HLSL/DxilResource.cpp
@@ -99,6 +103,8 @@ SET(HLSL_SOURCE_FILES
 	${DILITHIUM_ROOT_DIR}/Src/HLSL/DxilSignature.cpp
 	${DILITHIUM_ROOT_DIR}/Src/HLSL/DxilSignatureElement.cpp
 	${DILITHIUM_ROOT_DIR}/Src/HLSL/DxilSigPoint.cpp
+	${DILITHIUM_ROOT_DIR}/Src/HLSL/DxilTypeSystem.cpp
+	${DILITHIUM_ROOT_DIR}/Src/HLSL/HLMatrixLowerPass.cpp
 )
 
 SET(SOURCE_FILES
@@ -116,6 +122,7 @@ SET(SOURCE_FILES
 	${DILITHIUM_ROOT_DIR}/Src/Function.cpp
 	${DILITHIUM_ROOT_DIR}/Src/GlobalObject.cpp
 	${DILITHIUM_ROOT_DIR}/Src/GlobalValue.cpp
+	${DILITHIUM_ROOT_DIR}/Src/GlobalVariable.cpp
 	${DILITHIUM_ROOT_DIR}/Src/Half.cpp
 	${DILITHIUM_ROOT_DIR}/Src/Instruction.cpp
 	${DILITHIUM_ROOT_DIR}/Src/Instructions.cpp

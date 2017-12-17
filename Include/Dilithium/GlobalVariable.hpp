@@ -1,5 +1,5 @@
 /**
- * @file DxilResource.cpp
+ * @file GlobalVariable.hpp
  * @author Minmin Gong
  *
  * @section DESCRIPTION
@@ -32,33 +32,21 @@
  * THE SOFTWARE.
  */
 
-#include <Dilithium/Dilithium.hpp>
-#include <Dilithium/Constant.hpp>
-#include <Dilithium/DerivedType.hpp>
-#include <Dilithium/dxc/HLSL/DxilResource.hpp>
+#ifndef _DILITHIUM_GLOBAL_VARIABLE_HPP
+#define _DILITHIUM_GLOBAL_VARIABLE_HPP
+
+#pragma once
+
+#include <Dilithium/GlobalObject.hpp>
 
 namespace Dilithium
 {
-	DxilResource::DxilResource()
-		: DxilResourceBase(ResourceClass::Invalid),
-			sample_count_(0), element_stride_(0),
-			globally_coherent_(false), has_counter_(false), rov_(false)
+	class GlobalVariable : public GlobalObject
 	{
-	}
-
-	Type* DxilResource::GetRetType() const
-	{
-		auto gv = this->GetGlobalSymbol();
-		auto ty = gv->GetType()->PointerElementType();
-		// For resource array, use element type.
-		while (ty->IsArrayType())
-		{
-			ty = ty->ArrayElementType();
-		}
-		// Get the struct buffer type like this %class.StructuredBuffer = type {
-		// %struct.mat }.
-		auto st = cast<StructType>(ty);
-		// Get the struct type inside struct buffer.
-		return st->ElementType(0);
-	}
+	public:
+		// Methods for support type inquiry through isa, cast, and dyn_cast:
+		static bool classof(Value const * v);
+	};
 }
+
+#endif		// _DILITHIUM_GLOBAL_VARIABLE_HPP

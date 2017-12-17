@@ -42,8 +42,18 @@
 #include <iomanip>
 
 #include <Dilithium/Dilithium.hpp>
+
+#include <Dilithium/DerivedType.hpp>
+
+#include <Dilithium/dxc/HLSL/DxilCBuffer.hpp>
 #include <Dilithium/dxc/HLSL/DxilContainer.hpp>
 #include <Dilithium/dxc/HLSL/DxilPipelineStateValidation.hpp>
+#include <Dilithium/dxc/HLSL/DxilTypeSystem.hpp>
+#include <Dilithium/dxc/HLSL/DxilModule.hpp>
+#include <Dilithium/dxc/HLSL/DxilResource.hpp>
+#include <Dilithium/dxc/HLSL/DxilSampler.hpp>
+#include <Dilithium/dxc/HLSL/HLMatrixLowerHelper.hpp>
+
 
 using namespace Dilithium;
 
@@ -372,6 +382,497 @@ namespace
 
 		os << comment << std::endl;
 	}
+
+	void PrintDxilSignature(char const * name, DxilSignature const & signature, std::ostream& os, char const * comment)
+	{
+		auto const & sig_elts = signature.Elements();
+		if (sig_elts.empty())
+		{
+			return;
+		}
+
+		// TODO: Print all the data in DxilSignature.
+		os << comment << "\n"
+			<< comment << " " << name << " signature:\n"
+			<< comment << "\n"
+			<< comment << " Name                 Index             InterpMode\n"
+			<< comment << " -------------------- ----- ----------------------\n";
+
+		for (auto& sig_elt : sig_elts)
+		{
+			os << comment << " ";
+
+			os << std::left << std::setw(20) << sig_elt->GetName();
+			os << std::right << std::setw(6) << sig_elt->GetSemanticIndexVec()[0];
+			os << std::right << std::setw(23) << sig_elt->GetInterpolationMode()->GetName();
+			os << "\n";
+		}
+	}
+
+	std::string GetTypeAndName(Type* ty, DxilFieldAnnotation& annotation, uint32_t array_size)
+	{
+		std::ostringstream oss;
+
+		while (ty->IsArrayType())
+		{
+			ty = ty->ArrayElementType();
+		}
+
+		auto comp_ty_name = annotation.GetCompType().GetHLSLName();
+		if (annotation.HasMatrixAnnotation())
+		{
+			auto const & matrix = annotation.GetMatrixAnnotation();
+			switch (matrix.orientation)
+			{
+			case MatrixOrientation::RowMajor:
+				oss << "row_major ";
+				break;
+
+			case MatrixOrientation::ColumnMajor:
+				oss << "column_major ";
+				break;
+
+			default:
+				DILITHIUM_UNREACHABLE("Wrong matrix orientation");
+				break;
+			}
+			oss << comp_ty_name << matrix.rows << "x" << matrix.cols;
+		}
+		else if (ty->IsVectorType())
+		{
+			oss << comp_ty_name << ty->VectorNumElements();
+		}
+		else
+		{
+			oss << comp_ty_name;
+		}
+
+		oss << " " << annotation.GetFieldName();
+		if (array_size)
+		{
+			oss << "[" << array_size << "]";
+		}
+		oss << ";";
+
+		return oss.str();
+	}
+
+	void PrintStructLayout(StructType* st, DxilTypeSystem& type_sys,
+		std::ostream& os, char const * comment,
+		char const * var_name, uint32_t offset, uint32_t indent, uint32_t offset_indent, uint64_t size_of_struct = 0);
+
+	void PrintFieldLayout(Type* ty, DxilFieldAnnotation& annotation, DxilTypeSystem& type_sys, std::ostream& os,
+		char const * comment, uint32_t offset,
+		uint32_t indent, uint32_t offset_indent, uint64_t size_to_print = 0)
+	{
+		offset += annotation.GetCBufferOffset();
+		if (ty->IsStructType() && !annotation.HasMatrixAnnotation())
+		{
+			PrintStructLayout(cast<StructType>(ty), type_sys, os, comment, annotation.GetFieldName().c_str(), offset,
+				indent, offset_indent);
+		}
+		else
+		{
+			auto elt_ty = ty;
+			uint32_t array_size = 0;
+			uint32_t array_level = 0;
+			if (!HLMatrixLower::IsMatrixType(elt_ty) && elt_ty->IsArrayType())
+			{
+				array_size = 1;
+				while (!HLMatrixLower::IsMatrixType(elt_ty) && elt_ty->IsArrayType())
+				{
+					array_size *= static_cast<uint32_t>(elt_ty->ArrayNumElements());
+					elt_ty = elt_ty->ArrayElementType();
+					++ array_level;
+				}
+			}
+
+			if (annotation.HasMatrixAnnotation())
+			{
+				auto const & matrix = annotation.GetMatrixAnnotation();
+				switch (matrix.orientation)
+				{
+				case MatrixOrientation::RowMajor:
+					array_size /= matrix.rows;
+					break;
+
+				case MatrixOrientation::ColumnMajor:
+					array_size /= matrix.cols;
+					break;
+
+				default:
+					DILITHIUM_UNREACHABLE("Wrong matrix orientation");
+					break;
+				}
+				if (elt_ty->IsVectorType())
+				{
+					elt_ty = elt_ty->VectorElementType();
+				}
+				else if (elt_ty->IsStructType())
+				{
+					unsigned col, row;
+					elt_ty = HLMatrixLower::GetMatrixInfo(elt_ty, col, row);
+				}
+				if (array_level == 1)
+				{
+					array_size = 0;
+				}
+			}
+
+			if (!HLMatrixLower::IsMatrixType(elt_ty) && elt_ty->IsStructType())
+			{
+				std::ostringstream oss;
+				oss << annotation.GetFieldName();
+				if (array_size)
+				{
+					oss << "[" << array_size << "]";
+				}
+				oss << ";";
+
+				PrintStructLayout(cast<StructType>(elt_ty), type_sys, os, comment, oss.str().c_str(), offset,
+					indent, offset_indent);
+			}
+			else
+			{
+				os << comment << std::string(indent, ' ');
+				os << std::left << std::setw(offset_indent) << GetTypeAndName(ty, annotation, array_size);
+
+				os << comment << " Offset:" << std::right << std::setw(5) << offset;
+				if (size_to_print)
+				{
+					os << " Size: " << std::right << std::setw(5) << size_to_print;
+				}
+				os << "\n";
+			}
+		}
+	}
+
+	void PrintStructLayout(StructType* st, DxilTypeSystem& type_sys,
+		std::ostream& os, char const * comment,
+		char const * var_name, uint32_t offset, uint32_t indent, uint32_t offset_indent, uint64_t size_of_struct)
+	{
+		auto annotation = type_sys.GetStructAnnotation(st);
+		os << comment << std::string(indent, ' ') << "struct " << st->Name() << "\n";
+		os << comment << std::string(indent, ' ') << "{\n";
+		os << comment << "\n";
+
+		for (uint32_t i = 0; i < st->NumElements(); ++ i)
+		{
+			PrintFieldLayout(st->ElementType(i), annotation->FieldAnnotation(i), type_sys, os, comment,
+				offset, offset_indent, offset_indent - 4);
+		}
+		os << comment << std::string(indent, ' ') << "\n";
+		// The 2 in offsetIndent-indent-2 is for "} ".
+		os << comment << std::string(indent, ' ') << "} " << std::left << std::setw(offset_indent - 2) << var_name;
+		os << comment << " Offset:" << std::right << std::setw(5) << offset;
+		if (size_of_struct)
+		{
+			os << " Size: " << std::right << std::setw(5) << size_of_struct;
+		}
+		os << "\n";
+
+		os << comment << "\n";
+	}
+
+	void PrintCBufferDefinition(DxilCBuffer* buff, DxilTypeSystem& type_sys, std::ostream& os, char const * comment)
+	{
+		const unsigned offsetIndent = 50;
+		auto gv = buff->GetGlobalSymbol();
+		auto ty = gv->GetType()->PointerElementType();
+		// For ConstantBuffer<> buf[2], the array size is in Resource binding count part.
+		if (ty->IsArrayType())
+		{
+			ty = ty->ArrayElementType();
+		}
+
+		auto annotation = type_sys.GetStructAnnotation(cast<StructType>(ty));
+		os << comment << " cbuffer " << buff->GetGlobalName() << "\n";
+		os << comment << " {\n";
+		os << comment << "\n";
+		if (nullptr == annotation)
+		{
+			os << comment << "   [" << buff->GetSize() << " x i8] (type annotation not present)\n";
+			os << comment << "\n";
+		}
+		else
+		{
+			PrintStructLayout(cast<StructType>(ty), type_sys, os, comment,
+				buff->GetGlobalName().c_str(), /*offset*/ 0, /*indent*/ 3,
+				offsetIndent, buff->GetSize());
+		}
+		os << comment << " }\n";
+		os << comment << "\n";
+	}
+
+	void PrintTBufferDefinition(DxilResource* buff, DxilTypeSystem& type_sys, std::ostream& os, char const * comment)
+	{
+		uint32_t const offset_indent = 50;
+
+		auto gv = buff->GetGlobalSymbol();
+		auto ty = gv->GetType()->PointerElementType();
+		// For TextureBuffer<> buf[2], the array size is in Resource binding count part.
+		if (ty->IsArrayType())
+		{
+			ty = ty->ArrayElementType();
+		}
+
+		auto annotation = type_sys.GetStructAnnotation(cast<StructType>(ty));
+		os << comment << " tbuffer " << buff->GetGlobalName() << "\n";
+		os << comment << " {\n";
+		os << comment << "\n";
+		if (nullptr == annotation)
+		{
+			os << comment << "   (type annotation not present)\n";
+			os << comment << "\n";
+		}
+		else
+		{
+			PrintStructLayout(cast<StructType>(ty), type_sys, os, comment,
+				buff->GetGlobalName().c_str(), /*offset*/ 0, /*indent*/ 3,
+				offset_indent, annotation->CBufferSize());
+		}
+		os << comment << " }\n";
+		os << comment << "\n";
+	}
+
+	void PrintStructBufferDefinition(DxilResource* buff, DxilTypeSystem& type_sys, DataLayout const & dl,
+		std::ostream& os, char const * comment)
+	{
+		uint32_t const offset_indent = 50;
+
+		os << comment << " Resource bind info for " << buff->GetGlobalName() << "\n";
+		os << comment << " {\n";
+		os << comment << "\n";
+		auto ret_ty = buff->GetRetType();
+		// Skip none struct type.
+		if (!ret_ty->IsStructType() || HLMatrixLower::IsMatrixType(ret_ty))
+		{
+			auto gv = buff->GetGlobalSymbol();
+			auto ty = gv->GetType()->PointerElementType();
+			// For resource array, use element type.
+			if (ty->IsArrayType())
+			{
+				ty = ty->ArrayElementType();
+			}
+			// Get the struct buffer type like this %class.StructuredBuffer = type {
+			// %struct.mat }.
+			auto st = cast<StructType>(ty);
+			auto annotation = type_sys.GetStructAnnotation(st);
+			if (nullptr == annotation)
+			{
+				os << comment << "   [" << dl.TypeAllocSize(st) << " x i8] (type annotation not present)\n";
+			}
+			else
+			{
+				auto& field_annotation = annotation->FieldAnnotation(0);
+				field_annotation.SetFieldName("$Element");
+				PrintFieldLayout(ret_ty, field_annotation, type_sys, os,
+					comment, /*offset*/ 0, /*indent*/ 3, offset_indent,
+					dl.TypeAllocSize(st));
+			}
+			os << comment << "\n";
+		}
+		else
+		{
+			auto st = cast<StructType>(ret_ty);
+
+			// TODO: struct buffer has different layout.
+			// Cannot use cbuffer layout here.
+			auto annotation = type_sys.GetStructAnnotation(st);
+			if (nullptr == annotation)
+			{
+				os << comment << "   [" << dl.TypeAllocSize(st) << " x i8] (type annotation not present)\n";
+			}
+			else
+			{
+				PrintStructLayout(st, type_sys, os, comment, "$Element;",
+					/*offset*/ 0, /*indent*/ 3, offset_indent, dl.TypeAllocSize(st));
+			}
+		}
+		os << comment << " }\n";
+		os << comment << "\n";
+	}
+
+	void PrintBufferDefinitions(DxilModule& mod, std::ostream& os, char const * comment)
+	{
+		os << comment << "\n"
+			<< comment << " Buffer Definitions:\n"
+			<< comment << "\n";
+		auto& type_sys = mod.GetTypeSystem();
+
+		for (auto& cbuf : mod.GetCBuffers())
+		{
+			PrintCBufferDefinition(cbuf.get(), type_sys, os, comment);
+		}
+		auto const & layout = mod.GetModule()->GetDataLayout();
+		for (auto& res : mod.GetSRVs())
+		{
+			if (res->IsStructuredBuffer())
+			{
+				PrintStructBufferDefinition(res.get(), type_sys, layout, os, comment);
+			}
+			else if (res->IsTBuffer())
+			{
+				PrintTBufferDefinition(res.get(), type_sys, os, comment);
+			}
+		}
+		for (auto& res : mod.GetUAVs())
+		{
+			if (res->IsStructuredBuffer())
+			{
+				PrintStructBufferDefinition(res.get(), type_sys, layout, os, comment);
+			}
+		}
+	}
+
+	void PrintResourceFormat(DxilResourceBase& res, uint32_t alignment, std::ostream& os)
+	{
+		switch (res.GetClass())
+		{
+		case ResourceClass::CBuffer:
+		case ResourceClass::Sampler:
+			os << std::right << std::setw(alignment) << "NA";
+			break;
+
+		case ResourceClass::UAV:
+		case ResourceClass::SRV:
+			switch (res.GetKind())
+			{
+			case ResourceKind::RawBuffer:
+				os << std::right << std::setw(alignment) << "byte";
+				break;
+
+			case ResourceKind::StructuredBuffer:
+				os << std::right << std::setw(alignment) << "struct";
+				break;
+
+			default:
+				auto p = static_cast<DxilResource*>(&res);
+				DxilCompType const & comp_type = p->GetCompType();
+				char const * comp_name = comp_type.GetName();
+				// TODO: add vector size.
+				os << std::right << std::setw(alignment) << comp_name;
+				break;
+			}
+		}
+	}
+
+	void PrintResourceDim(DxilResourceBase &res, unsigned alignment, std::ostream& os)
+	{
+		switch (res.GetClass())
+		{
+		case ResourceClass::CBuffer:
+		case ResourceClass::Sampler:
+			os << std::right << std::setw(alignment) << "NA";
+			break;
+
+		case ResourceClass::UAV:
+		case ResourceClass::SRV:
+			switch (res.GetKind())
+			{
+			case ResourceKind::RawBuffer:
+			case ResourceKind::StructuredBuffer:
+				if (res.GetClass() == ResourceClass::SRV)
+				{
+					os << std::right << std::setw(alignment) << "r/o";
+				}
+				else
+				{
+					auto& dxil_res = static_cast<DxilResource&>(res);
+					if (!dxil_res.HasCounter())
+					{
+						os << std::right << std::setw(alignment) << "r/w";
+					}
+					else
+					{
+						os << std::right << std::setw(alignment) << "r/w+cnt";
+					}
+				}
+				break;
+
+			case ResourceKind::TypedBuffer:
+				os << std::right << std::setw(alignment) << "buf";
+				break;
+
+			case ResourceKind::Texture2DMS:
+			case ResourceKind::Texture2DMSArray:
+				{
+					auto& dxil_res = static_cast<DxilResource&>(res);
+					std::string dim_name = res.GetResDimName();
+					if (dxil_res.GetSampleCount())
+					{
+						dim_name += std::to_string(dxil_res.GetSampleCount());
+					}
+					os << std::right << std::setw(alignment) << dim_name;
+				}
+				break;
+
+			default:
+				os << std::right << std::setw(alignment) << res.GetResDimName();
+				break;
+			}
+			break;
+		}
+	}
+
+	void PrintResourceBinding(DxilResourceBase& res, std::ostream& os, char const * comment)
+	{
+		os << comment << " " << std::left << std::setw(31) << res.GetGlobalName();
+
+		os << std::right << std::setw(10) << res.GetResClassName();
+
+		PrintResourceFormat(res, 8, os);
+
+		PrintResourceDim(res, 12, os);
+
+		std::string ID = res.GetResIDPrefix();
+		ID += std::to_string(res.GetID());
+		os << std::right << std::setw(8) << ID;
+
+		std::string bind = res.GetResBindPrefix();
+		bind += std::to_string(res.GetLowerBound());
+		if (res.GetSpaceID())
+		{
+			bind += ",space" + std::to_string(res.GetSpaceID());
+		}
+
+		os << std::right << std::setw(15) << bind;
+		if (res.GetRangeSize() != UINT_MAX)
+		{
+			os << std::right << std::setw(6) << std::to_string(res.GetRangeSize()) << "\n";
+		}
+		else
+		{
+			os << std::right << std::setw(6) << "unbounded\n";
+		}
+	}
+
+	void PrintResourceBindings(DxilModule& module, std::ostream& os, char const * comment)
+	{
+		os << comment << "\n"
+			<< comment << " Resource Bindings:\n"
+			<< comment << "\n"
+			<< comment << " Name                                 Type  Format         Dim      ID      HLSL Bind  Count\n"
+			<< comment << " ------------------------------ ---------- ------- ----------- ------- -------------- ------\n";
+
+		for (auto& res : module.GetCBuffers())
+		{
+			PrintResourceBinding(*res, os, comment);
+		}
+		for (auto& res : module.GetSamplers())
+		{
+			PrintResourceBinding(*res, os, comment);
+		}
+		for (auto& res : module.GetSRVs())
+		{
+			PrintResourceBinding(*res, os, comment);
+		}
+		for (auto& res : module.GetUAVs())
+		{
+			PrintResourceBinding(*res, os, comment);
+		}
+		os << comment << "\n";
+	}
 }
 
 void Usage()
@@ -506,7 +1007,11 @@ std::string Disassemble(std::vector<uint8_t> const & program)
 		if (module->GetNamedMetadata("dx.version"))
 		{
 			auto& dxil_module = module->GetOrCreateDxilModule();
-			DILITHIUM_UNUSED(dxil_module);
+			PrintDxilSignature("Input", dxil_module.GetInputSignature(), oss, ";");
+			PrintDxilSignature("Output", dxil_module.GetOutputSignature(), oss, ";");
+			PrintDxilSignature("Patch Constant signature", dxil_module.GetPatchConstantSignature(), oss, ";");
+			PrintBufferDefinitions(dxil_module, oss, ";");
+			PrintResourceBindings(dxil_module, oss, ";");
 		}
 
 		//DILITHIUM_NOT_IMPLEMENTED;

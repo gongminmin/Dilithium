@@ -82,6 +82,10 @@ namespace Dilithium
 			return *context_;
 		}
 
+		DataLayout const & GetDataLayout() const
+		{
+			return data_layout_;
+		}
 		void SetDataLayout(std::string_view desc);
 		void SetDataLayout(DataLayout const & dl);
 

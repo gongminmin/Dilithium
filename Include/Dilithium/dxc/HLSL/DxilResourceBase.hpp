@@ -53,6 +53,38 @@ namespace Dilithium
 		{
 			return class_;
 		}
+		ResourceKind GetKind() const
+		{
+			return kind_;
+		}
+		uint32_t GetID() const
+		{
+			return id_;
+		}
+		uint32_t GetSpaceID() const
+		{
+			return space_id_;
+		}
+		uint32_t GetLowerBound() const
+		{
+			return lower_bound_;
+		}
+		uint32_t GetUpperBound() const
+		{
+			return range_size_ != UINT_MAX ? lower_bound_ + range_size_ - 1 : UINT_MAX;
+		}
+		uint32_t GetRangeSize() const
+		{
+			return range_size_;
+		}
+		Constant* GetGlobalSymbol() const
+		{
+			return symbol_;
+		}
+		std::string const & GetGlobalName() const
+		{
+			return name_;
+		}
 
 		void SetKind(ResourceKind resource_kind);
 		void SetSpaceID(uint32_t space_id)
@@ -85,6 +117,11 @@ namespace Dilithium
 		{
 			id_ = id;
 		}
+
+		char const * GetResClassName() const;
+		char const * GetResDimName() const;
+		char const * GetResIDPrefix() const;
+		char const * GetResBindPrefix() const;
 
 	protected:
 		void SetClass(ResourceClass c)

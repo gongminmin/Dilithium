@@ -187,10 +187,79 @@ namespace Dilithium
 		explicit DxilModule(LLVMModule* mod);
 		~DxilModule();
 
+		LLVMModule* GetModule() const
+		{
+			return module_;
+		}
+
 		uint32_t AddCBuffer(std::unique_ptr<DxilCBuffer> cb);
+		DxilCBuffer& GetCBuffer(uint32_t idx)
+		{
+			return *cbuffers_[idx];
+		}
+		DxilCBuffer const & GetCBuffer(uint32_t idx) const
+		{
+			return *cbuffers_[idx];
+		}
+		std::vector<std::unique_ptr<DxilCBuffer>> const & GetCBuffers() const
+		{
+			return cbuffers_;
+		}
+
 		uint32_t AddSampler(std::unique_ptr<DxilSampler> sampler);
+		DxilSampler& GetSampler(uint32_t idx)
+		{
+			return *samplers_[idx];
+		}
+		DxilSampler const & GetSampler(uint32_t idx) const
+		{
+			return *samplers_[idx];
+		}
+		std::vector<std::unique_ptr<DxilSampler>> const & GetSamplers() const
+		{
+			return samplers_;
+		}
+
 		uint32_t AddSRV(std::unique_ptr<DxilResource> srv);
+		DxilResource& GetSRV(uint32_t idx)
+		{
+			return *srvs_[idx];
+		}
+		DxilResource const & GetSRV(uint32_t idx) const
+		{
+			return *srvs_[idx];
+		}
+		std::vector<std::unique_ptr<DxilResource>> const & GetSRVs() const
+		{
+			return srvs_;
+		}
+
 		uint32_t AddUAV(std::unique_ptr<DxilResource> uav);
+		DxilResource& GetUAV(uint32_t idx)
+		{
+			return *uavs_[idx];
+		}
+		DxilResource const & GetUAV(uint32_t idx) const
+		{
+			return *uavs_[idx];
+		}
+		std::vector<std::unique_ptr<DxilResource>> const & GetUAVs() const
+		{
+			return uavs_;
+		}
+
+		DxilSignature& GetInputSignature();
+		DxilSignature const & GetInputSignature() const;
+		DxilSignature& GetOutputSignature();
+		DxilSignature const & GetOutputSignature() const;
+		DxilSignature& GetPatchConstantSignature();
+		DxilSignature const & GetPatchConstantSignature() const;
+		DxilRootSignatureHandle const & GetRootSignature() const;
+
+		DxilTypeSystem& GetTypeSystem()
+		{
+			return *type_system_;
+		}
 
 		void LoadDxilMetadata();
 

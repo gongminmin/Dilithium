@@ -55,7 +55,7 @@ namespace Dilithium
 	{
 	}
 
-	void DxilSignatureElement::Initialize(std::string_view name, DxilCompType const & elem_type, InterpolationMode interp_mode,
+	void DxilSignatureElement::Initialize(std::string_view name, DxilCompType const & elem_type, DxilInterpolationMode interp_mode,
 		uint32_t rows, uint32_t cols,
 		int start_row, int start_col,
 		uint32_t id, std::vector<uint32_t> const & index_vec)
@@ -79,6 +79,42 @@ namespace Dilithium
 		start_row_ = start_row;
 		start_col_ = start_col;
 		output_stream_ = 0;
+	}
+
+	ShaderKind DxilSignatureElement::GetShaderKind() const
+	{
+		return DxilSigPoint::GetSigPoint(sig_point_kind_)->GetShaderKind();
+	}
+
+	bool DxilSignatureElement::IsInput() const
+	{
+		return DxilSigPoint::GetSigPoint(sig_point_kind_)->IsInput();
+	}
+
+	bool DxilSignatureElement::IsOutput() const
+	{
+		return DxilSigPoint::GetSigPoint(sig_point_kind_)->IsOutput();
+	}
+
+	bool DxilSignatureElement::IsPatchConstant() const
+	{
+		return DxilSigPoint::GetSigPoint(sig_point_kind_)->IsPatchConstant();
+	}
+
+	char const * DxilSignatureElement::GetName() const
+	{
+		if (this->IsArbitrary())
+		{
+			return name_.c_str();
+		}
+		else if (!semantic_->IsInvalid())
+		{
+			return semantic_->GetName();
+		}
+		else
+		{
+			return name_.c_str();
+		}
 	}
 
 	void DxilSignatureElement::SetKind(SemanticKind kind)

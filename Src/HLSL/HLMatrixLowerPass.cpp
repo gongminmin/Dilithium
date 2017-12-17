@@ -1,5 +1,5 @@
 /**
- * @file DxilResource.cpp
+ * @file HLMatrixLowerPass.cpp
  * @author Minmin Gong
  *
  * @section DESCRIPTION
@@ -32,33 +32,43 @@
  * THE SOFTWARE.
  */
 
-#include <Dilithium/Dilithium.hpp>
-#include <Dilithium/Constant.hpp>
 #include <Dilithium/DerivedType.hpp>
-#include <Dilithium/dxc/HLSL/DxilResource.hpp>
+#include <Dilithium/dxc/HLSL/HLMatrixLowerHelper.hpp>
+
+#include <boost/assert.hpp>
 
 namespace Dilithium
 {
-	DxilResource::DxilResource()
-		: DxilResourceBase(ResourceClass::Invalid),
-			sample_count_(0), element_stride_(0),
-			globally_coherent_(false), has_counter_(false), rov_(false)
+	namespace HLMatrixLower
 	{
-	}
-
-	Type* DxilResource::GetRetType() const
-	{
-		auto gv = this->GetGlobalSymbol();
-		auto ty = gv->GetType()->PointerElementType();
-		// For resource array, use element type.
-		while (ty->IsArrayType())
+		bool IsMatrixType(Type* ty)
 		{
-			ty = ty->ArrayElementType();
+			auto* st = dyn_cast<StructType>(ty);
+			if (st)
+			{
+				auto elt_ty = st->ElementType(0);
+				if (!st->Name().find_first_of("class.matrix") == 0)
+				{
+					return false;
+				}
+
+				bool is_vec_array = elt_ty->IsArrayType() && elt_ty->ArrayElementType()->IsVectorType();
+				return is_vec_array && (elt_ty->ArrayNumElements() <= 4);
+			}
+			return false;
 		}
-		// Get the struct buffer type like this %class.StructuredBuffer = type {
-		// %struct.mat }.
-		auto st = cast<StructType>(ty);
-		// Get the struct type inside struct buffer.
-		return st->ElementType(0);
+
+		Type* GetMatrixInfo(Type* ty, uint32_t& col, uint32_t& row)
+		{
+			BOOST_ASSERT_MSG(IsMatrixType(ty), "Not matrix type");
+
+			auto st = cast<StructType>(ty);
+			auto elt_ty = st->ElementType(0);
+			auto col_ty = elt_ty->ArrayElementType();
+			col = static_cast<uint32_t>(elt_ty->ArrayNumElements());
+			row = col_ty->VectorNumElements();
+			return col_ty->VectorElementType();
+		}
 	}
 }
+

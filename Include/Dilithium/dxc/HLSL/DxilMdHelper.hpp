@@ -44,6 +44,9 @@ namespace Dilithium
 	class LLVMModule;
 
 	class DxilCBuffer;
+	class DxilFieldAnnotation;
+	class DxilFunctionAnnotation;
+	class DxilParameterAnnotation;
 	class DxilResource;
 	class DxilResourceBase;
 	class DxilRootSignatureHandle;
@@ -51,6 +54,7 @@ namespace Dilithium
 	class DxilShaderModel;
 	class DxilSignature;
 	class DxilSignatureElement;
+	class DxilStructAnnotation;
 	class DxilTypeSystem;
 
 	class DxilMDHelper
@@ -127,6 +131,25 @@ namespace Dilithium
 			DxilSignatureElementGlobalSymbolTag
 		};
 
+		static char const DxilTypeSystemMDName[];
+		enum TypeSystem
+		{
+			DxilTypeSystemStructTag = 0,
+			DxilTypeSystemFunctionTag
+		};
+		enum FieldAnnotation
+		{
+			DxilFieldAnnotationSNormTag = 0,
+			DxilFieldAnnotationUNormTag,
+			DxilFieldAnnotationMatrixTag,
+			DxilFieldAnnotationCBufferOffsetTag,
+			DxilFieldAnnotationSemanticStringTag,
+			DxilFieldAnnotationInterpolationModeTag,
+			DxilFieldAnnotationFieldNameTag,
+			DxilFieldAnnotationCompTypeTag,
+			DxilFieldAnnotationPreciseTag
+		};
+
 	public:
 		// Use this class to manipulate metadata of DXIL or high-level DX IR specific fields in the record.
 		class ExtraPropertyHelper
@@ -174,6 +197,11 @@ namespace Dilithium
 		void LoadDxilSampler(MDOperand const & mdn, DxilSampler& sampler);
 
 		void LoadDxilTypeSystem(DxilTypeSystem& type_system);
+		void LoadDxilTypeSystemNode(MDTuple const & mdt, DxilTypeSystem& type_system);
+		void LoadDxilStructAnnotation(MDOperand const & mdo, DxilStructAnnotation& sa);
+		void LoadDxilFieldAnnotation(MDOperand const & mdo, DxilFieldAnnotation& fa);
+		void LoadDxilFunctionAnnotation(MDOperand const & mdo, DxilFunctionAnnotation& fa);
+		void LoadDxilParamAnnotation(MDOperand const & mdo, DxilParameterAnnotation& pa);
 
 		void LoadDxilGSState(MDOperand const & mdn, InputPrimitive& primitive, uint32_t& max_vertex_count,
 			uint32_t& active_stream_mask, PrimitiveTopology& stream_primitive_topology,

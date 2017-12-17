@@ -38,6 +38,7 @@
 #pragma once
 
 #include <Dilithium/dxc/HLSL/DxilResourceBase.hpp>
+#include <Dilithium/dxc/HLSL/DxilCompType.hpp>
 
 namespace Dilithium
 {
@@ -46,6 +47,17 @@ namespace Dilithium
 	public:
 		DxilResource();
 
+		DxilCompType const & GetCompType() const
+		{
+			return comp_type_;
+		}
+		void SetCompType(DxilCompType const & ct)
+		{
+			comp_type_ = ct;
+		}
+
+		Type* GetRetType() const;
+
 		uint32_t GetSampleCount() const
 		{
 			return sample_count_;
@@ -53,6 +65,15 @@ namespace Dilithium
 		void SetSampleCount(uint32_t sample_count)
 		{
 			sample_count_ = sample_count;
+		}
+
+		uint32_t GetElementStride() const
+		{
+			return element_stride_;
+		}
+		void SetElementStride(uint32_t elem_stride)
+		{
+			element_stride_ = elem_stride;
 		}
 
 		bool IsGloballyCoherent() const
@@ -93,8 +114,31 @@ namespace Dilithium
 			rov_ = rov;
 		}
 
+		bool IsAnyTexture() const
+		{
+			return (this->GetKind() >= ResourceKind::Texture1D) && (this->GetKind() <= ResourceKind::TextureCubeArray);
+		}
+		bool IsStructuredBuffer() const
+		{
+			return this->GetKind() == ResourceKind::StructuredBuffer;
+		}
+		bool IsTypedBuffer() const
+		{
+			return this->GetKind() == ResourceKind::TypedBuffer;
+		}
+		bool IsRawBuffer() const
+		{
+			return this->GetKind() == ResourceKind::RawBuffer;
+		}
+		bool IsTBuffer() const
+		{
+			return this->GetKind() == ResourceKind::TBuffer;
+		}
+
 	private:
 		uint32_t sample_count_;
+		uint32_t element_stride_; // in bytes
+		DxilCompType comp_type_;
 		bool globally_coherent_;
 		bool has_counter_;
 		bool rov_;
