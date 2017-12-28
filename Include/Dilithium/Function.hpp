@@ -94,10 +94,10 @@ namespace Dilithium
 		static Function* Create(FunctionType* ty, LinkageTypes linkage, std::string_view name = "", LLVMModule* mod = nullptr);
 
 		bool HasPersonalityFn() const;
-		Constant* PersonalityFn() const;
-		void PersonalityFn(Constant* c);
+		Constant* GetPersonalityFn() const;
+		void SetPersonalityFn(Constant* c);
 
-		Type* ReturnType() const;
+		Type* GetReturnType() const;
 		FunctionType* GetFunctionType() const;
 
 		LLVMContext& Context() const;
@@ -129,6 +129,15 @@ namespace Dilithium
 		BasicBlockListType& BasicBlockList()
 		{
 			return basic_blocks_;
+		}
+
+		BasicBlock const & EntryBlock() const
+		{
+			return this->front();
+		}
+		BasicBlock& GetEntryBlock()
+		{
+			return this->front();
 		}
 
 		ValueSymbolTable const * GetValueSymbolTable() const
@@ -188,12 +197,12 @@ namespace Dilithium
 		const_arg_iterator ArgEnd() const;
 
 		bool HasPrefixData() const;
-		Constant* PrefixData() const;
-		void PrefixData(Constant* prefix_data);
+		Constant* GetPrefixData() const;
+		void SetPrefixData(Constant* prefix_data);
 
 		bool HasPrologueData() const;
-		Constant* PrologueData() const;
-		void PrologueData(Constant* prologue_data);
+		Constant* GetPrologueData() const;
+		void SetPrologueData(Constant* prologue_data);
 
 		using GlobalObject::Parent;
 
@@ -203,6 +212,8 @@ namespace Dilithium
 		{
 			return this->HasMetadataHashEntry();
 		}
+
+		void GetAllMetadata(boost::container::small_vector_base<std::pair<uint32_t, MDNode*>>& mds) const;
 
 		static bool classof(Value const * v)
 		{

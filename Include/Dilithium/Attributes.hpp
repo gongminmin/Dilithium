@@ -144,7 +144,7 @@ namespace Dilithium
 		uint32_t StackAlignment() const;
 		uint64_t DereferenceableBytes() const;
 		uint64_t DereferenceableOrNullBytes() const;
-		std::string AsString(bool in_attr_grp = false) const;
+		std::string GetAsString(bool in_attr_grp = false) const;
 
 		bool operator==(Attribute const & rhs) const
 		{
@@ -188,6 +188,12 @@ namespace Dilithium
 		static AttributeSet Get(LLVMContext& context, uint32_t index, ArrayRef<Attribute::AttrKind> kind);
 		static AttributeSet Get(LLVMContext& context, uint32_t index, AttrBuilder const & ab);
 
+		AttributeSet GetFnAttributes() const;
+
+		bool HasAttributes(uint32_t index) const;
+
+		std::string GetAsString(uint32_t index, bool in_attr_grp = false) const;
+
 		iterator Begin(uint32_t slot) const;
 		iterator End(uint32_t slot) const;
 
@@ -199,12 +205,19 @@ namespace Dilithium
 		{
 			return impl_ != rhs.impl_;
 		}
+		
+		void* GetRawPointer() const
+		{
+			return impl_;
+		}
 
 		uint32_t NumSlots() const;
 		uint32_t SlotIndex(uint32_t slot) const;
 
 	private:
 		explicit AttributeSet(AttributeSetImpl* asi);
+
+		AttributeSetNode* GetAttributes(uint32_t index) const;
 
 		static AttributeSet Get(LLVMContext& context, ArrayRef<std::pair<uint32_t, Attribute>> attrs);
 		static AttributeSet Get(LLVMContext& context, ArrayRef<std::pair<uint32_t, AttributeSetNode*>> attrs);
@@ -302,6 +315,21 @@ namespace Dilithium
 		uint64_t stack_alignment_;
 		uint64_t deref_bytes_;
 		uint64_t deref_or_null_bytes_;
+	};
+}
+
+namespace std
+{
+	template <>
+	struct hash<Dilithium::AttributeSet>
+	{
+		typedef std::size_t result_type;
+		typedef Dilithium::AttributeSet argument_type;
+
+		result_type operator()(argument_type const & rhs) const
+		{
+			return hash<void*>()(rhs.GetRawPointer());
+		}
 	};
 }
 

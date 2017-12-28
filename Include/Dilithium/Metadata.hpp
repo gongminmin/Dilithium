@@ -121,6 +121,10 @@ namespace Dilithium
 
 	public:
 		static MetadataAsValue* Get(LLVMContext& context, Metadata* md);
+		Metadata* GetMetadata() const
+		{
+			return md_;
+		}
 
 		static bool classof(Value const * v)
 		{

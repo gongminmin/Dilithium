@@ -72,6 +72,11 @@ namespace Dilithium
 		return context_->MdKindId(name);
 	}
 
+	void LLVMModule::MdKindNames(boost::container::small_vector_base<std::string_view>& result) const
+	{
+		return context_->MdKindNames(result);
+	}
+
 	NamedMDNode* LLVMModule::GetNamedMetadata(std::string_view name) const
 	{
 		auto iter = named_md_sym_tab_.find(std::string(name));

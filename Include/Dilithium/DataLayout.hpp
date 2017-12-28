@@ -128,6 +128,11 @@ namespace Dilithium
 
 		void Reset(std::string_view desc);
 
+		std::string const & GetStringRepresentation() const
+		{
+			return string_representation_;
+		}
+
 		bool operator==(DataLayout const & rhs) const;
 		bool operator!=(DataLayout const & rhs) const
 		{

@@ -166,6 +166,8 @@ namespace Dilithium
 			return parent_;
 		}
 
+		bool IsDeclaration() const;
+
 		static bool classof(Value const * val)
 		{
 			return (val->GetValueId() == Value::FunctionVal) || (val->GetValueId() == Value::GlobalVariableVal);

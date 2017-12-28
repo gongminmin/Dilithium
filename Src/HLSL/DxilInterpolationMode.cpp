@@ -35,6 +35,8 @@
 #include <Dilithium/dxc/HLSL/DxilInterpolationMode.hpp>
 #include <Dilithium/ErrorHandling.hpp>
 
+#include <iterator>
+
 namespace Dilithium
 {
 	DxilInterpolationMode::DxilInterpolationMode(uint64_t kind)

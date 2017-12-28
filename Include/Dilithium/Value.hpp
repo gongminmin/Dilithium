@@ -38,6 +38,7 @@
 #pragma once
 
 #include <Dilithium/CXX17/string_view.hpp>
+#include <Dilithium/Casting.hpp>
 #include <Dilithium/Use.hpp>
 
 #include <functional>

@@ -52,6 +52,7 @@
 
 namespace Dilithium
 {
+	class AssemblyAnnotationWriter;
 	class GVMaterializer;
 	class LLVMContext;
 	class NamedMDNode;
@@ -82,6 +83,15 @@ namespace Dilithium
 			return *context_;
 		}
 
+		std::string_view Name() const
+		{
+			return name_;
+		}
+
+		std::string const & GetDataLayoutStr() const
+		{
+			return data_layout_.GetStringRepresentation();
+		}
 		DataLayout const & GetDataLayout() const
 		{
 			return data_layout_;
@@ -89,12 +99,17 @@ namespace Dilithium
 		void SetDataLayout(std::string_view desc);
 		void SetDataLayout(DataLayout const & dl);
 
+		std::string const & GetTargetTriple() const
+		{
+			return target_triple_;
+		}
 		void SetTargetTriple(std::string_view sv)
 		{
 			target_triple_ = std::string(sv);
 		}
 
 		uint32_t MdKindId(std::string_view name) const;
+		void MdKindNames(boost::container::small_vector_base<std::string_view>& result) const;
 
 		NamedMDNode* GetNamedMetadata(std::string_view name) const;
 		NamedMDNode* GetOrInsertNamedMetadata(std::string_view name);
@@ -205,6 +220,8 @@ namespace Dilithium
 		{
 			return boost::iterator_range<const_named_metadata_iterator>(this->NamedMetadataBegin(), this->NamedMetadataEnd());
 		}
+
+		void Print(std::ostream& os, AssemblyAnnotationWriter* aaw) const;
 
 		void DropAllReferences();
 

@@ -179,7 +179,7 @@ namespace Dilithium
 		DILITHIUM_NOT_IMPLEMENTED;
 	}
 
-	std::string Attribute::AsString(bool in_attr_grp) const
+	std::string Attribute::GetAsString(bool in_attr_grp) const
 	{
 		DILITHIUM_UNUSED(in_attr_grp);
 		DILITHIUM_NOT_IMPLEMENTED;
@@ -211,6 +211,25 @@ namespace Dilithium
 	AttributeSet::AttributeSet(AttributeSetImpl* asi)
 		: impl_(asi)
 	{
+	}
+
+	AttributeSetNode* AttributeSet::GetAttributes(uint32_t index) const
+	{
+		if (!impl_)
+		{
+			return nullptr;
+		}
+
+		// Loop through to find the attribute node we want.
+		for (uint32_t i = 0, e = impl_->NumAttributes(); i != e; ++ i)
+		{
+			if (impl_->SlotIndex(i) == index)
+			{
+				return impl_->SlotNode(i);
+			}
+		}
+
+		return nullptr;
 	}
 
 	AttributeSet AttributeSet::Get(LLVMContext& context, ArrayRef<AttributeSet> attrs)
@@ -374,6 +393,28 @@ namespace Dilithium
 		}
 
 		return AttributeSet(iter->second.get());
+	}
+
+	AttributeSet AttributeSet::GetFnAttributes() const
+	{
+		return impl_ && this->HasAttributes(AI_FunctionIndex) ?
+			AttributeSet::Get(impl_->Context(),
+				ArrayRef<std::pair<uint32_t, AttributeSetNode*>>(
+					std::make_pair(AI_FunctionIndex,
+						this->GetAttributes(AI_FunctionIndex)))) :
+			AttributeSet();
+	}
+
+	bool AttributeSet::HasAttributes(uint32_t index) const
+	{
+		AttributeSetNode* asn = this->GetAttributes(index);
+		return asn ? asn->HasAttributes() : false;
+	}
+
+	std::string AttributeSet::GetAsString(uint32_t index, bool in_attr_grp) const
+	{
+		auto asn = this->GetAttributes(index);
+		return asn ? asn->GetAsString(in_attr_grp) : std::string("");
 	}
 
 	AttributeSet::iterator AttributeSet::Begin(uint32_t slot) const

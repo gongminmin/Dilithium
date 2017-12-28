@@ -35,6 +35,8 @@
 #include <Dilithium/Dilithium.hpp>
 #include <Dilithium/dxc/HLSL/DxilResourceBase.hpp>
 
+#include <iterator>
+
 namespace Dilithium
 {
 	DxilResourceBase::DxilResourceBase(ResourceClass c)

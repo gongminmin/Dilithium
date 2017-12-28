@@ -164,7 +164,7 @@ namespace Dilithium
 		uint32_t StackAlignment() const;
 		uint64_t DereferenceableBytes() const;
 		uint64_t DereferenceableOrNullBytes() const;
-		std::string AsString(bool in_attr_grp) const;
+		std::string GetAsString(bool in_attr_grp) const;
 
 		iterator begin() const
 		{

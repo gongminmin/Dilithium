@@ -49,6 +49,9 @@ namespace Dilithium
 	template <typename T>
 	struct OperandTraits;
 
+	class Constant;
+	class Instruction;
+
 	class User : public Value
 	{
 	public:
@@ -73,7 +76,7 @@ namespace Dilithium
 		void Operand(uint32_t idx, Value* val);
 
 		Use const & OperandUse(uint32_t idx) const;
-		Use& getOperandUse(uint32_t idx);
+		Use& OperandUse(uint32_t idx);
 
 		uint32_t NumOperands() const
 		{
@@ -113,6 +116,12 @@ namespace Dilithium
 		}
 
 		void DropAllReferences();
+
+		// Methods for support type inquiry through isa, cast, and dyn_cast:
+		static bool classof(Value const * v)
+		{
+			return isa<Instruction>(v) || isa<Constant>(v);
+		}
 
 	protected:
 		User(Type* ty, uint32_t vty, uint32_t num_ops, uint32_t num_uses);

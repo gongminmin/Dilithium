@@ -64,6 +64,11 @@ namespace Dilithium
 			return val_.ZExtValue();
 		}
 
+		MPInt const & GetValue() const
+		{
+			return val_;
+		}
+
 		static bool classof(Value const * val)
 		{
 			return val->GetValueId() == ConstantIntVal;
@@ -83,6 +88,11 @@ namespace Dilithium
 		static Constant* Get(Type* ty, double v);
 		static Constant* Get(Type* ty, std::string_view str);
 		static ConstantFP* Get(LLVMContext& context, MPFloat const & v);
+
+		MPFloat const & GetValueMPF() const
+		{
+			return val_;
+		}
 
 		static bool classof(Value const * val)
 		{

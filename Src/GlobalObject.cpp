@@ -45,21 +45,21 @@ namespace Dilithium
 		this->GlobalValueSubClassData(0);
 	}
 
-	uint32_t GlobalObject::Alignment() const
+	uint32_t GlobalObject::GetAlignment() const
 	{
 		uint32_t data = this->GlobalValueSubClassData();
 		uint32_t alignment_data = data & ALIGNMENT_MASK;
 		return (1U << alignment_data) >> 1;
 	}
 
-	void GlobalObject::Alignment(uint32_t align)
+	void GlobalObject::SetAlignment(uint32_t align)
 	{
 		BOOST_ASSERT_MSG((align & (align - 1)) == 0, "Alignment is not a power of 2!");
 		BOOST_ASSERT_MSG(align <= MAX_ALIGNMENT, "Alignment is greater than MAX_ALIGNMENT!");
 		uint32_t alignment_data = Log2_32(align) + 1;
 		uint32_t old_data = this->GlobalValueSubClassData();
 		this->GlobalValueSubClassData((old_data & ~ALIGNMENT_MASK) | alignment_data);
-		BOOST_ASSERT_MSG(this->Alignment() == align, "Alignment representation error!");
+		BOOST_ASSERT_MSG(this->GetAlignment() == align, "Alignment representation error!");
 	}
 
 	uint32_t GlobalObject::GlobalObjectSubClassData() const
@@ -75,9 +75,8 @@ namespace Dilithium
 		BOOST_ASSERT_MSG(this->GlobalObjectSubClassData() == val, "Representation error");
 	}
 
-	void GlobalObject::Section(std::string_view sec)
+	void GlobalObject::SetSection(std::string_view sec)
 	{
-		DILITHIUM_UNUSED(sec);
-		DILITHIUM_NOT_IMPLEMENTED;
+		section_ = std::string(sec);
 	}
 }

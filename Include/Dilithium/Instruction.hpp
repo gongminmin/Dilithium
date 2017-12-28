@@ -43,6 +43,7 @@
 namespace Dilithium
 {
 	class BasicBlock;
+	class MDNode;
 
 	class Instruction : public User
 	{
@@ -125,6 +126,19 @@ namespace Dilithium
 			return Opcode() == AShr;
 		}
 
+		bool HasMetadata() const
+		{
+			return this->HasMetadataHashEntry();
+		}
+		bool HasMetadataOtherThanDebugLoc() const
+		{
+			return this->HasMetadataHashEntry();
+		}
+		MDNode* GetMetadata(uint32_t kind_id) const;
+		MDNode* GetMetadata(std::string_view kind) const;
+		void GetAllMetadata(boost::container::small_vector_base<std::pair<uint32_t, MDNode*>>& mds) const;
+		void GetAllMetadataOtherThanDebugLoc(boost::container::small_vector_base<std::pair<uint32_t, MDNode*>>& mds) const;
+
 		static bool classof(Value const * v)
 		{
 			return v->GetValueId() >= Value::InstructionVal;
@@ -166,7 +180,9 @@ namespace Dilithium
 		{
 			this->SetValueSubclassData((this->GetSubclassDataFromValue() & ~HasMetadataBit) | (v ? HasMetadataBit : 0));
 		}
-
+		MDNode* GetMetadataImpl(uint32_t kind_id) const;
+		MDNode* GetMetadataImpl(std::string_view kind) const;
+		void GetAllMetadataImpl(boost::container::small_vector_base<std::pair<uint32_t, MDNode*>>& result) const;
 		void ClearMetadataHashEntries();
 
 	private:

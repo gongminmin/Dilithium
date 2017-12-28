@@ -47,7 +47,7 @@ namespace Dilithium
 			if (st)
 			{
 				auto elt_ty = st->ElementType(0);
-				if (!st->Name().find_first_of("class.matrix") == 0)
+				if (!st->Name().find("class.matrix") == 0)
 				{
 					return false;
 				}

@@ -45,7 +45,7 @@ namespace Dilithium
 		: GlobalObject(PointerType::Get(ty, 0), Value::FunctionVal, 0, 1, linkage, name),
 			ty_(ty)
 	{
-		BOOST_ASSERT_MSG(FunctionType::IsValidReturnType(this->ReturnType()), "invalid return type");
+		BOOST_ASSERT_MSG(FunctionType::IsValidReturnType(this->GetReturnType()), "invalid return type");
 		this->GlobalObjectSubClassData(0);
 
 		if (ty->NumParams())
@@ -81,13 +81,13 @@ namespace Dilithium
 		return this->NumOperands() != 0;
 	}
 
-	Constant* Function::PersonalityFn() const
+	Constant* Function::GetPersonalityFn() const
 	{
 		BOOST_ASSERT(this->HasPersonalityFn());
 		return cast<Constant>(this->Op<0>());
 	}
 
-	void Function::PersonalityFn(Constant* c)
+	void Function::SetPersonalityFn(Constant* c)
 	{
 		if (!c)
 		{
@@ -107,7 +107,7 @@ namespace Dilithium
 		}
 	}
 
-	Type* Function::ReturnType() const
+	Type* Function::GetReturnType() const
 	{
 		return ty_->ReturnType();
 	}
@@ -188,7 +188,7 @@ namespace Dilithium
 		return GetSubclassDataFromValue() & HasMetadataBit;
 	}
 
-	Constant* Function::PrefixData() const
+	Constant* Function::GetPrefixData() const
 	{
 		BOOST_ASSERT(this->HasPrefixData());
 		auto const & pd_map = this->Context().Impl().prefix_data_map;
@@ -196,7 +196,7 @@ namespace Dilithium
 		return cast<Constant>(pd_map.find(this)->second->ReturnValue());
 	}
 
-	void Function::PrefixData(Constant* prefix_data)
+	void Function::SetPrefixData(Constant* prefix_data)
 	{
 		if (!prefix_data && !this->HasPrefixData())
 		{
@@ -232,7 +232,7 @@ namespace Dilithium
 		return GetSubclassDataFromValue() & HasPrologueDataBit;
 	}
 
-	Constant* Function::PrologueData() const
+	Constant* Function::GetPrologueData() const
 	{
 		BOOST_ASSERT(this->HasPrologueData());
 
@@ -241,7 +241,7 @@ namespace Dilithium
 		return cast<Constant>(pd_map.find(this)->second->ReturnValue());
 	}
 
-	void Function::PrologueData(Constant* prologue_data)
+	void Function::SetPrologueData(Constant* prologue_data)
 	{
 		if (!prologue_data && !this->HasPrologueData())
 		{
@@ -283,12 +283,24 @@ namespace Dilithium
 
 		basic_blocks_.clear();
 
-		this->PrefixData(nullptr);
-		this->PrologueData(nullptr);
+		this->SetPrefixData(nullptr);
+		this->SetPrologueData(nullptr);
 
 		this->ClearMetadata();
 
-		this->PersonalityFn(nullptr);
+		this->SetPersonalityFn(nullptr);
+	}
+
+	void Function::GetAllMetadata(boost::container::small_vector_base<std::pair<uint32_t, MDNode*>>& mds) const
+	{
+		mds.clear();
+
+		if (!this->HasMetadata())
+		{
+			return;
+		}
+
+		Context().Impl().function_metadata[this].GetAll(mds);
 	}
 
 	void Function::CheckLazyArguments() const

@@ -43,10 +43,14 @@
 
 #include <Dilithium/Dilithium.hpp>
 
+#include <Dilithium/AsmWriter.hpp>
+#include <Dilithium/Constants.hpp>
 #include <Dilithium/DerivedType.hpp>
+#include <Dilithium/Instructions.hpp>
 
 #include <Dilithium/dxc/HLSL/DxilCBuffer.hpp>
 #include <Dilithium/dxc/HLSL/DxilContainer.hpp>
+#include <Dilithium/dxc/HLSL/DxilOperations.hpp>
 #include <Dilithium/dxc/HLSL/DxilPipelineStateValidation.hpp>
 #include <Dilithium/dxc/HLSL/DxilTypeSystem.hpp>
 #include <Dilithium/dxc/HLSL/DxilModule.hpp>
@@ -54,11 +58,200 @@
 #include <Dilithium/dxc/HLSL/DxilSampler.hpp>
 #include <Dilithium/dxc/HLSL/HLMatrixLowerHelper.hpp>
 
-
 using namespace Dilithium;
 
 namespace
 {
+	class DxcAssemblyAnnotationWriter : public AssemblyAnnotationWriter
+	{
+	public:
+		void PrintInfoComment(Value const & v, std::ostream& os) override
+		{
+			static char const * OpCodeSignatures[] =
+			{
+				"(index)",  // TempRegLoad
+				"(index,value)",  // TempRegStore
+				"(regIndex,index,component)",  // MinPrecXRegLoad
+				"(regIndex,index,component,value)",  // MinPrecXRegStore
+				"(inputSigId,rowIndex,colIndex,gsVertexAxis)",  // LoadInput
+				"(outputtSigId,rowIndex,colIndex,value)",  // StoreOutput
+				"(value)",  // FAbs
+				"(value)",  // Saturate
+				"(value)",  // IsNaN
+				"(value)",  // IsInf
+				"(value)",  // IsFinite
+				"(value)",  // IsNormal
+				"(value)",  // Cos
+				"(value)",  // Sin
+				"(value)",  // Tan
+				"(value)",  // Acos
+				"(value)",  // Asin
+				"(value)",  // Atan
+				"(value)",  // Hcos
+				"(value)",  // Hsin
+				"(value)",  // Exp
+				"(value)",  // Frc
+				"(value)",  // Log
+				"(value)",  // Sqrt
+				"(value)",  // Rsqrt
+				"(value)",  // Round_ne
+				"(value)",  // Round_ni
+				"(value)",  // Round_pi
+				"(value)",  // Round_z
+				"(value)",  // Bfrev
+				"(value)",  // Countbits
+				"(value)",  // FirstbitLo
+				"(value)",  // FirstbitHi
+				"(value)",  // FirstbitSHi
+				"(a,b)",  // FMax
+				"(a,b)",  // FMin
+				"(a,b)",  // IMax
+				"(a,b)",  // IMin
+				"(a,b)",  // UMax
+				"(a,b)",  // UMin
+				"(a,b)",  // IMul
+				"(a,b)",  // UMul
+				"(a,b)",  // UDiv
+				"(a,b)",  // IAddc
+				"(a,b)",  // UAddc
+				"(a,b)",  // ISubc
+				"(a,b)",  // USubc
+				"(a,b,c)",  // FMad
+				"(a,b,c)",  // Fma
+				"(a,b,c)",  // IMad
+				"(a,b,c)",  // UMad
+				"(a,b,c)",  // Msad
+				"(a,b,c)",  // Ibfe
+				"(a,b,c)",  // Ubfe
+				"(width,offset,value,replaceCount)",  // Bfi
+				"(ax,ay,bx,by)",  // Dot2
+				"(ax,ay,az,bx,by,bz)",  // Dot3
+				"(ax,ay,az,aw,bx,by,bz,bw)",  // Dot4
+				"(resourceClass,rangeId,index,nonUniformIndex)",  // CreateHandle
+				"(handle,byteOffset,alignment)",  // CBufferLoad
+				"(handle,regIndex)",  // CBufferLoadLegacy
+				"(srv,sampler,coord0,coord1,coord2,coord3,offset0,offset1,offset2,clamp)",  // Sample
+				"(srv,sampler,coord0,coord1,coord2,coord3,offset0,offset1,offset2,bias,clamp)",  // SampleBias
+				"(srv,sampler,coord0,coord1,coord2,coord3,offset0,offset1,offset2,LOD)",  // SampleLevel
+				"(srv,sampler,coord0,coord1,coord2,coord3,offset0,offset1,offset2,ddx0,ddx1,ddx2,ddy0,ddy1,ddy2,clamp)",  // SampleGrad
+				"(srv,sampler,coord0,coord1,coord2,coord3,offset0,offset1,offset2,compareValue,clamp)",  // SampleCmp
+				"(srv,sampler,coord0,coord1,coord2,coord3,offset0,offset1,offset2,compareValue)",  // SampleCmpLevelZero
+				"(srv,mipLevelOrSampleCount,coord0,coord1,coord2,offset0,offset1,offset2)",  // TextureLoad
+				"(srv,coord0,coord1,coord2,value0,value1,value2,value3,mask)",  // TextureStore
+				"(srv,index,wot)",  // BufferLoad
+				"(uav,coord0,coord1,value0,value1,value2,value3,mask)",  // BufferStore
+				"(uav,inc)",  // BufferUpdateCounter
+				"(status)",  // CheckAccessFullyMapped
+				"(handle,mipLevel)",  // GetDimensions
+				"(srv,sampler,coord0,coord1,coord2,coord3,offset0,offset1,channel)",  // TextureGather
+				"(srv,sampler,coord0,coord1,coord2,coord3,offset0,offset1,channel,compareVale)",  // TextureGatherCmp
+				"()",  // ToDelete5
+				"()",  // ToDelete6
+				"(srv,index)",  // Texture2DMSGetSamplePosition
+				"(index)",  // RenderTargetGetSamplePosition
+				"()",  // RenderTargetGetSampleCount
+				"(handle,atomicOp,offset0,offset1,offset2,newValue)",  // AtomicBinOp
+				"(handle,offset0,offset1,offset2,compareValue,newValue)",  // AtomicCompareExchange
+				"(barrierMode)",  // Barrier
+				"(handle,sampler,coord0,coord1,coord2,clamped)",  // CalculateLOD
+				"(condition)",  // Discard
+				"(value)",  // DerivCoarseX
+				"(value)",  // DerivCoarseY
+				"(value)",  // DerivFineX
+				"(value)",  // DerivFineY
+				"(inputSigId,inputRowIndex,inputColIndex,offsetX,offsetY)",  // EvalSnapped
+				"(inputSigId,inputRowIndex,inputColIndex,sampleIndex)",  // EvalSampleIndex
+				"(inputSigId,inputRowIndex,inputColIndex)",  // EvalCentroid
+				"(component)",  // ThreadId
+				"(component)",  // GroupId
+				"(component)",  // ThreadIdInGroup
+				"()",  // FlattenedThreadIdInGroup
+				"(streamId)",  // EmitStream
+				"(streamId)",  // CutStream
+				"(streamId)",  // EmitThenCutStream
+				"(lo,hi)",  // MakeDouble
+				"()",  // ToDelete1
+				"()",  // ToDelete2
+				"(value)",  // SplitDouble
+				"()",  // ToDelete3
+				"()",  // ToDelete4
+				"(inputSigId,row,col,index)",  // LoadOutputControlPoint
+				"(inputSigId,row,col)",  // LoadPatchConstant
+				"(component)",  // DomainLocation
+				"(outputSigID,row,col,value)",  // StorePatchConstant
+				"()",  // OutputControlPointID
+				"()",  // PrimitiveID
+				"()",  // CycleCounterLegacy
+				"(value)",  // Htan
+				"()",  // WaveCaptureReserved
+				"()",  // WaveIsFirstLane
+				"()",  // WaveGetLaneIndex
+				"()",  // WaveGetLaneCount
+				"()",  // WaveIsHelperLaneReserved
+				"(cond)",  // WaveAnyTrue
+				"(cond)",  // WaveAllTrue
+				"(value)",  // WaveActiveAllEqual
+				"(cond)",  // WaveActiveBallot
+				"(value,lane)",  // WaveReadLaneAt
+				"(value)",  // WaveReadLaneFirst
+				"(value,op,sop)",  // WaveActiveOp
+				"(value,op)",  // WaveActiveBit
+				"(value,op,sop)",  // WavePrefixOp
+				"()",  // WaveGetOrderedIndex
+				"()",  // GlobalOrderedCountIncReserved
+				"(value,quadLane)",  // QuadReadLaneAt
+				"(value,op)",  // QuadOp
+				"(value)",  // BitcastI16toF16
+				"(value)",  // BitcastF16toI16
+				"(value)",  // BitcastI32toF32
+				"(value)",  // BitcastF32toI32
+				"(value)",  // BitcastI64toF64
+				"(value)",  // BitcastF64toI64
+				"()",  // GSInstanceID
+				"(value)",  // LegacyF32ToF16
+				"(value)",  // LegacyF16ToF32
+				"(value)",  // LegacyDoubleToFloat
+				"(value)",  // LegacyDoubleToSInt32
+				"(value)",  // LegacyDoubleToUInt32
+				"(value)",  // WaveAllBitCount
+				"(value)",  // WavePrefixBitCount
+				"()",  // SampleIndex
+				"()",  // Coverage
+				"()"  // InnerCoverage
+			};
+
+			auto ci = dyn_cast<CallInst const>(&v);
+			if (!ci)
+			{
+				return;
+			}
+			// TODO: annotate high-level operations where possible as well
+			if ((ci->NumArgOperands() == 0) || (ci->CalledFunction()->Name().find("dx.op.") != 0))
+			{
+				return;
+			}
+			auto cint = dyn_cast<ConstantInt const>(ci->ArgOperand(0));
+			if (!cint)
+			{
+				// At this point, we know this is malformed; ignore.
+				return;
+			}
+
+			uint32_t opcode_val = static_cast<uint32_t>(cint->ZExtValue());
+			if (opcode_val >= static_cast<uint32_t>(OpCode::NumOpCodes))
+			{
+				os << "  ; invalid DXIL opcode #" << opcode_val;
+				return;
+			}
+
+			// TODO: if an argument references a resource, look it up and write the
+			// name/binding
+			OpCode opcode = static_cast<OpCode>(opcode_val);
+			os << "  ; " << OP::GetOpCodeName(opcode) << OpCodeSignatures[opcode_val];
+		}
+	};
+
+
 	template <typename T>
 	T const * ByteOffset(void const * p, uint32_t byte_offset)
 	{
@@ -1014,7 +1207,8 @@ std::string Disassemble(std::vector<uint8_t> const & program)
 			PrintResourceBindings(dxil_module, oss, ";");
 		}
 
-		//DILITHIUM_NOT_IMPLEMENTED;
+		DxcAssemblyAnnotationWriter w;
+		module->Print(oss, &w);
 
 		return oss.str();
 	}

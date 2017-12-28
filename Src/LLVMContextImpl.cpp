@@ -38,6 +38,30 @@
 
 namespace Dilithium
 {
+	MDNode* MDAttachmentMap::Lookup(uint32_t id) const
+	{
+		for (auto const & att : attachments_)
+		{
+			if (att.first == id)
+			{
+				return att.second;
+			}
+		}
+		return nullptr;
+	}
+
+	void MDAttachmentMap::GetAll(boost::container::small_vector_base<std::pair<uint32_t, MDNode*>>& result) const
+	{
+		result.insert(result.end(), attachments_.begin(), attachments_.end());
+
+		// Sort the resulting array so it is stable.
+		if (result.size() > 1)
+		{
+			std::sort(result.begin(), result.end());
+		}
+	}
+
+
 	LLVMContextImpl::LLVMContextImpl(LLVMContext& context)
 		: the_true_val(nullptr), the_false_val(nullptr),
 			void_ty(context, Type::TID_Void),

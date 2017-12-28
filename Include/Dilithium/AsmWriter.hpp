@@ -1,5 +1,5 @@
 /**
- * @file GlobalValue.cpp
+ * @file AsmWriter.hpp
  * @author Minmin Gong
  *
  * @section DESCRIPTION
@@ -32,44 +32,45 @@
  * THE SOFTWARE.
  */
 
-#include <Dilithium/Dilithium.hpp>
-#include <Dilithium/GlobalValue.hpp>
-#include <Dilithium/GlobalVariable.hpp>
-#include <Dilithium/DerivedType.hpp>
+#ifndef _DILITHIUM_ASM_WRITER_HPP
+#define _DILITHIUM_ASM_WRITER_HPP
 
-namespace Dilithium 
+#include <iosfwd>
+
+namespace Dilithium
 {
-	GlobalValue::GlobalValue(PointerType* ty, ValueTy vty, uint32_t num_ops, uint32_t num_uses, LinkageTypes linkage,
-		std::string_view name)
-		: Constant(ty, vty, num_ops, num_uses),
-			linkage_(linkage), visibility_(DefaultVisibility), unnamed_addr_(0), dll_storage_class_(DefaultStorageClass),
-			parent_(nullptr)
+	class BasicBlock;
+	class Function;
+	class Instruction;
+	class Value;
+
+	class AssemblyAnnotationWriter
 	{
-		this->Name(name);
-	}
+	public:
+		virtual ~AssemblyAnnotationWriter();
 
-	void GlobalValue::GlobalValueSubClassData(uint32_t v)
-	{
-		BOOST_ASSERT_MSG(v < (1U << GLOBAL_VALUE_SUB_CLASS_DATA_BITS), "It will not fit");
-		sub_class_data_ = v;
-	}
+		/// EmitFunctionAnnot - This may be implemented to emit a string right before
+		/// the start of a function.
+		virtual void EmitFunctionAnnot(Function const * func, std::ostream& os);
 
-	bool GlobalValue::IsDeclaration() const
-	{
-		// Globals are definitions if they have an initializer.
-		auto gv = dyn_cast<GlobalVariable>(this);
-		if (gv)
-		{
-			return gv->NumOperands() == 0;
-		}
+		/// EmitBasicBlockStartAnnot - This may be implemented to emit a string right
+		/// after the basic block label, but before the first instruction in the
+		/// block.
+		virtual void EmitBasicBlockStartAnnot(BasicBlock const * bb, std::ostream& os);
 
-		// Functions are definitions if they have a body.
-		auto func = dyn_cast<Function>(this);
-		if (func)
-		{
-			return func->empty() && !func->IsMaterializable();
-		}
+		/// EmitBasicBlockEndAnnot - This may be implemented to emit a string right
+		/// after the basic block.
+		virtual void EmitBasicBlockEndAnnot(BasicBlock const * bb, std::ostream& os);
 
-		DILITHIUM_UNREACHABLE("Alias is not defined");
-	}
+		/// EmitInstructionAnnot - This may be implemented to emit a string right
+		/// before an instruction is emitted.
+		virtual void EmitInstructionAnnot(Instruction const * inst, std::ostream& os);
+
+		/// PrintInfoComment - This may be implemented to emit a comment to the
+		/// right of an instruction or global value.
+		virtual void PrintInfoComment(Value const & value, std::ostream& os);
+	};
 }
+
+#endif		// _DILITHIUM_ASM_WRITER_HPP
+

@@ -46,6 +46,7 @@
 namespace Dilithium
 {
 	class BasicBlock;
+	class Function;
 	class FunctionType;
 	class LLVMContext;
 	class Value;
@@ -109,7 +110,24 @@ namespace Dilithium
 		static CallInst* Create(Value* func, std::string_view name, BasicBlock* insert_at_end);
 
 		TailCallKind GetTailCallKind() const;
+		bool IsTailCall() const;
+		bool IsMustTailCall() const;
+		void SetTailCall(bool is_tc = true);
 		void SetTailCallKind(TailCallKind tck);
+
+		uint32_t NumArgOperands() const
+		{
+			return this->NumOperands() - 1;
+		}
+
+		Value* ArgOperand(uint32_t idx) const
+		{
+			return this->Operand(idx);
+		}
+		void ArgOperand(uint32_t idx, Value* v)
+		{
+			this->Operand(idx, v);
+		}
 
 		CallingConv::ID GetCallingConv() const;
 		void SetCallingConv(CallingConv::ID cc);
@@ -121,6 +139,20 @@ namespace Dilithium
 		void SetAttributes(AttributeSet const & attrs)
 		{
 			attr_list_ = attrs;
+		}
+
+		Function const * CalledFunction() const
+		{
+			return dyn_cast<Function>(this->Op<-1>());
+		}
+
+		static bool classof(Instruction const * inst)
+		{
+			return inst->Opcode() == Instruction::Call;
+		}
+		static bool classof(Value const * v)
+		{
+			return isa<Instruction>(v) && classof(cast<Instruction>(v));
 		}
 
 		DEFINE_TRANSPARENT_OPERAND_ACCESSORS(CallInst, Value)

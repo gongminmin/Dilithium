@@ -16,6 +16,7 @@ SET(DXC_HLSL_HEADER_FILES
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/dxc/HLSL/DxilInterpolationMode.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/dxc/HLSL/DxilMdHelper.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/dxc/HLSL/DxilModule.hpp
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/dxc/HLSL/DxilOperations.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/dxc/HLSL/DxilPipelineStateValidation.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/dxc/HLSL/DxilResource.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/dxc/HLSL/DxilResourceBase.hpp
@@ -33,6 +34,7 @@ SET(DXC_HLSL_HEADER_FILES
 SET(HEADER_FILES
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Argument.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/ArrayRef.hpp
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/AsmWriter.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Attributes.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/BasicBlock.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/BitcodeReader.hpp
@@ -40,6 +42,7 @@ SET(HEADER_FILES
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/BitstreamReader.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/CallingConv.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Casting.hpp
+	${DILITHIUM_ROOT_DIR}/Include/Dilithium/CFG.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Compiler.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Constant.hpp
 	${DILITHIUM_ROOT_DIR}/Include/Dilithium/Constants.hpp
@@ -94,6 +97,7 @@ SET(HLSL_SOURCE_FILES
 	${DILITHIUM_ROOT_DIR}/Src/HLSL/DxilInterpolationMode.cpp
 	${DILITHIUM_ROOT_DIR}/Src/HLSL/DxilMdHelper.cpp
 	${DILITHIUM_ROOT_DIR}/Src/HLSL/DxilModule.cpp
+	${DILITHIUM_ROOT_DIR}/Src/HLSL/DxilOperations.cpp
 	${DILITHIUM_ROOT_DIR}/Src/HLSL/DxilResource.cpp
 	${DILITHIUM_ROOT_DIR}/Src/HLSL/DxilResourceBase.cpp
 	${DILITHIUM_ROOT_DIR}/Src/HLSL/DxilRootSignature.cpp
@@ -111,6 +115,7 @@ SET(SOURCE_FILES
 	${DILITHIUM_ROOT_DIR}/Src/Argument.cpp
 	${DILITHIUM_ROOT_DIR}/Src/AttributeImpl.cpp
 	${DILITHIUM_ROOT_DIR}/Src/Attributes.cpp
+	${DILITHIUM_ROOT_DIR}/Src/AsmWriter.cpp
 	${DILITHIUM_ROOT_DIR}/Src/BasicBlock.cpp
 	${DILITHIUM_ROOT_DIR}/Src/BitcodeReader.cpp
 	${DILITHIUM_ROOT_DIR}/Src/BitstreamReader.cpp

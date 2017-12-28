@@ -257,6 +257,41 @@ namespace Dilithium
 		return (opcode >= CastOpsBegin) && (opcode < CastOpsEnd);
 	}
 
+	MDNode* Instruction::GetMetadata(uint32_t kind_id) const
+	{
+		if (!this->HasMetadata())
+		{
+			return nullptr;
+		}
+		return this->GetMetadataImpl(kind_id);
+	}
+
+	MDNode* Instruction::GetMetadata(std::string_view kind) const
+	{
+		if (!this->HasMetadata())
+		{
+			return nullptr;
+		}
+		return this->GetMetadataImpl(kind);
+	}
+
+	void Instruction::GetAllMetadata(boost::container::small_vector_base<std::pair<uint32_t, MDNode*>>& mds) const
+	{
+		if (this->HasMetadata())
+		{
+			this->GetAllMetadataImpl(mds);
+		}
+	}
+
+	void Instruction::GetAllMetadataOtherThanDebugLoc(boost::container::small_vector_base<std::pair<uint32_t, MDNode*>>& mds) const
+	{
+		if (this->HasMetadataOtherThanDebugLoc())
+		{
+			// TODO: No debug loc
+			this->GetAllMetadataImpl(mds);
+		}
+	}
+
 	void Instruction::InstructionSubclassData(uint16_t d)
 	{
 		BOOST_ASSERT_MSG((d & HasMetadataBit) == 0, "Out of range value put into field");
@@ -266,6 +301,39 @@ namespace Dilithium
 	void Instruction::Parent(BasicBlock* parent)
 	{
 		parent_ = parent;
+	}
+
+	MDNode* Instruction::GetMetadataImpl(uint32_t kind_id) const
+	{
+		// Handle 'dbg' as a special case since it is not stored in the hash table.
+		if (kind_id == LLVMContext::MD_Dbg)
+		{
+			DILITHIUM_NOT_IMPLEMENTED;
+		}
+
+		if (!this->HasMetadataHashEntry())
+		{
+			return nullptr;
+		}
+		auto& info = this->Context().Impl().instruction_metadata[this];
+		BOOST_ASSERT_MSG(!info.empty(), "bit out of sync with hash table");
+
+		return info.Lookup(kind_id);
+	}
+
+	MDNode* Instruction::GetMetadataImpl(std::string_view kind) const
+	{
+		return this->GetMetadataImpl(this->Context().MdKindId(kind));
+	}
+
+	void Instruction::GetAllMetadataImpl(boost::container::small_vector_base<std::pair<uint32_t, MDNode*>>& result) const
+	{
+		result.clear();
+		BOOST_ASSERT_MSG(this->HasMetadataHashEntry() && this->Context().Impl().instruction_metadata.count(this),
+			"Shouldn't have called this");
+		const auto &Info = this->Context().Impl().instruction_metadata.find(this)->second;
+		BOOST_ASSERT_MSG(!Info.empty(), "Shouldn't have called this");
+		Info.GetAll(result);
 	}
 
 	void Instruction::ClearMetadataHashEntries()

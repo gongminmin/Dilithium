@@ -411,7 +411,7 @@ namespace Dilithium
 		return 0;
 	}
 
-	std::string AttributeSetNode::AsString(bool in_attr_grp) const
+	std::string AttributeSetNode::GetAsString(bool in_attr_grp) const
 	{
 		std::string ret;
 		for (auto iter = this->begin(), end_iter = this->end(); iter != end_iter; ++ iter)
@@ -420,7 +420,7 @@ namespace Dilithium
 			{
 				ret += ' ';
 			}
-			ret += iter->AsString(in_attr_grp);
+			ret += iter->GetAsString(in_attr_grp);
 		}
 		return ret;
 	}

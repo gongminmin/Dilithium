@@ -77,7 +77,7 @@ namespace Dilithium
 		return this->OperandList()[idx];
 	}
 
-	Use& User::getOperandUse(uint32_t idx)
+	Use& User::OperandUse(uint32_t idx)
 	{
 		BOOST_ASSERT_MSG(idx < num_user_operands_, "getOperandUse() out of range!");
 		return this->OperandList()[idx];

@@ -213,6 +213,20 @@ namespace Dilithium
 		return static_cast<TailCallKind>(this->SubclassDataFromInstruction() & 3);
 	}
 
+	bool CallInst::IsTailCall() const
+	{
+		return (this->SubclassDataFromInstruction() & 3) != TCK_None;
+	}
+	bool CallInst::IsMustTailCall() const
+	{
+		return (this->SubclassDataFromInstruction() & 3) == TCK_MustTail;
+	}
+	void CallInst::SetTailCall(bool is_tc)
+	{
+		this->InstructionSubclassData(static_cast<uint16_t>((this->SubclassDataFromInstruction() & ~3)
+			| static_cast<uint32_t>(is_tc ? TCK_Tail : TCK_None)));
+	}
+
 	void CallInst::SetTailCallKind(TailCallKind tck)
 	{
 		this->InstructionSubclassData(static_cast<uint16_t>((this->SubclassDataFromInstruction() & ~3) | static_cast<uint32_t>(tck)));

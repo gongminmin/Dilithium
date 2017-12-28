@@ -1140,7 +1140,7 @@ namespace
 
 						uint32_t alignment;
 						this->ParseAlignmentValue(record[5], alignment);
-						func->Alignment(alignment);
+						func->SetAlignment(alignment);
 						if (record[6])
 						{
 							if (record[6] - 1 >= section_tab.size())
@@ -1148,7 +1148,7 @@ namespace
 								this->Error("Invalid ID");
 								return;
 							}
-							func->Section(section_tab[record[6] - 1]);
+							func->SetSection(section_tab[record[6] - 1]);
 						}
 						// Local linkage must have default visibility.
 						if (!func->HasLocalLinkage())
@@ -2322,7 +2322,7 @@ namespace
 					Constant* c = dyn_cast_or_null<Constant>(value_list_[val_id]);
 					if (c)
 					{
-						func_prefix_worklist.back().first->PrefixData(c);
+						func_prefix_worklist.back().first->SetPrefixData(c);
 					}
 					else
 					{
@@ -2344,7 +2344,7 @@ namespace
 					Constant* c = dyn_cast_or_null<Constant>(value_list_[val_id]);
 					if (c)
 					{
-						func_prologue_worklist.back().first->PrologueData(c);
+						func_prologue_worklist.back().first->SetPrologueData(c);
 					}
 					else
 					{
@@ -2366,7 +2366,7 @@ namespace
 					Constant* c = dyn_cast_or_null<Constant>(value_list_[val_id]);
 					if (c)
 					{
-						func_personality_fn_worklist.back().first->PersonalityFn(c);
+						func_personality_fn_worklist.back().first->SetPersonalityFn(c);
 					}
 					else
 					{

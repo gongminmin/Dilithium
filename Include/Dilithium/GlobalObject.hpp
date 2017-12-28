@@ -46,19 +46,35 @@ namespace Dilithium
 	class GlobalObject : public GlobalValue
 	{
 	public:
-		uint32_t Alignment() const;
-		void Alignment(uint32_t align);
+		uint32_t GetAlignment() const;
+		void SetAlignment(uint32_t align);
 
 		uint32_t GlobalObjectSubClassData() const;
 		void GlobalObjectSubClassData(uint32_t val);
 
-		void Section(std::string_view sec);
+		bool HasSection() const
+		{
+			return !std::string_view(this->GetSection()).empty();
+		}
+		char const * GetSection() const
+		{
+			return section_.c_str();
+		}
+		void SetSection(std::string_view sec);
+		
+		// Methods for support type inquiry through isa, cast, and dyn_cast:
+		static bool classof(Value const * v)
+		{
+			return (v->GetValueId() == Value::FunctionVal) || (v->GetValueId() == Value::GlobalVariableVal);
+		}
 
 	protected:
 		GlobalObject(PointerType* ty, ValueTy vty, uint32_t num_ops, uint32_t num_uses, LinkageTypes linkage, std::string_view name);
 
 	protected:
 		static uint32_t constexpr ALIGNMENT_BITS = 5;
+
+		std::string section_;     // Section to emit this into, empty means default
 
 	private:
 		static uint32_t constexpr ALIGNMENT_MASK = (1U << ALIGNMENT_BITS) - 1;
