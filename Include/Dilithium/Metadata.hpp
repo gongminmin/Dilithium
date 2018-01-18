@@ -630,6 +630,11 @@ namespace Dilithium
 		uint32_t NumOperands() const;
 		void AddOperand(MDNode* mn);
 
+		std::string_view GetName() const
+		{
+			return std::string_view(name_);
+		}
+
 	private:
 		void Parent(LLVMModule* mod)
 		{

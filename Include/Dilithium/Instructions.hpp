@@ -109,6 +109,11 @@ namespace Dilithium
 		static CallInst* Create(Value* func, std::string_view name = "", Instruction* insert_before = nullptr);
 		static CallInst* Create(Value* func, std::string_view name, BasicBlock* insert_at_end);
 
+		FunctionType* GetFunctionType() const
+		{
+			return fty_;
+		}
+
 		TailCallKind GetTailCallKind() const;
 		bool IsTailCall() const;
 		bool IsMustTailCall() const;
@@ -146,6 +151,15 @@ namespace Dilithium
 			return dyn_cast<Function>(this->Op<-1>());
 		}
 
+		Value const * GetCalledValue() const
+		{
+			return this->Op<-1>();
+		}
+		Value* GetCalledValue()
+		{
+			return this->Op<-1>();
+		}
+
 		static bool classof(Instruction const * inst)
 		{
 			return inst->Opcode() == Instruction::Call;
@@ -174,6 +188,19 @@ namespace Dilithium
 		FunctionType* fty_;
 
 		// DILITHIUM_NOT_IMPLEMENTED
+	};
+
+	class InvokeInst : public TerminatorInst
+	{
+	public:
+		static bool classof(Instruction const * inst)
+		{
+			return inst->Opcode() == Instruction::Invoke;
+		}
+		static bool classof(Value const * v)
+		{
+			return isa<Instruction>(v) && classof(cast<Instruction>(v));
+		}
 	};
 }
 

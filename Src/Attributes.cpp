@@ -115,17 +115,17 @@ namespace Dilithium
 
 	bool Attribute::IsEnumAttribute() const
 	{
-		DILITHIUM_NOT_IMPLEMENTED;
+		return impl_ && impl_->IsEnumAttribute();
 	}
 
 	bool Attribute::IsIntAttribute() const
 	{
-		DILITHIUM_NOT_IMPLEMENTED;
+		return impl_ && impl_->IsIntAttribute();
 	}
 
 	bool Attribute::IsStringAttribute() const
 	{
-		DILITHIUM_NOT_IMPLEMENTED;
+		return impl_ && impl_->IsStringAttribute();
 	}
 
 	bool Attribute::HasAttribute(AttrKind kind) const
@@ -181,8 +181,244 @@ namespace Dilithium
 
 	std::string Attribute::GetAsString(bool in_attr_grp) const
 	{
-		DILITHIUM_UNUSED(in_attr_grp);
-		DILITHIUM_NOT_IMPLEMENTED;
+		if (!impl_)
+		{
+			return "";
+		}
+
+		if (this->HasAttribute(Attribute::AK_SanitizeAddress))
+		{
+			return "sanitize_address";
+		}
+		if (this->HasAttribute(Attribute::AK_AlwaysInline))
+		{
+			return "alwaysinline";
+		}
+		if (this->HasAttribute(Attribute::AK_ArgMemOnly))
+		{
+			return "argmemonly";
+		}
+		if (this->HasAttribute(Attribute::AK_Builtin))
+		{
+			return "builtin";
+		}
+		if (this->HasAttribute(Attribute::AK_ByVal))
+		{
+			return "byval";
+		}
+		if (this->HasAttribute(Attribute::AK_Convergent))
+		{
+			return "convergent";
+		}
+		if (this->HasAttribute(Attribute::AK_InAlloca))
+		{
+			return "inalloca";
+		}
+		if (this->HasAttribute(Attribute::AK_InlineHint))
+		{
+			return "inlinehint";
+		}
+		if (this->HasAttribute(Attribute::AK_InReg))
+		{
+			return "inreg";
+		}
+		if (this->HasAttribute(Attribute::AK_JumpTable))
+		{
+			return "jumptable";
+		}
+		if (this->HasAttribute(Attribute::AK_MinSize))
+		{
+			return "minsize";
+		}
+		if (this->HasAttribute(Attribute::AK_Naked))
+		{
+			return "naked";
+		}
+		if (this->HasAttribute(Attribute::AK_Nest))
+		{
+			return "nest";
+		}
+		if (this->HasAttribute(Attribute::AK_NoAlias))
+		{
+			return "noalias";
+		}
+		if (this->HasAttribute(Attribute::AK_NoBuiltin))
+		{
+			return "nobuiltin";
+		}
+		if (this->HasAttribute(Attribute::AK_NoCapture))
+		{
+			return "nocapture";
+		}
+		if (this->HasAttribute(Attribute::AK_NoDuplicate))
+		{
+			return "noduplicate";
+		}
+		if (this->HasAttribute(Attribute::AK_NoImplicitFloat))
+		{
+			return "noimplicitfloat";
+		}
+		if (this->HasAttribute(Attribute::AK_NoInline))
+		{
+			return "noinline";
+		}
+		if (this->HasAttribute(Attribute::AK_NonLazyBind))
+		{
+			return "nonlazybind";
+		}
+		if (this->HasAttribute(Attribute::AK_NonNull))
+		{
+			return "nonnull";
+		}
+		if (this->HasAttribute(Attribute::AK_NoRedZone))
+		{
+			return "noredzone";
+		}
+		if (this->HasAttribute(Attribute::AK_NoReturn))
+		{
+			return "noreturn";
+		}
+		if (this->HasAttribute(Attribute::AK_NoUnwind))
+		{
+			return "nounwind";
+		}
+		if (this->HasAttribute(Attribute::AK_OptimizeNone))
+		{
+			return "optnone";
+		}
+		if (this->HasAttribute(Attribute::AK_OptimizeForSize))
+		{
+			return "optsize";
+		}
+		if (this->HasAttribute(Attribute::AK_ReadNone))
+		{
+			return "readnone";
+		}
+		if (this->HasAttribute(Attribute::AK_ReadOnly))
+		{
+			return "readonly";
+		}
+		if (this->HasAttribute(Attribute::AK_Returned))
+		{
+			return "returned";
+		}
+		if (this->HasAttribute(Attribute::AK_ReturnsTwice))
+		{
+			return "returns_twice";
+		}
+		if (this->HasAttribute(Attribute::AK_SExt))
+		{
+			return "signext";
+		}
+		if (this->HasAttribute(Attribute::AK_StackProtect))
+		{
+			return "ssp";
+		}
+		if (this->HasAttribute(Attribute::AK_StackProtectReq))
+		{
+			return "sspreq";
+		}
+		if (this->HasAttribute(Attribute::AK_StackProtectStrong))
+		{
+			return "sspstrong";
+		}
+		if (this->HasAttribute(Attribute::AK_SafeStack))
+		{
+			return "safestack";
+		}
+		if (this->HasAttribute(Attribute::AK_StructRet))
+		{
+			return "sret";
+		}
+		if (this->HasAttribute(Attribute::AK_SanitizeThread))
+		{
+			return "sanitize_thread";
+		}
+		if (this->HasAttribute(Attribute::AK_SanitizeMemory))
+		{
+			return "sanitize_memory";
+		}
+		if (this->HasAttribute(Attribute::AK_UWTable))
+		{
+			return "uwtable";
+		}
+		if (this->HasAttribute(Attribute::AK_ZExt))
+		{
+			return "zeroext";
+		}
+		if (this->HasAttribute(Attribute::AK_Cold))
+		{
+			return "cold";
+		}
+
+		// FIXME: These should be output like this:
+		//
+		//   align=4
+		//   alignstack=8
+		//
+		if (this->HasAttribute(Attribute::AK_Alignment))
+		{
+			std::string Result;
+			Result += "align";
+			Result += in_attr_grp ? "=" : " ";
+			Result += std::to_string(this->ValueAsInt());
+			return Result;
+		}
+
+		auto AttrWithBytesToString = [&](char const * name)
+		{
+			std::string result;
+			result += name;
+			if (in_attr_grp)
+			{
+				result += "=";
+				result += std::to_string(this->ValueAsInt());
+			}
+			else
+			{
+				result += "(";
+				result += std::to_string(this->ValueAsInt());
+				result += ")";
+			}
+			return result;
+		};
+
+		if (this->HasAttribute(Attribute::AK_StackAlignment))
+		{
+			return AttrWithBytesToString("alignstack");
+		}
+
+		if (this->HasAttribute(Attribute::AK_Dereferenceable))
+		{
+			return AttrWithBytesToString("dereferenceable");
+		}
+
+		if (this->HasAttribute(Attribute::AK_DereferenceableOrNull))
+		{
+			return AttrWithBytesToString("dereferenceable_or_null");
+		}
+
+		// Convert target-dependent attributes to strings of the form:
+		//
+		//   "kind"
+		//   "kind" = "value"
+		//
+		if (this->IsStringAttribute())
+		{
+			std::string result;
+			result += '"' + std::string(this->KindAsString()) + '"';
+
+			std::string_view val = impl_->ValueAsString();
+			if (val.empty())
+			{
+				return result;
+			}
+
+			result += "=\"" + std::string(val) + '"';
+			return result;
+		}
+
+		DILITHIUM_UNREACHABLE("Unknown attribute");
 	}
 
 	bool Attribute::operator<(Attribute const & rhs) const

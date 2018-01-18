@@ -349,7 +349,6 @@ namespace
 		DILITHIUM_UNUSED(context);
 		DILITHIUM_UNUSED(machine);
 		DILITHIUM_UNUSED(type_printer);
-		DILITHIUM_NOT_IMPLEMENTED;
 
 		/*auto ba = dyn_cast<BlockAddress>(cv);
 		if (ba)
@@ -461,14 +460,15 @@ namespace
 		if (isa<ConstantPointerNull>(CV)) {
 			os << "null";
 			return;
-		}
+		}*/
 
-		if (isa<UndefValue>(CV)) {
+		if (isa<UndefValue>(cv))
+		{
 			os << "undef";
 			return;
 		}
 
-		if (const ConstantExpr *CE = dyn_cast<ConstantExpr>(CV)) {
+		/*if (const ConstantExpr *CE = dyn_cast<ConstantExpr>(CV)) {
 			os << CE->getOpcodeName();
 			WriteOptimizationInfo(Out, CE);
 			if (CE->isCompare())
@@ -504,9 +504,11 @@ namespace
 
 			os << ')';
 			return;
-		}
+		}*/
 
-		os << "<placeholder or erroneous Constant>";*/
+		os << "<placeholder or erroneous Constant>";
+
+		DILITHIUM_NOT_IMPLEMENTED;
 	}
 
 	void WriteAsOperandInternal(std::ostream& os, Metadata const * md, TypePrinting* type_printer, SlotTracker* machine,
@@ -564,13 +566,21 @@ namespace
 		}
 		int GetMetadataSlot(MDNode const * n)
 		{
-			DILITHIUM_UNUSED(n);
-			DILITHIUM_NOT_IMPLEMENTED;
+			// Check for uninitialized state and do lazy initialization.
+			this->Initialize();
+
+			// Find the MDNode in the module map
+			auto iter = mdn_map_.find(n);
+			return iter == mdn_map_.end() ? -1 : static_cast<int>(iter->second);
 		}
 		int GetAttributeGroupSlot(AttributeSet as)
 		{
-			DILITHIUM_UNUSED(as);
-			DILITHIUM_NOT_IMPLEMENTED;
+			// Check for uninitialized state and do lazy initialization.
+			this->Initialize();
+
+			// Find the AttributeSet in the module map.
+			auto iter = as_map_.find(as);
+			return iter == as_map_.end() ? -1 : static_cast<int>(iter->second);
 		}
 
 		/// If you'd like to deal with a function instead of just a module, use
@@ -591,7 +601,9 @@ namespace
 		/// will reset the state of the machine back to just the module contents.
 		void PurgeFunction()
 		{
-			DILITHIUM_NOT_IMPLEMENTED;
+			function_map_.clear(); // Simply discard the function level map
+			function_ = nullptr;
+			function_processed_ = false;
 		}
 
 		/// MDNode map iterators.
@@ -790,8 +802,12 @@ namespace
 					}
 					else
 					{
-						// TODO: Process InvokeInst
-						DILITHIUM_NOT_IMPLEMENTED;
+						auto const * ii = dyn_cast<InvokeInst>(inst.get());
+						if (ii)
+						{
+							// TODO: Process InvokeInst
+							DILITHIUM_NOT_IMPLEMENTED;
+						}
 					}
 				}
 			}
@@ -1347,6 +1363,67 @@ namespace
 		return std::unique_ptr<SlotTracker>();
 	}
 
+	void WriteMDTuple(std::ostream& os, MDTuple const * node, TypePrinting* type_printer, SlotTracker* machine,
+		LLVMModule const * context)
+	{
+		os << "!{";
+		for (uint32_t mi = 0, me = node->NumOperands(); mi != me; ++ mi)
+		{
+			Metadata const* md = node->Operand(mi);
+			if (!md)
+			{
+				os << "null";
+			}
+			else
+			{
+				auto mdv = dyn_cast<ValueAsMetadata>(md);
+				if (mdv)
+				{
+					auto v = mdv->GetValue();
+					type_printer->Print(v->GetType(), os);
+					os << ' ';
+					WriteAsOperandInternal(os, v, type_printer, machine, context);
+				}
+				else
+				{
+					WriteAsOperandInternal(os, md, type_printer, machine, context);
+				}
+			}
+
+			if (mi + 1 != me)
+			{
+				os << ", ";
+			}
+		}
+
+		os << "}";
+	}
+
+	void WriteMDNodeBodyInternal(std::ostream& os, MDNode const * node, TypePrinting* type_printer, SlotTracker* machine,
+		LLVMModule const * context)
+	{
+		if (node->IsDistinct())
+		{
+			os << "distinct ";
+		}
+		else if (node->IsTemporary())
+		{
+			os << "<temporary!> "; // Handle broken code.
+		}
+
+		switch (node->MetadataId())
+		{
+		default:
+			DILITHIUM_UNREACHABLE("Expected uniquable MDNode");
+#define HANDLE_MDNODE_LEAF(CLASS)													\
+		case Metadata::CLASS##Kind:													\
+			Write##CLASS(os, cast<CLASS>(node), type_printer, machine, context);	\
+			break;
+#include "Dilithium/Metadata.inc"
+		}
+	}
+
+
 	// Full implementation of printing a Value as an operand with support for
 	// TypePrinting, etc.
 	void WriteAsOperandInternal(std::ostream& os, Value const * v, TypePrinting* type_printer, SlotTracker* machine,
@@ -1471,6 +1548,7 @@ namespace
 		auto v = cast<ValueAsMetadata>(md);
 		BOOST_ASSERT_MSG(type_printer, "TypePrinter required for metadata values");
 		BOOST_ASSERT_MSG(from_value || !isa<LocalAsMetadata>(v), "Unexpected function-local metadata outside of value argument");
+		DILITHIUM_UNUSED(from_value);
 
 		type_printer->Print(v->GetValue()->GetType(), os);
 		os << ' ';
@@ -1486,12 +1564,32 @@ namespace
 			this->Init();
 		}
 
-		void PrintMDNodeBody(MDNode const * md);
+		void PrintMDNodeBody(MDNode const * node)
+		{
+			WriteMDNodeBodyInternal(os_, node, &type_printer_, &machine_, module_);
+		}
 		void PrintNamedMDNode(NamedMDNode const * nmd)
 		{
-			DILITHIUM_UNUSED(nmd);
-
-			DILITHIUM_NOT_IMPLEMENTED;
+			os_ << '!';
+			PrintMetadataIdentifier(nmd->GetName(), os_);
+			os_ << " = !{";
+			for (uint32_t i = 0, e = nmd->NumOperands(); i != e; ++ i)
+			{
+				if (i)
+				{
+					os_ << ", ";
+				}
+				int slot = machine_.GetMetadataSlot(nmd->Operand(i));
+				if (slot == -1)
+				{
+					os_ << "<badref>";
+				}
+				else
+				{
+					os_ << '!' << slot;
+				}
+			}
+			os_ << "}\n";
 		}
 
 		void PrintModule(LLVMModule const * module)
@@ -1552,34 +1650,73 @@ namespace
 
 		void WriteOperand(Value const * op, bool print_type)
 		{
-			DILITHIUM_UNUSED(op);
-			DILITHIUM_UNUSED(print_type);
-
-			DILITHIUM_NOT_IMPLEMENTED;
+			if (!op)
+			{
+				os_ << "<null operand!>";
+				return;
+			}
+			if (print_type)
+			{
+				type_printer_.Print(op->GetType(), os_);
+				os_ << ' ';
+			}
+			WriteAsOperandInternal(os_, op, &type_printer_, &machine_, module_);
 		}
-		void WriteParamOperand(Value const * operand, AttributeSet attrs, uint32_t idx)
+		void WriteParamOperand(Value const * op, AttributeSet attrs, uint32_t idx)
 		{
-			DILITHIUM_UNUSED(operand);
-			DILITHIUM_UNUSED(attrs);
-			DILITHIUM_UNUSED(idx);
+			if (!op)
+			{
+				os_ << "<null operand!>";
+				return;
+			}
 
-			DILITHIUM_NOT_IMPLEMENTED;
+			// Print the type
+			type_printer_.Print(op->GetType(), os_);
+			// Print parameter attributes list
+			if (attrs.HasAttributes(idx))
+			{
+				os_ << ' ' << attrs.GetAsString(idx);
+			}
+			os_ << ' ';
+			// Print the operand
+			WriteAsOperandInternal(os_, op, &type_printer_, &machine_, module_);
 		}
 
 		void WriteAllMDNodes()
 		{
-			DILITHIUM_NOT_IMPLEMENTED;
+			boost::container::small_vector<const MDNode *, 16> nodes;
+			nodes.resize(machine_.MdnSize());
+			for (auto iter = machine_.MdnBegin(), end_iter = machine_.MdnEnd(); iter != end_iter; ++iter)
+			{
+				nodes[iter->second] = cast<MDNode>(iter->first);
+			}
+
+			for (uint32_t i = 0, e = static_cast<uint32_t>(nodes.size()); i != e; ++ i)
+			{
+				this->WriteMDNode(i, nodes[i]);
+			}
 		}
 		void WriteMDNode(uint32_t slot, MDNode const * node)
 		{
-			DILITHIUM_UNUSED(slot);
-			DILITHIUM_UNUSED(node);
-
-			DILITHIUM_NOT_IMPLEMENTED;
+			os_ << '!' << slot << " = ";
+			this->PrintMDNodeBody(node);
+			os_ << "\n";
 		}
 		void WriteAllAttributeGroups()
 		{
-			DILITHIUM_NOT_IMPLEMENTED;
+			std::vector<std::pair<AttributeSet, uint32_t>> as_vec;
+			as_vec.resize(machine_.AsSize());
+
+			for (auto iter = machine_.AsBegin(), end_iter = machine_.AsEnd(); iter != end_iter; ++iter)
+			{
+				as_vec[iter->second] = *iter;
+			}
+
+			for (auto iter = as_vec.begin(), end_iter = as_vec.end(); iter != end_iter; ++ iter)
+			{
+				os_ << "attributes #" << iter->second << " = { "
+					<< iter->first.GetAsString(AttributeSet::AI_FunctionIndex, true) << " }\n";
+			}
 		}
 
 		void PrintTypeIdentities()
@@ -1921,16 +2058,18 @@ namespace
 				}
 			}
 
-			auto const * ci = dyn_cast<CallInst>(&inst);
-			if (ci)
 			{
-				if (ci->IsMustTailCall())
+				auto const * ci = dyn_cast<CallInst>(&inst);
+				if (ci)
 				{
-					os_ << "musttail ";
-				}
-				else if (ci->IsTailCall())
-				{
-					os_ << "tail ";
+					if (ci->IsMustTailCall())
+					{
+						os_ << "musttail ";
+					}
+					else if (ci->IsTailCall())
+					{
+						os_ << "tail ";
+					}
 				}
 			}
 
@@ -1938,7 +2077,71 @@ namespace
 			os_ << inst.OpcodeName();
 
 			// TODO: more instructions
-			DILITHIUM_NOT_IMPLEMENTED;
+
+			// Print out the type of the operands...
+			auto const * operand = inst.NumOperands() ? inst.Operand(0) : nullptr;
+
+			{
+				auto const * ci = dyn_cast<CallInst>(&inst);
+				if (ci)
+				{
+					// Print the calling convention being used.
+					BOOST_ASSERT(ci->GetCallingConv() == CallingConv::C);
+
+					operand = ci->GetCalledValue();
+					auto fty = cast<FunctionType>(ci->GetFunctionType());
+					auto ret_ty = fty->ReturnType();
+					auto const & pal = ci->GetAttributes();
+
+					if (pal.HasAttributes(AttributeSet::AI_ReturnIndex))
+					{
+						os_ << ' ' << pal.GetAsString(AttributeSet::AI_ReturnIndex);
+					}
+
+					// If possible, print out the short form of the call instruction.  We can
+					// only do this if the first argument is a pointer to a nonvararg function,
+					// and if the return type is not a pointer to a function.
+					//
+					os_ << ' ';
+					type_printer_.Print(fty->IsVarArg() ? fty : ret_ty, os_);
+					os_ << ' ';
+					this->WriteOperand(operand, false);
+					os_ << '(';
+					for (uint32_t op = 0, end_op = ci->NumArgOperands(); op < end_op; ++op)
+					{
+						if (op > 0)
+						{
+							os_ << ", ";
+						}
+						this->WriteParamOperand(ci->ArgOperand(op), pal, op + 1);
+					}
+
+					// Emit an ellipsis if this is a musttail call in a vararg function.  This
+					// is only to aid readability, musttail calls forward varargs by default.
+					if (ci->IsMustTailCall() && ci->Parent()
+						&& ci->Parent()->Parent()
+						&& ci->Parent()->Parent()->IsVarArg())
+					{
+						os_ << ", ...";
+					}
+
+					os_ << ')';
+					if (pal.HasAttributes(AttributeSet::AI_FunctionIndex))
+					{
+						os_ << " #" << machine_.GetAttributeGroupSlot(pal.GetFnAttributes());
+					}
+				}
+
+				// TODO: More instructions
+			}
+
+			// Print Metadata info.
+			boost::container::small_vector<std::pair<uint32_t, MDNode*>, 4> inst_md;
+			inst.GetAllMetadata(inst_md);
+			this->PrintMetadataAttachments(inst_md, ", ");
+
+			// Print a nice comment.
+			this->PrintInfoComment(inst);
 		}
 
 	private:
@@ -1984,9 +2187,10 @@ namespace
 		// which slot it occupies.
 		void PrintInfoComment(Value const & val)
 		{
-			DILITHIUM_UNUSED(val);
-
-			DILITHIUM_NOT_IMPLEMENTED;
+			if (annotation_writer_)
+			{
+				annotation_writer_->PrintInfoComment(val, os_);
+			}
 		}
 
 	private:
